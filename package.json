@@ -1,0 +1,38 @@
+{
+  "name": "homebridge-tado-platform",
+  "version": "4.0.0",
+  "description": "homebridge-tado-platform",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SeydX/homebridge-tado-platform.git"
+  },
+  "author": "SeydX (https://github.com/SeydX/homebridge-tado-platform)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SeydX/homebridge-tado-platform/issues"
+  },
+  "homepage": "https://github.com/SeydX/homebridge-tado-platform#readme",
+  "keywords": [
+    "tado",
+    "thermostat",
+    "homebridge",
+    "homebridge-plugin",
+    "plugin",
+    "boiler"
+  ],
+  "engines": {
+    "node": "^8.9.1",
+    "homebridge": "^0.4.38"
+  },
+  "dependencies": {
+    "node-persist": "0.0.8",
+    "async": "2.6.0",
+    "fakegato-history": "^0.5.1",
+    "moment": "^2.22.1"
+  }
+}
