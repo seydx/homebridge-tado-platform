@@ -36,10 +36,12 @@ class TADO {
     });
     
     this.types = {
-      thermostat: 1,
+      radiatorThermostat: 1,
       central: 2,
       occupancy: 3,
-      weather: 4
+      weather: 4,
+      boilerThermostat: 5,
+      remoteThermostat: 6
     };
 
     // Error count
@@ -109,6 +111,16 @@ class TADO {
         deviceType = Accessory.Categories.SENSOR;
         accessoryType = Service.TemperatureSensor;
         break;
+      case 5:
+        name = parameter.name;
+        deviceType = Accessory.Categories.THERMOSTAT;
+        accessoryType = Service.Thermostat;
+        break;
+      case 6:
+        name = parameter.name;
+        deviceType = Accessory.Categories.THERMOSTAT;
+        accessoryType = Service.Thermostat;
+        break;
       default:
         break;
     }
@@ -120,7 +132,7 @@ class TADO {
 
     accessory = new PlatformAccessory(name, uuid, deviceType);
     accessory.addService(accessoryType, name);
-    if(parameter.type == self.types.thermostat)accessory.addService(Service.BatteryService);
+    if(parameter.type==self.types.radiatorThermostat||parameter.type == self.types.remoteThermostat)accessory.addService(Service.BatteryService);
 
     // Setting reachable to true
     accessory.reachable = true;
@@ -135,7 +147,7 @@ class TADO {
     accessory.context.tempUnit == 'CELSIUS' ? accessory.context.tempUnitState = 0 : accessory.context.tempUnitState = 1;
     
     //Accessory Information
-    accessory.context.serialNo = parameter.serialNo;
+    accessory.context.shortSerialNo = parameter.shortSerialNo;
     accessory.context.type = parameter.type;
     accessory.context.model = parameter.model;
     
@@ -178,6 +190,35 @@ class TADO {
       case 4:
         accessory.context.lastWeatherTemperature = 0.00;
         break;
+      case 5:
+        //TODO
+        break;
+      case 6:
+        accessory.context.zoneID = parameter.zoneID;
+        accessory.context.heatValue = 5;
+        accessory.context.coolValue = 5;
+        accessory.context.delayTimer = 0;
+        if(accessory.context.tempUnit == 'CELSIUS'){
+          accessory.context.minValue = 5;
+          accessory.context.maxValue = 25;
+        } else {
+          accessory.context.minValue = 41;
+          accessory.context.maxValue = 71;
+        }
+        accessory.context.batteryState = parameter.batteryState;
+        if(accessory.context.batteryState == 'NORMAL'){
+          accessory.context.batteryLevel = 100;
+          accessory.context.batteryStatus = 0;
+        } else {
+          accessory.context.batteryLevel = 10;
+          accessory.context.batteryStatus = 1;
+        }
+        accessory.context.lastCurrentTemp = 0;
+        accessory.context.lastTargetTemp = 5;
+        accessory.context.lastHumidity = 0;
+        accessory.context.lastCurrentState = 0;
+        accessory.context.lastTargetState = 0;
+        break;
       default:
         break;
     }
@@ -187,7 +228,7 @@ class TADO {
       .setCharacteristic(Characteristic.Identify, parameter.name)
       .setCharacteristic(Characteristic.Manufacturer, 'SeydX')
       .setCharacteristic(Characteristic.Model, parameter.model)
-      .setCharacteristic(Characteristic.SerialNumber, parameter.serialNo)
+      .setCharacteristic(Characteristic.SerialNumber, parameter.shortSerialNo)
       .setCharacteristic(Characteristic.FirmwareRevision, require('../package.json').version);
       
     //FakeGato
@@ -197,7 +238,7 @@ class TADO {
       accessory.context.loggingTimer = parameter.loggingTimer;
       accessory.context.loggingOptions = {storage:'fs',path:self.HBpath, disableTimer: accessory.context.loggingTimer};
       accessory.context.loggingService = new FakeGatoHistoryService(accessory.context.loggingType,accessory,accessory.context.loggingOptions);
-      accessory.context.loggingService.subtype = parameter.serialNo;
+      accessory.context.loggingService.subtype = parameter.shortSerialNo;
     }
 
     // Publish
@@ -356,6 +397,83 @@ class TADO {
         self.getWeather(accessory, service);      
         break;
       }
+      case 5:{
+        break;
+      }
+      case 6:{
+        service = accessory.getService(Service.Thermostat);
+        battery = accessory.getService(Service.BatteryService);
+
+        if (!service.testCharacteristic(Characteristic.HeatValue))service.addCharacteristic(Characteristic.HeatValue);
+        service.getCharacteristic(Characteristic.HeatValue)
+          .setProps({
+            minValue: 0,
+            maxValue: 10,
+            minStep: 1
+          })
+          .updateValue(accessory.context.heatValue);
+          
+        if (!service.testCharacteristic(Characteristic.CoolValue))service.addCharacteristic(Characteristic.CoolValue);
+        service.getCharacteristic(Characteristic.CoolValue)
+          .setProps({
+            minValue: 0,
+            maxValue: 10,
+            minStep: 1
+          })
+          .updateValue(accessory.context.coolValue);
+          
+        if (!service.testCharacteristic(Characteristic.DelayTimer))service.addCharacteristic(Characteristic.DelayTimer);
+        service.getCharacteristic(Characteristic.DelayTimer)
+          .setProps({
+            minValue: 0,
+            maxValue: 600,
+            minStep: 1
+          })
+          .updateValue(accessory.context.delayTimer);
+
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)
+          .updateValue(accessory.context.lastCurrentState);
+            
+        service.getCharacteristic(Characteristic.TargetHeatingCoolingState)
+          .updateValue(accessory.context.lastTargetState)
+          .on('set', self.setThermostatState.bind(this, accessory, service));
+            
+        service.getCharacteristic(Characteristic.CurrentTemperature)
+          .setProps({
+            minValue: -100,
+            maxValue: 100,
+            minStep: 0.01
+          })
+          .updateValue(accessory.context.lastCurrentTemp);
+            
+        service.getCharacteristic(Characteristic.TargetTemperature)
+          .setProps({
+            minValue: accessory.context.minValue,
+            maxValue: accessory.context.maxValue,
+            minStep: 1
+          })
+          .updateValue(accessory.context.lastTargetTemp)
+          .on('set', self.setThermostatTemp.bind(this, accessory, service));
+            
+        service.getCharacteristic(Characteristic.TemperatureDisplayUnits)
+          .updateValue(accessory.context.tempUnitState); // 0 = C ; 1 = F
+            
+        service.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+          .updateValue(accessory.context.lastHumidity);
+            
+        battery.getCharacteristic(Characteristic.ChargingState)
+          .updateValue(2); //Not chargable
+
+        battery.getCharacteristic(Characteristic.BatteryLevel)
+          .updateValue(accessory.context.batteryLevel);
+
+        battery.getCharacteristic(Characteristic.StatusLowBattery)
+          .updateValue(accessory.context.batteryStatus);
+            
+        self.getThermoSettings(accessory, service, battery);
+        self.getThermoStates(accessory, service, battery);
+        break;
+      }
     } setTimeout(function(){self.getHistory(accessory, service, type);},5000); //Wait for FakeGato
   }
   
@@ -422,6 +540,22 @@ class TADO {
               temp: accessory.context.lastWeatherTemperature,
               pressure: 0,
               humidity: 0
+            });
+          }
+          break;
+        }
+        case 5:{ //THERMOSTAT
+          break;
+        }
+        case 6:{ //THERMOSTAT
+          historyTimer = 60 * 1000; //1min
+          if(accessory.context.lastCurrentTemp != latestTemp){
+            self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastCurrentTemp);
+            accessory.context.loggingService.addEntry({
+              time: moment().unix(),
+              temp: accessory.context.lastCurrentTemp,
+              pressure: 0,
+              humidity: accessory.context.lastHumidity
             });
           }
           break;
@@ -771,7 +905,7 @@ class TADO {
     accessory.context.lastManuals = 0;
     accessory.context.lastOffs = 0;
     for(const i in allAccessories){
-      if(allAccessories[i].context.type == self.types.thermostat){
+      if(allAccessories[i].context.type==self.types.radiatorThermostat||allAccessories[i].context.type==self.types.remoteThermostat){
         const state = allAccessories[i].getService(Service.Thermostat).getCharacteristic(Characteristic.TargetHeatingCoolingState).value;
         if(state == 3){
           accessory.context.lastAutos += 1;
@@ -804,7 +938,7 @@ class TADO {
     const self = this;
     const allAccessories = self.accessories;
     for(const i in allAccessories){
-      if(allAccessories[i].context.type == self.types.thermostat){
+      if(allAccessories[i].context.type==self.types.radiatorThermostat||allAccessories[i].context.type==self.types.remoteThermostat){
         if(state){
           allAccessories[i].context.lastTargetState = 3;
           allAccessories[i].context.lastCurrentState = 0;
