@@ -90,7 +90,10 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
     "polling": 10,
     "centralSwitch":true,
     "occupancy":true,
-    "weather": true
+    "weather": true,
+    "radiatorThermostat":true,
+    "boilerThermostat":true,
+    "remoteThermostat":true
     }
   ]
 }
@@ -109,6 +112,9 @@ See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/mast
 | weather | No | Exposes temperature sensors for your location based on tado (Default: false) | |
 | occupancy | No | Exposes occupancy/motion sensors for all registred persons (Default: false) | 
 | centralSwitch | No | Exposes a switch to turning on/off all thermostats with just one click! (Default: true) |
+| radiatorThermostat | No | Exposes new thermostat accessory for radiator thermostat (Default: true) | 
+| boilerThermostat | No | Exposes new thermostat accessory for boiler thermostat (Default: false) | 
+| remoteThermostat | No | Exposes new thermostat accessory for remote thermostat (Default: false) | 
 
 
 ## In App settings
@@ -138,7 +144,7 @@ This plugin has been verified to work with the following apps on iOS 11.3:
 ///
 
 ### TODO:
-- [ ] Support more types: Boiler(BU01) and remote thermostat(RU01)
+- [ ] Support more types: Boiler(BU01) and remote thermostat(RU01) (in work)
 - [ ] New Accessory: Window Sensor (based on open window detection)
 - [ ] More functions for weather sensor combined with OpenWeather API
 - [ ] DEBUG
