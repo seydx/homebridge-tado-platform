@@ -11,7 +11,7 @@ module.exports = {
     // AutoThermostats Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.AutoThermostats = function() {
-      Characteristic.call(this, "State (auto)", "12edece0-36c8-427f-895c-3b88ea186388");
+      Characteristic.call(this, 'State (auto)', '12edece0-36c8-427f-895c-3b88ea186388');
       this.setProps({
         format: Characteristic.Formats.INT,
         maxValue: 100,
@@ -22,13 +22,13 @@ module.exports = {
       this.value = this.getDefaultValue();
     };
     inherits(Characteristic.AutoThermostats, Characteristic);
-    Characteristic.AutoThermostats.UUID = "12edece0-36c8-427f-895c-3b88ea186388";
+    Characteristic.AutoThermostats.UUID = '12edece0-36c8-427f-895c-3b88ea186388';
     
     /// /////////////////////////////////////////////////////////////////////////
     // ManualThermostats Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.ManualThermostats = function() {
-      Characteristic.call(this, "State (manual)", "2be09385-4dc3-4438-9fee-b5b2e0642004");
+      Characteristic.call(this, 'State (manual)', '2be09385-4dc3-4438-9fee-b5b2e0642004');
       this.setProps({
         format: Characteristic.Formats.INT,
         maxValue: 100,
@@ -39,13 +39,13 @@ module.exports = {
       this.value = this.getDefaultValue();
     };
     inherits(Characteristic.ManualThermostats, Characteristic);
-    Characteristic.ManualThermostats.UUID = "2be09385-4dc3-4438-9fee-b5b2e0642004";
+    Characteristic.ManualThermostats.UUID = '2be09385-4dc3-4438-9fee-b5b2e0642004';
     
     /// /////////////////////////////////////////////////////////////////////////
     // OfflineThermostats Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.OfflineThermostats = function() {
-      Characteristic.call(this, "State (off)", "93131984-615c-401b-84ac-54e22db492c6");
+      Characteristic.call(this, 'State (off)', '93131984-615c-401b-84ac-54e22db492c6');
       this.setProps({
         format: Characteristic.Formats.INT,
         maxValue: 100,
@@ -56,7 +56,7 @@ module.exports = {
       this.value = this.getDefaultValue();
     };
     inherits(Characteristic.OfflineThermostats, Characteristic);
-    Characteristic.OfflineThermostats.UUID = "93131984-615c-401b-84ac-54e22db492c6";
+    Characteristic.OfflineThermostats.UUID = '93131984-615c-401b-84ac-54e22db492c6';
     
     /// /////////////////////////////////////////////////////////////////////////
     // DummSwitch Characteristic
