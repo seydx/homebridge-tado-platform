@@ -223,23 +223,40 @@ class TADO {
       self.log(accessory.displayName + ': Identify!!!');
       callback();
     });
+    
+    var service, battery;
 
     switch (type) {
       case 1: { // thermostats
       
-        let service = accessory.getService(Service.Thermostat);
-        let battery = accessory.getService(Service.BatteryService);
+        service = accessory.getService(Service.Thermostat);
+        battery = accessory.getService(Service.BatteryService);
 
         if (!service.testCharacteristic(Characteristic.HeatValue))service.addCharacteristic(Characteristic.HeatValue);
         service.getCharacteristic(Characteristic.HeatValue)
+          .setProps({
+            minValue: 0,
+            maxValue: 10,
+            minStep: 1
+          })
           .updateValue(accessory.context.heatValue);
           
         if (!service.testCharacteristic(Characteristic.CoolValue))service.addCharacteristic(Characteristic.CoolValue);
         service.getCharacteristic(Characteristic.CoolValue)
+          .setProps({
+            minValue: 0,
+            maxValue: 10,
+            minStep: 1
+          })
           .updateValue(accessory.context.coolValue);
           
         if (!service.testCharacteristic(Characteristic.DelayTimer))service.addCharacteristic(Characteristic.DelayTimer);
         service.getCharacteristic(Characteristic.DelayTimer)
+          .setProps({
+            minValue: 0,
+            maxValue: 600,
+            minStep: 1
+          })
           .updateValue(accessory.context.delayTimer);
 
         service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)
@@ -253,7 +270,7 @@ class TADO {
           .setProps({
             minValue: -100,
             maxValue: 100,
-            minStep: 1
+            minStep: 0.01
           })
           .updateValue(accessory.context.lastCurrentTemp);
             
@@ -283,12 +300,10 @@ class TADO {
             
         self.getThermoSettings(accessory, service, battery);
         self.getThermoStates(accessory, service, battery);
-        self.getHistory(accessory, service, battery, accessory.context.type);
-
         break;
       }
       case 2: { //central switch
-        let service = accessory.getService(Service.Switch);
+        service = accessory.getService(Service.Switch);
 
         if (!service.testCharacteristic(Characteristic.DummySwitch))service.addCharacteristic(Characteristic.DummySwitch);
         service.getCharacteristic(Characteristic.DummySwitch)
@@ -314,23 +329,21 @@ class TADO {
         break;
       }
       case 3: { //occupancy/motion
-        let service = accessory.getService(Service.MotionSensor);
+        service = accessory.getService(Service.MotionSensor);
         
         service.getCharacteristic(Characteristic.MotionDetected)
           .updateValue(accessory.context.atHome);
           
-        accessory.displayName == self.config.name + ' Anyone' ?
-          self.getAnyoneDetected(accessory, service) : 
-          self.getMotionDetected(accessory, service);
-          
         if (!service.testCharacteristic(Characteristic.EveMotionLastActivation))service.addCharacteristic(Characteristic.EveMotionLastActivation);
         service.getCharacteristic(Characteristic.EveMotionLastActivation)
           .updateValue(accessory.context.lastActivation)
-          .on('get', self.getMotionLastActivation.bind(this, accessory, service));         
+          .on('get', self.getMotionLastActivation.bind(this, accessory, service));  
+        
+        self.getMotionDetected(accessory, service);        
         break;
       }
       case 4: { //weather
-        let service = accessory.getService(Service.TemperatureSensor);
+        service = accessory.getService(Service.TemperatureSensor);
         
         service.getCharacteristic(Characteristic.CurrentTemperature)
           .setProps({
@@ -340,10 +353,83 @@ class TADO {
           })
           .updateValue(accessory.context.lastWeatherTemperature);
           
-        self.getWeather(accessory, service);  
-        self.getHistory(accessory, service, type);     
+        self.getWeather(accessory, service);      
         break;
       }
+    } self.getHistory(accessory, service, type);
+  }
+  
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  /************************************************************************* HISTORY **********************************************************************/
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  
+  getHistory(accessory, service, type){
+    const self = this;
+    if(accessory.context.logging){
+      var latestTemp, historyTimer;
+      const totallength = accessory.context.loggingService.history.length - 1;    
+      //const latestTime = accessory.context.loggingService.history[totallength].time;
+      if(accessory.context.loggingService.history[totallength].temp) latestTemp = accessory.context.loggingService.history[totallength].temp;
+      switch(type){
+        case 1:{ //THERMOSTAT
+          historyTimer = 60 * 1000; //1min
+          if(accessory.context.lastCurrentTemp != latestTemp){
+            self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastCurrentTemp);
+            accessory.context.loggingService.addEntry({
+              time: moment().unix(),
+              temp: accessory.context.lastCurrentTemp,
+              pressure: 0,
+              humidity: accessory.context.lastHumidity
+            });
+          }
+          break;
+        }
+        case 2: //CENTRAL SWITCHN
+          //NO HISTORY
+          break;
+        case 3:{ //OCCUPANCY
+          historyTimer = 1000; //1sec
+          var newState = accessory.context.atHome ? 1:0;
+          if(accessory.displayName == self.config.name + ' Anyone'){
+            if(newState != accessory.context.lastState){
+              if(newState == 0) self.log('Nobody at home!');
+              accessory.context.lastState = newState;
+              accessory.context.loggingService.addEntry({
+                time: moment().unix(),
+                status: accessory.context.lastState
+              });
+            }
+          } else {
+            if(newState != accessory.context.lastState){
+              newState == 1 ? self.log('Welcome at home ' + accessory.displayName) : self.log('Bye Bye ' + accessory.displayName);
+              accessory.context.lastState = newState;
+              accessory.context.loggingService.addEntry({
+                time: moment().unix(),
+                status: accessory.context.lastState
+              });
+            }   
+          }
+          break;
+        }
+        case 4:{ //WEATHER
+          historyTimer = 60 * 1000; //1min
+          if(accessory.context.lastWeatherTemperature != latestTemp){
+            self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastWeatherTemperature);
+            accessory.context.loggingService.addEntry({
+              time: moment().unix(),
+              temp: accessory.context.lastWeatherTemperature,
+              pressure: 0,
+              humidity: 0
+            });
+          }
+          break;
+        }
+      }
+      setTimeout(function(){
+        self.getHistory(accessory, service, type);
+      }, historyTimer);
     }
   }
   
@@ -353,65 +439,19 @@ class TADO {
   /********************************************************************************************************************************************************/
   /********************************************************************************************************************************************************/
   
-  getHistory(accessory, service, type){
-    const self = this;
-    switch(type){
-	    case 1:{
-          if(accessory.context.lastCurrentTemp != 5){ 
-            accessory.context.loggingService.addEntry({
-              time: moment().unix(),
-              temp: accessory.context.lastCurrentTemp,
-              pressure: 0,
-              humidity: accessory.context.lastHumidity
-            });
-            setTimeout(function(){
-              self.getHistory(accessory, service, type);
-            }, 8 * 60 * 1000); //8min
-          } else {
-            setTimeout(function(){
-              self.getHistory(accessory, service, type);
-            }, 1000);
-          }
-	    }
-	    break;
-	    case 2:
-	    break;
-	    case 3:
-	    break;
-	    case 4:{
-          if(accessory.context.lastWeatherTemperature != 0.00){ 
-            accessory.context.loggingService.addEntry({
-              time: moment().unix(),
-              temp: accessory.context.lastWeatherTemperature,
-              pressure: 0,
-              humidity: 0
-            });
-            setTimeout(function(){
-              self.getHistory(accessory, service, type);
-            }, 8 * 60 * 1000); //8min
-          } else {
-            setTimeout(function(){
-              self.getHistory(accessory, service, type);
-            }, 1000);
-          }
-	    break;
-	  }
-    }
-  }
-  
   getThermoSettings(accessory, service, battery){
     const self = this;
     if(service.getCharacteristic(Characteristic.HeatValue).value != accessory.context.heatValue){
       accessory.context.heatValue = service.getCharacteristic(Characteristic.HeatValue).value;
-      self.log(accessory.displayName + ": Heat Value changed to " + accessory.context.heatValue)
+      self.log(accessory.displayName + ': Heat Value changed to ' + accessory.context.heatValue);
     }
     if(service.getCharacteristic(Characteristic.CoolValue).value != accessory.context.coolValue){
       accessory.context.coolValue = service.getCharacteristic(Characteristic.CoolValue).value;
-      self.log(accessory.displayName + ": Cool Value changed to " + accessory.context.coolValue)
+      self.log(accessory.displayName + ': Cool Value changed to ' + accessory.context.coolValue);
     }
     if(service.getCharacteristic(Characteristic.DelayTimer).value != accessory.context.delayTimer){
       accessory.context.delayTimer = service.getCharacteristic(Characteristic.DelayTimer).value;
-      self.log(accessory.displayName + ": Delay Timer changed to " + accessory.context.delayTimer + " seconds")
+      self.log(accessory.displayName + ': Delay Timer changed to ' + accessory.context.delayTimer + ' seconds');
     }
     battery.getCharacteristic(Characteristic.BatteryLevel).updateValue(accessory.context.batteryLevel);
     battery.getCharacteristic(Characteristic.StatusLowBattery).updateValue(accessory.context.batteryStatus);
@@ -451,8 +491,8 @@ class TADO {
           }
         }
         accessory.context.tempUnitState == 0 ?
-          accessory.context.lastCurrentTemp = Math.round(response.sensorDataPoints.insideTemperature.celsius) :
-          accessory.context.lastCurrentTemp = Math.round(response.sensorDataPoints.insideTemperature.fahrenheit);
+          accessory.context.lastCurrentTemp = response.sensorDataPoints.insideTemperature.celsius :
+          accessory.context.lastCurrentTemp = response.sensorDataPoints.insideTemperature.fahrenheit;
         accessory.context.lastHumidity = response.sensorDataPoints.humidity.percentage;
         self.error.thermostats = 0;
         service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
@@ -748,8 +788,8 @@ class TADO {
       accessory.context.lastMainState = true;
     }
     if(service.getCharacteristic(Characteristic.DummySwitch).value != accessory.context.lastDummyState){
-	    accessory.context.lastDummyState = service.getCharacteristic(Characteristic.DummySwitch).value;
-	    accessory.context.lastDummyState ? self.log("Dummy Switch: ON") : self.log("Dummy Switch: OFF")
+      accessory.context.lastDummyState = service.getCharacteristic(Characteristic.DummySwitch).value;
+      accessory.context.lastDummyState ? self.log('Dummy Switch: ON') : self.log('Dummy Switch: OFF');
     }
     service.getCharacteristic(Characteristic.On).updateValue(accessory.context.lastMainState);
     service.getCharacteristic(Characteristic.AutoThermostats).updateValue(accessory.context.lastAutos);
@@ -788,51 +828,29 @@ class TADO {
   
   getMotionDetected(accessory, service){
     const self = this;
-    service.getCharacteristic(Characteristic.MotionDetected).updateValue(accessory.context.atHome);
-    var newState = accessory.context.atHome ? 1:0;    
-    if(newState != accessory.context.lastState){
-      newState == 1 ? self.log("Welcome at home " + accessory.displayName) : self.log("Bye Bye " + accessory.displayName);
-      accessory.context.lastState = newState;
-      accessory.context.loggingService.addEntry({
-        time: moment().unix(),
-        status: accessory.context.lastState
-      });
-    }   
+    if(accessory.displayName != self.config.name + ' Anyone'){
+      service.getCharacteristic(Characteristic.MotionDetected).updateValue(accessory.context.atHome);
+    } else {
+      const allAccessories = self.accessories;  
+      var motion = 0;  
+      for(const i in allAccessories){
+        if(allAccessories[i].context.type == self.types.occupancy && allAccessories[i].displayName != self.config.name + ' Anyone'){
+          const state = allAccessories[i].getService(Service.MotionSensor).getCharacteristic(Characteristic.MotionDetected).value;
+          if(state > 0){
+            motion += 1;
+          }
+        }
+      }
+      if(motion > 0){
+        accessory.context.atHome = true;
+      } else {
+        accessory.context.atHome = false;
+      }
+      service.getCharacteristic(Characteristic.MotionDetected).updateValue(accessory.context.atHome);
+    }
     setTimeout(function(){
       self.getMotionDetected(accessory, service); 
     }, 1000);   
-  }
-  
-  getAnyoneDetected(accessory, service){
-    const self = this;
-    const allAccessories = self.accessories;  
-    var motion = 0;  
-    for(const i in allAccessories){
-      if(allAccessories[i].context.type == self.types.occupancy && allAccessories[i].displayName != self.config.name + ' Anyone'){
-        const state = allAccessories[i].getService(Service.MotionSensor).getCharacteristic(Characteristic.MotionDetected).value;
-        if(state > 0){
-          motion += 1;
-        }
-      }
-    }
-    if(motion > 0){
-      accessory.context.atHome = true;
-    } else {
-      accessory.context.atHome = false;
-    }
-    var newState = accessory.context.atHome ? 1:0;
-    if(newState != accessory.context.lastState){
-      if(newState == 0) self.log("Nobody at home!");
-      accessory.context.lastState = newState;
-      accessory.context.loggingService.addEntry({
-        time: moment().unix(),
-        status: accessory.context.lastState
-      });
-    }
-    service.getCharacteristic(Characteristic.MotionDetected).updateValue(accessory.context.atHome);
-    setTimeout(function(){
-      self.getAnyoneDetected(accessory, service);
-    }, 1000);
   }
   
   getMotionLastActivation(accessory, service, callback){
