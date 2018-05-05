@@ -238,7 +238,8 @@ TadoPlatform.prototype = {
                   if(devices[j].deviceType == 'BU01'){
                     parameter['type'] = self.types.boilerThermostat;
                   } else if(devices[j].deviceType == 'RU01'){
-                    parameter['type'] = self.types.remoteThermostat;
+                    parameter['type'] = self.types.radiatorThermostat;
+                    parameter['extraType'] = self.types.remoteThermostat;
                   } else {
                     parameter['type'] = self.types.radiatorThermostat;
                   }
@@ -286,14 +287,18 @@ TadoPlatform.prototype = {
           }
           
           if(self.config.remoteThermostat){
-            if(self.accessories[i].context.type == self.types.remoteThermostat){
-              if(!thermoArray.includes(self.accessories[i].context.shortSerialNo)){
-                self.removeAccessory(self.accessories[i]);
+            if(self.accessories[i].context.extraType){
+              if(self.accessories[i].context.extraType == self.types.remoteThermostat){
+                if(!thermoArray.includes(self.accessories[i].context.shortSerialNo)){
+                  self.removeAccessory(self.accessories[i]);
+                }
               }
             }
           } else {
-            if(self.accessories[i].context.type == self.types.remoteThermostat){
-              self.removeAccessory(self.accessories[i]);
+            if(self.accessories[i].context.extraType){
+              if(self.accessories[i].context.extraType == self.types.remoteThermostat){
+                self.removeAccessory(self.accessories[i]);
+              }
             }
           }
         }
