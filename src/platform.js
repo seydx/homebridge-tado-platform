@@ -3,13 +3,14 @@
 const async = require('async');
 const Device = require('./accessory.js');
 
-var HomebridgeAPI;
+var HomebridgeAPI, FakeGatoHistoryService;
 
 const pluginName = 'homebridge-tado-platform';
 const platformName = 'TadoPlatform';
 
 module.exports = function (homebridge) {
   HomebridgeAPI = homebridge;
+  FakeGatoHistoryService = require('fakegato-history')(homebridge);
   return TadoPlatform;
 };
 
@@ -391,7 +392,11 @@ TadoPlatform.prototype = {
     self.log.info('Configuring accessory from cache: ' + accessory.displayName);
     accessory.reachable = true;
     self.accessories[accessory.displayName] = accessory;
-    if(accessory.context.logging) accessory.context.loggingService.log = self.log;
+    if(accessory.context.logging){
+      accessory.context.loggingService = new FakeGatoHistoryService(accessory.context.loggingType,accessory,accessory.context.loggingOptions);
+      accessory.context.loggingService.subtype = accessory.context.serialNo;
+      accessory.context.loggingService.log = self.log;
+    }
     new Device(self, accessory, false);
   },
 
