@@ -32,7 +32,11 @@ function TadoPlatform (log, config, api) {
     url: 'https://my.tado.com/api/v2/',
     centralSwitch: config.centralSwitch===true,
     occupancy: config.occupancy||false,
-    weather: config.weather===true
+    weather: config.weather===true,
+    radiatorThermostat: config.radiatorThermostat===true,
+    boilerThermostat: config.boilerThermostat||false,
+    remoteThermostat: config.remoteThermostat||false,
+    onePerRoom: config.onePerRoom||false
   };
   
   this.config.polling > 10000 ? this.config.polling = 10000 : this.config.polling;
@@ -44,10 +48,12 @@ function TadoPlatform (log, config, api) {
   });
   
   this.types = {
-    thermostat: 1,
+    radiatorThermostat: 1,
     central: 2,
     occupancy: 3,
-    weather: 4
+    weather: 4,
+    boilerThermostat: 5,
+    remoteThermostat: 6
   };
   
   this.error = {
@@ -70,6 +76,15 @@ function TadoPlatform (log, config, api) {
       });
       request.on('error', (err) => reject(err));
     });
+  };
+  
+  //Function for removing items in array
+  this.splice = function(arr, val) {
+    for (var i = arr.length; i--;) {
+      if (arr[i] === val) {
+        arr.splice(i, 1);
+      }
+    }
   };
   
   if (api) {
@@ -160,24 +175,55 @@ TadoPlatform.prototype = {
       .then((data) => {
         const response = JSON.parse(data);
         const thermoArray = [];
+        const typeArray = [];
+        const typeNrArray = [];
+        if(self.config.radiatorThermostat){
+          typeArray.push('VA01');
+          typeNrArray.push(self.types.radiatorThermostat);
+        } else {
+          self.splice(typeArray, 'VA01');
+          self.splice(typeNrArray, self.types.radiatorThermostat);
+        }
+        if(self.config.boilerThermostat){ //NOT IMPLEMENTED
+          //typeArray.push('BU01');
+          //typeNrArray.push(self.types.boilerThermostat);
+          typeArray.push('ERROR');
+          typeNrArray.push(99);
+        } else {
+          //self.splice(typeArray, 'BU01');
+          //self.splice(typeNrArray, self.types.boilerThermostat);
+          self.splice(typeArray, 'ERROR');
+          self.splice(typeNrArray, 99);
+        }
+        if(self.config.remoteThermostat){
+          typeArray.push('RU01');
+          typeNrArray.push(self.types.remoteThermostat);
+        } else {
+          self.splice(typeArray, 'RU01');
+          self.splice(typeNrArray, self.types.remoteThermostat);
+        }
         for(const i in response){
           if(response[i].type == 'HEATING'){
             for(const j in response[i].devices){
               const devices = response[i].devices;
-              if(devices[j].deviceType == 'VA01'){
-                thermoArray.push(devices[j].serialNo);
+              if(typeArray.includes(devices[j].deviceType)){
+                //if(devices[j].deviceType == 'VA01'){
+                thermoArray.push(devices[j].shortSerialNo);
                 var skipThermo = false;
                 for(const l in self.accessories){
-                  if(self.accessories[l].context.type == self.types.thermostat){
-                    if(devices[j].serialNo == self.accessories[l].context.serialNo){
+                  if(typeNrArray.includes(self.accessories[l].context.type)){
+                  //if(self.accessories[l].context.type == self.types.thermostat){
+                    if(devices[j].shortSerialNo == self.accessories[l].context.shortSerialNo){
                       skipThermo = true;
-                      self.accessories[l].context.batteryState = devices[j].batteryState;
-                      if(self.accessories[l].context.batteryState == 'NORMAL'){
-                        self.accessories[l].context.batteryLevel = 100;
-                        self.accessories[l].context.batteryStatus = 0;
-                      } else {
-                        self.accessories[l].context.batteryLevel = 10;
-                        self.accessories[l].context.batteryStatus = 1;
+                      if(self.accessories[l].context.type != self.types.boilerThermostat){
+                        self.accessories[l].context.batteryState = devices[j].batteryState;
+                        if(self.accessories[l].context.batteryState == 'NORMAL'){
+                          self.accessories[l].context.batteryLevel = 100;
+                          self.accessories[l].context.batteryStatus = 0;
+                        } else {
+                          self.accessories[l].context.batteryLevel = 10;
+                          self.accessories[l].context.batteryStatus = 1;
+                        }
                       }
                       //self.removeAccessory(self.accessories[l]); //FOR DEVELOPING
                     }
@@ -186,17 +232,27 @@ TadoPlatform.prototype = {
                 //Adding    
                 if(!skipThermo){
                   parameter['zoneID'] = response[i].id;
-                  parameter['name'] = response[i].name + ' ' + devices[j].serialNo;
-                  parameter['serialNo'] = devices[j].serialNo;
-                  parameter['batteryState'] = devices[j].batteryState;
-                  parameter['type'] = self.types.thermostat;
+                  parameter['name'] = response[i].name + ' ' + devices[j].shortSerialNo;
+                  parameter['shortSerialNo'] = devices[j].shortSerialNo;
+                  devices[j].deviceType != 'BU01' ? parameter['batteryState'] = devices[j].batteryState : parameter['batteryState'] = 'NORMAL';
+                  if(devices[j].deviceType == 'BU01'){
+                    parameter['type'] = self.types.boilerThermostat;
+                  } else if(devices[j].deviceType == 'RU01'){
+                    parameter['type'] = self.types.remoteThermostat;
+                  } else {
+                    parameter['type'] = self.types.radiatorThermostat;
+                  }
                   parameter['model'] = devices[j].deviceType;
                   parameter['username'] = self.config.username;
                   parameter['password'] = self.config.password;
                   parameter['url'] = self.config.url;
-                  parameter['logging'] = true;
-                  parameter['loggingType'] = 'weather';
-                  parameter['loggingTimer'] = true;
+                  if(devices[j].deviceType == 'BU01'){
+                    parameter['logging'] = false;
+                  } else {
+                    parameter['logging'] = true;
+                    parameter['loggingType'] = 'weather';
+                    parameter['loggingTimer'] = true;
+                  }
                   new Device(self, parameter, true);
                 }
               }
@@ -205,8 +261,38 @@ TadoPlatform.prototype = {
         }
         //Removing
         for(const i in self.accessories){
-          if(self.accessories[i].context.type == self.types.thermostat){
-            if(!thermoArray.includes(self.accessories[i].context.serialNo)){
+          if(self.config.radiatorThermostat){
+            if(self.accessories[i].context.type == self.types.radiatorThermostat){
+              if(!thermoArray.includes(self.accessories[i].context.shortSerialNo)){
+                self.removeAccessory(self.accessories[i]);
+              }
+            }
+          } else {
+            if(self.accessories[i].context.type == self.types.radiatorThermostat){
+              self.removeAccessory(self.accessories[i]);
+            }
+          }
+          
+          if(self.config.boilerThermostat){
+            if(self.accessories[i].context.type == self.types.boilerThermostat){
+              if(!thermoArray.includes(self.accessories[i].context.shortSerialNo)){
+                self.removeAccessory(self.accessories[i]);
+              }
+            }
+          } else {
+            if(self.accessories[i].context.type == self.types.boilerThermostat){
+              self.removeAccessory(self.accessories[i]);
+            }
+          }
+          
+          if(self.config.remoteThermostat){
+            if(self.accessories[i].context.type == self.types.remoteThermostat){
+              if(!thermoArray.includes(self.accessories[i].context.shortSerialNo)){
+                self.removeAccessory(self.accessories[i]);
+              }
+            }
+          } else {
+            if(self.accessories[i].context.type == self.types.remoteThermostat){
               self.removeAccessory(self.accessories[i]);
             }
           }
@@ -245,7 +331,7 @@ TadoPlatform.prototype = {
           var skipAnyone = false;            
           for(const l in self.accessories){
             if(self.accessories[l].context.type == self.types.occupancy){
-              if(response[i].id == self.accessories[l].context.serialNo){
+              if(response[i].id == self.accessories[l].context.shortSerialNo){
                 skipUser = true;
                 response[i].settings.geoTrackingEnabled ? self.accessories[l].context.atHome = response[i].location.atHome : self.accessories[l].context.atHome = false;
               }
@@ -257,7 +343,7 @@ TadoPlatform.prototype = {
           //Adding    
           if(!skipUser){
             parameter['name'] = response[i].name;
-            parameter['serialNo'] = response[i].id;
+            parameter['shortSerialNo'] = response[i].id;
             parameter['type'] = self.types.occupancy;
             parameter['model'] = response[i].deviceMetadata.model;
             parameter['username'] = self.config.username;
@@ -271,7 +357,7 @@ TadoPlatform.prototype = {
           }   
           if(!skipAnyone){
             parameter['name'] = self.config.name + ' Anyone';
-            parameter['serialNo'] = '1234567890';
+            parameter['shortSerialNo'] = '1234567890';
             parameter['type'] = self.types.occupancy;
             parameter['model'] = 'Occupancy Sensor';
             parameter['username'] = self.config.username;
@@ -287,7 +373,7 @@ TadoPlatform.prototype = {
         //Removing
         for(const i in self.accessories){
           if(self.accessories[i].context.type == self.types.occupancy){
-            if(!userArray.includes(self.accessories[i].context.serialNo) && self.accessories[i].displayName != self.config.name + ' Anyone'){
+            if(!userArray.includes(self.accessories[i].context.shortSerialNo) && self.accessories[i].displayName != self.config.name + ' Anyone'){
               self.removeAccessory(self.accessories[i]);
             }
           }
@@ -331,7 +417,7 @@ TadoPlatform.prototype = {
       }
       if (!skip) {
         parameter['name'] = this.config.name + ' Central Switch';
-        parameter['serialNo'] = parameter.homeID + '-' + this.types.central;
+        parameter['shortSerialNo'] = parameter.homeID + '-' + this.types.central;
         parameter['type'] = this.types.central;
         parameter['model'] = 'Central Switch';
         parameter['username'] = this.config.username;
@@ -367,7 +453,7 @@ TadoPlatform.prototype = {
       }
       if (!skip) {
         parameter['name'] = this.config.name + ' Weather';
-        parameter['serialNo'] = parameter.homeID + '-' + this.types.weather;
+        parameter['shortSerialNo'] = parameter.homeID + '-' + this.types.weather;
         parameter['type'] = this.types.weather;
         parameter['model'] = 'Weather';
         parameter['username'] = this.config.username;
@@ -394,7 +480,7 @@ TadoPlatform.prototype = {
     self.accessories[accessory.displayName] = accessory;
     if(accessory.context.logging){
       accessory.context.loggingService = new FakeGatoHistoryService(accessory.context.loggingType,accessory,accessory.context.loggingOptions);
-      accessory.context.loggingService.subtype = accessory.context.serialNo;
+      accessory.context.loggingService.subtype = accessory.context.shortSerialNo;
       accessory.context.loggingService.log = self.log;
     }
     new Device(self, accessory, false);
