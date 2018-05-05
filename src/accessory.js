@@ -356,7 +356,7 @@ class TADO {
         self.getWeather(accessory, service);      
         break;
       }
-    } self.getHistory(accessory, service, type);
+    } setTimeout(function(){self.getHistory(accessory, service, type);},5000); //Wait for FakeGato
   }
   
   /********************************************************************************************************************************************************/
