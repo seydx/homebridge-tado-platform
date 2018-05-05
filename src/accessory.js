@@ -112,14 +112,8 @@ class TADO {
         accessoryType = Service.TemperatureSensor;
         break;
       case 5:
-        name = parameter.name;
-        deviceType = Accessory.Categories.THERMOSTAT;
-        accessoryType = Service.Thermostat;
         break;
       case 6:
-        name = parameter.name;
-        deviceType = Accessory.Categories.THERMOSTAT;
-        accessoryType = Service.Thermostat;
         break;
       default:
         break;
@@ -194,30 +188,6 @@ class TADO {
         //TODO
         break;
       case 6:
-        accessory.context.zoneID = parameter.zoneID;
-        accessory.context.heatValue = 5;
-        accessory.context.coolValue = 5;
-        accessory.context.delayTimer = 0;
-        if(accessory.context.tempUnit == 'CELSIUS'){
-          accessory.context.minValue = 5;
-          accessory.context.maxValue = 25;
-        } else {
-          accessory.context.minValue = 41;
-          accessory.context.maxValue = 71;
-        }
-        accessory.context.batteryState = parameter.batteryState;
-        if(accessory.context.batteryState == 'NORMAL'){
-          accessory.context.batteryLevel = 100;
-          accessory.context.batteryStatus = 0;
-        } else {
-          accessory.context.batteryLevel = 10;
-          accessory.context.batteryStatus = 1;
-        }
-        accessory.context.lastCurrentTemp = 0;
-        accessory.context.lastTargetTemp = 5;
-        accessory.context.lastHumidity = 0;
-        accessory.context.lastCurrentState = 0;
-        accessory.context.lastTargetState = 0;
         break;
       default:
         break;
@@ -377,9 +347,9 @@ class TADO {
           
         if (!service.testCharacteristic(Characteristic.EveMotionLastActivation))service.addCharacteristic(Characteristic.EveMotionLastActivation);
         service.getCharacteristic(Characteristic.EveMotionLastActivation)
-          .updateValue(accessory.context.lastActivation)
-          .on('get', self.getMotionLastActivation.bind(this, accessory, service));  
+          .updateValue(accessory.context.lastActivation); 
         
+        self.getMotionLastActivation(accessory, service);
         self.getMotionDetected(accessory, service);        
         break;
       }
@@ -401,77 +371,6 @@ class TADO {
         break;
       }
       case 6:{
-        service = accessory.getService(Service.Thermostat);
-        battery = accessory.getService(Service.BatteryService);
-
-        if (!service.testCharacteristic(Characteristic.HeatValue))service.addCharacteristic(Characteristic.HeatValue);
-        service.getCharacteristic(Characteristic.HeatValue)
-          .setProps({
-            minValue: 0,
-            maxValue: 10,
-            minStep: 1
-          })
-          .updateValue(accessory.context.heatValue);
-          
-        if (!service.testCharacteristic(Characteristic.CoolValue))service.addCharacteristic(Characteristic.CoolValue);
-        service.getCharacteristic(Characteristic.CoolValue)
-          .setProps({
-            minValue: 0,
-            maxValue: 10,
-            minStep: 1
-          })
-          .updateValue(accessory.context.coolValue);
-          
-        if (!service.testCharacteristic(Characteristic.DelayTimer))service.addCharacteristic(Characteristic.DelayTimer);
-        service.getCharacteristic(Characteristic.DelayTimer)
-          .setProps({
-            minValue: 0,
-            maxValue: 600,
-            minStep: 1
-          })
-          .updateValue(accessory.context.delayTimer);
-
-        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)
-          .updateValue(accessory.context.lastCurrentState);
-            
-        service.getCharacteristic(Characteristic.TargetHeatingCoolingState)
-          .updateValue(accessory.context.lastTargetState)
-          .on('set', self.setThermostatState.bind(this, accessory, service));
-            
-        service.getCharacteristic(Characteristic.CurrentTemperature)
-          .setProps({
-            minValue: -100,
-            maxValue: 100,
-            minStep: 0.01
-          })
-          .updateValue(accessory.context.lastCurrentTemp);
-            
-        service.getCharacteristic(Characteristic.TargetTemperature)
-          .setProps({
-            minValue: accessory.context.minValue,
-            maxValue: accessory.context.maxValue,
-            minStep: 1
-          })
-          .updateValue(accessory.context.lastTargetTemp)
-          .on('set', self.setThermostatTemp.bind(this, accessory, service));
-            
-        service.getCharacteristic(Characteristic.TemperatureDisplayUnits)
-          .updateValue(accessory.context.tempUnitState); // 0 = C ; 1 = F
-            
-        service.getCharacteristic(Characteristic.CurrentRelativeHumidity)
-          .updateValue(accessory.context.lastHumidity);
-            
-        battery.getCharacteristic(Characteristic.ChargingState)
-          .updateValue(2); //Not chargable
-
-        battery.getCharacteristic(Characteristic.BatteryLevel)
-          .updateValue(accessory.context.batteryLevel);
-
-        battery.getCharacteristic(Characteristic.StatusLowBattery)
-          .updateValue(accessory.context.batteryStatus);
-            
-        self.getThermoSettings(accessory, service, battery);
-        self.getThermoStates(accessory, service, battery);
         break;
       }
     } setTimeout(function(){self.getHistory(accessory, service, type);},5000); //Wait for FakeGato
@@ -544,20 +443,10 @@ class TADO {
           }
           break;
         }
-        case 5:{ //THERMOSTAT
+        case 5:{ 
           break;
         }
-        case 6:{ //THERMOSTAT
-          historyTimer = 60 * 1000; //1min
-          if(accessory.context.lastCurrentTemp != latestTemp){
-            self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastCurrentTemp);
-            accessory.context.loggingService.addEntry({
-              time: moment().unix(),
-              temp: accessory.context.lastCurrentTemp,
-              pressure: 0,
-              humidity: accessory.context.lastHumidity
-            });
-          }
+        case 6:{ 
           break;
         }
       }
@@ -987,12 +876,16 @@ class TADO {
     }, 1000);   
   }
   
-  getMotionLastActivation(accessory, service, callback){
+  getMotionLastActivation(accessory, service){
+    const self = this;
     const totallength = accessory.context.loggingService.history.length - 1;    
     const latestTime = accessory.context.loggingService.history[totallength].time;
     const state = accessory.context.atHome ? 1:0;    
     state == 1 ? accessory.context.lastActivation = moment().unix() : accessory.context.lastActivation = latestTime - accessory.context.loggingService.getInitialTime();
-    callback(null, accessory.context.lastActivation);
+    service.getCharacteristic(Characteristic.EveMotionLastActivation).updateValue(accessory.context.lastActivation);
+    setTimeout(function(){
+      self.getMotionLastActivation(accessory, service);
+    }, 1000);
   }
   
   /********************************************************************************************************************************************************/
