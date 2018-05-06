@@ -111,12 +111,6 @@ class TADO {
         deviceType = Accessory.Categories.SENSOR;
         accessoryType = Service.TemperatureSensor;
         break;
-      case 5:
-        break;
-      case 6:
-        break;
-      default:
-        break;
     }
 
     this.log('Publishing new accessory: ' + name);
@@ -147,10 +141,13 @@ class TADO {
     
     switch (parameter.type) {
       case 1:
+        accessory.context.extraType = parameter.extraType;
         accessory.context.zoneID = parameter.zoneID;
         accessory.context.heatValue = 5;
         accessory.context.coolValue = 5;
         accessory.context.delayTimer = 0;
+        accessory.context.oldRoom = undefined;
+        accessory.context.room = parameter.room;
         if(accessory.context.tempUnit == 'CELSIUS'){
           accessory.context.minValue = 5;
           accessory.context.maxValue = 25;
@@ -179,17 +176,10 @@ class TADO {
       case 3:
         accessory.context.atHome = parameter.atHome;
         accessory.context.lastState = 0;
-        accessory.context.lastActivation = moment().unix();
+        accessory.context.lastActivation = 0;
         break;
       case 4:
         accessory.context.lastWeatherTemperature = 0.00;
-        break;
-      case 5:
-        //TODO
-        break;
-      case 6:
-        break;
-      default:
         break;
     }
     
@@ -367,12 +357,6 @@ class TADO {
         self.getWeather(accessory, service);      
         break;
       }
-      case 5:{
-        break;
-      }
-      case 6:{
-        break;
-      }
     } setTimeout(function(){self.getHistory(accessory, service, type);},5000); //Wait for FakeGato
   }
   
@@ -443,12 +427,6 @@ class TADO {
           }
           break;
         }
-        case 5:{ 
-          break;
-        }
-        case 6:{ 
-          break;
-        }
       }
       setTimeout(function(){
         self.getHistory(accessory, service, type);
@@ -478,6 +456,10 @@ class TADO {
     }
     battery.getCharacteristic(Characteristic.BatteryLevel).updateValue(accessory.context.batteryLevel);
     battery.getCharacteristic(Characteristic.StatusLowBattery).updateValue(accessory.context.batteryStatus);
+    if(accessory.context.room != accessory.context.oldRoom){
+      if(accessory.context.oldRoom != undefined)self.log(accessory.displayName + ': Room changed to ' + accessory.context.room);
+      accessory.context.oldRoom = accessory.context.room;
+    }
     setTimeout(function(){
       self.getThermoSettings(accessory, service, battery);
     }, 1000);
