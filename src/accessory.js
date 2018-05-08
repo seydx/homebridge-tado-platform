@@ -371,13 +371,14 @@ class TADO {
     if(accessory.context.logging){
       var latestTemp, historyTimer;
       const totallength = accessory.context.loggingService.history.length - 1;    
-      //const latestTime = accessory.context.loggingService.history[totallength].time;
+      const latestTime = accessory.context.loggingService.history[totallength].time;
+      const timeDif = moment().unix()-latestTime;
       if(accessory.context.loggingService.history[totallength].temp) latestTemp = accessory.context.loggingService.history[totallength].temp;
       switch(type){
         case 1:{ //THERMOSTAT
           historyTimer = 60 * 1000; //1min
-          if(accessory.context.lastCurrentTemp != latestTemp){
-            self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastCurrentTemp);
+          if(accessory.context.lastCurrentTemp != latestTemp || timeDif > 900){
+            if(accessory.context.lastCurrentTemp != latestTemp) self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastCurrentTemp);
             accessory.context.loggingService.addEntry({
               time: moment().unix(),
               temp: accessory.context.lastCurrentTemp,
@@ -387,9 +388,6 @@ class TADO {
           }
           break;
         }
-        case 2: //CENTRAL SWITCHN
-          //NO HISTORY
-          break;
         case 3:{ //OCCUPANCY
           historyTimer = 1000; //1sec
           var newState = accessory.context.atHome ? 1:0;
@@ -416,8 +414,8 @@ class TADO {
         }
         case 4:{ //WEATHER
           historyTimer = 60 * 1000; //1min
-          if(accessory.context.lastWeatherTemperature != latestTemp){
-            self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastWeatherTemperature);
+          if(accessory.context.lastWeatherTemperature != latestTemp || timeDif > 900){
+            if(accessory.context.lastWeatherTemperature != latestTemp)self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastWeatherTemperature);
             accessory.context.loggingService.addEntry({
               time: moment().unix(),
               temp: accessory.context.lastWeatherTemperature,
