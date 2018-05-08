@@ -39,7 +39,7 @@ function TadoPlatform (log, config, api) {
     onePerRoom: config.onePerRoom||false
   };
   
-  this.config.polling > 10000 ? this.config.polling = 10000 : this.config.polling;
+  this.config.polling < 10000 ? this.config.polling = 10000 : this.config.polling;
 
   // STORAGE
   this.storage = require('node-persist');
