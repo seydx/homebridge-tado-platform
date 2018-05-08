@@ -145,8 +145,9 @@ This plugin has been verified to work with the following apps on iOS 11.3:
 
 ### TODO:
 - [ ] Support more types: Boiler(BU01) and remote thermostat(RU01) (in work)
+- [ ] New Option: 'onePerRoom' (exposes only one thermostet per room)
 - [ ] New Accessory: Window Sensor (based on open window detection)
-- [ ] More functions for weather sensor combined with OpenWeather API
+- [ ] More functions for weather accessory with OpenWeather API
 - [ ] DEBUG
 
 
