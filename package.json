@@ -27,7 +27,7 @@
   ],
   "engines": {
     "node": "^8.9.1",
-    "homebridge": "^0.4.38"
+    "homebridge": "^0.4.42"
   },
   "dependencies": {
     "node-persist": "0.0.8",
