@@ -15,6 +15,7 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 - Auto heat/cool to a certain value (configurable within 3rd party app)
 - Battery state and notification
 - Built-in humidity sensor
+- Possibility to expose built-in temperature & humidity sensors as new accessories to HomeKit
 - Delay timer: You can set up a timer as delay for your thermostats to wait a certain time to go back to the automatic mode (Helpful in automations where you shut off the thermostat after window is opened and in automatic mode if window is closed. So this timer let the thermostat wait a certain time in off mode before going back to auto mode. Helpful if you open the window only for a few minutes, also configurable within 3rd party app)
 - Elgato EVE history feature (Fakegato)
 
@@ -93,7 +94,8 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
     "weather": true,
     "radiatorThermostat":true,
     "boilerThermostat":true,
-    "remoteThermostat":true
+    "remoteThermostat":true,
+    "externalSensor":false
     }
   ]
 }
@@ -114,7 +116,8 @@ See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/mast
 | centralSwitch | No | Exposes a switch to turning on/off all thermostats with just one click! (Default: true) |
 | radiatorThermostat | No | Exposes new thermostat accessory for radiator thermostat (Default: true) | 
 | boilerThermostat | No | Exposes new thermostat accessory for boiler thermostat (Default: false) | 
-| remoteThermostat | No | Exposes new thermostat accessory for remote thermostat (Default: false) | 
+| remoteThermostat | No | Exposes new thermostat accessory for remote thermostat (Default: false) |
+| externalSensor | No | Exposes built-in temperature and humidty sensors as new accessories | 
 
 
 ## In App settings
