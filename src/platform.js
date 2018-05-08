@@ -36,7 +36,8 @@ function TadoPlatform (log, config, api) {
     radiatorThermostat: config.radiatorThermostat===true,
     boilerThermostat: config.boilerThermostat||false,
     remoteThermostat: config.remoteThermostat||false,
-    onePerRoom: config.onePerRoom||false
+    onePerRoom: config.onePerRoom||false,
+    externalSensor: config.externalSensor||false
   };
   
   this.config.polling < 10000 ? this.config.polling = 10000 : this.config.polling;
@@ -53,7 +54,8 @@ function TadoPlatform (log, config, api) {
     occupancy: 3,
     weather: 4,
     boilerThermostat: 5,
-    remoteThermostat: 6
+    remoteThermostat: 6,
+    externalSensor: 7
   };
   
   this.error = {
@@ -196,6 +198,36 @@ TadoPlatform.prototype = {
           zoneArray.push('HEATING');
         }
         for(const i in response){
+          if (self.config.externalSensor) {
+            let skip = false;
+            for (const d in self.accessories) {
+              if (self.accessories[d].context.type == self.types.externalSensor) {
+                if (self.accessories[d].context.zoneID == response[i].id) {
+                  skip = true;
+                }
+              }
+            }
+            if (!skip) {
+              parameter['zoneID'] = response[i].id;
+              parameter['name'] = response[i].name + ' Temperature';
+              parameter['shortSerialNo'] = parameter.homeID + '-' + self.types.externalSensor;
+              parameter['type'] = self.types.externalSensor;
+              parameter['model'] = 'Temperature';
+              parameter['username'] = self.config.username;
+              parameter['password'] = self.config.password;
+              parameter['url'] = self.config.url;
+              parameter['logging'] = true;
+              parameter['loggingType'] = 'weather';
+              parameter['loggingTimer'] = true;
+              new Device(self, parameter, true);
+            }
+          } else {
+            for (const d in self.accessories) {
+              if (self.accessories[d].context.type == self.types.externalSensor) {
+                self.removeAccessory(self.accessories[d]);
+              }
+            }
+          }
           if(zoneArray.includes(response[i].type)){
             //if(response[i].type == 'HEATING'){
             for(const j in response[i].devices){
