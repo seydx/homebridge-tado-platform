@@ -1,4 +1,4 @@
-# homebridge-tado-platform v4.0 BETA
+# homebridge-tado-platform v4.1
 
 [![npm](https://img.shields.io/npm/v/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![npm](https://img.shields.io/npm/dt/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
@@ -19,11 +19,10 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 - Delay timer: You can set up a timer as delay for your thermostats to wait a certain time to go back to the automatic mode (Helpful in automations where you shut off the thermostat after window is opened and in automatic mode if window is closed. So this timer let the thermostat wait a certain time in off mode before going back to auto mode. Helpful if you open the window only for a few minutes, also configurable within 3rd party app)
 - Elgato EVE history feature (Fakegato)
 
-**Boiler (CURRENTLY NOT AVAILABLE):**
+**Boiler :**
 - Expose Tado Hot Water to Apple HomeKit!
 - Additional modes: Heat, Cool, Auto and Off
 - Auto heat/cool to a certain value (configurable within 3rd party app)
-- Elgato EVE history feature (Fakegato)
 
 **Occupancy sensors:**
 - If enabled in config.json this plugin will create occupancy/motion sensors for all registered persons (configurable in the tado app).
@@ -147,7 +146,7 @@ This plugin has been verified to work with the following apps on iOS 11.3:
 ///
 
 ### TODO:
-- [ ] Support more types: Boiler(BU01) and remote thermostat(RU01) (in work)
+- [x] Support more types: Boiler(BU01) and remote thermostat(RU01) (in work)
 - [ ] New Option: 'onePerRoom' (exposes only one thermostet per room)
 - [ ] New Accessory: Window Sensor (based on open window detection)
 - [ ] More functions for weather accessory with OpenWeather API
