@@ -518,16 +518,15 @@ class TADO {
   getHistory(accessory, service, type){
     const self = this;
     if(accessory.context.logging){
-      var latestTemp, historyTimer;
+      var historyTimer;
       const totallength = accessory.context.loggingService.history.length - 1;    
       const latestTime = accessory.context.loggingService.history[totallength].time;
       const timeDif = moment().unix()-latestTime;
-      if(accessory.context.loggingService.history[totallength].temp) latestTemp = accessory.context.loggingService.history[totallength].temp;
       switch(type){
         case 1:{ //THERMOSTAT
           historyTimer = 60 * 1000; //1min
-          if(accessory.context.lastCurrentTemp != latestTemp || timeDif > 900){
-            if(accessory.context.lastCurrentTemp != latestTemp) self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastCurrentTemp);
+          if(accessory.context.lastCurrentTemp != accessory.context.loggingService.history[totallength].temp || timeDif > 900){
+            if(accessory.context.lastCurrentTemp != accessory.context.loggingService.history[totallength].temp) self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastCurrentTemp);
             accessory.context.loggingService.addEntry({
               time: moment().unix(),
               temp: accessory.context.lastCurrentTemp,
@@ -563,8 +562,8 @@ class TADO {
         }
         case 4:{ //WEATHER
           historyTimer = 60 * 1000; //1min
-          if(accessory.context.lastWeatherTemperature != latestTemp || timeDif > 900){
-            if(accessory.context.lastWeatherTemperature != latestTemp)self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastWeatherTemperature);
+          if(accessory.context.lastWeatherTemperature != accessory.context.loggingService.history[totallength].temp || timeDif > 900){
+            if(accessory.context.lastWeatherTemperature != accessory.context.loggingService.history[totallength].temp)self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastWeatherTemperature);
             accessory.context.loggingService.addEntry({
               time: moment().unix(),
               temp: accessory.context.lastWeatherTemperature,
@@ -576,8 +575,8 @@ class TADO {
         }
         case 7:{ //RoomTempSensor
           historyTimer = 60 * 1000; //1min
-          if(accessory.context.lastRoomTemperature != latestTemp || timeDif > 900){
-            if(accessory.context.lastRoomTemperature != latestTemp)self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastRoomTemperature);
+          if(accessory.context.lastRoomTemperature != accessory.context.loggingService.history[totallength].temp || timeDif > 900){
+            if(accessory.context.lastRoomTemperature != accessory.context.loggingService.history[totallength].temp)self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastRoomTemperature);
             accessory.context.loggingService.addEntry({
               time: moment().unix(),
               temp: accessory.context.lastRoomTemperature,
