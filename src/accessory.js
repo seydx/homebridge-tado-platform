@@ -93,7 +93,7 @@ class TADO {
     var accessory, name, deviceType, accessoryType;
 
     switch (parameter.type) {
-      case 1:
+      case 1: //case 5 == case 1
         name = parameter.name;
         deviceType = Accessory.Categories.THERMOSTAT;
         accessoryType = Service.Thermostat;
@@ -112,6 +112,11 @@ class TADO {
         name = parameter.name;
         deviceType = Accessory.Categories.SENSOR;
         accessoryType = Service.TemperatureSensor;
+        break;
+      case 5:
+        name = parameter.name;
+        deviceType = Accessory.Categories.THERMOSTAT;
+        accessoryType = Service.Thermostat;
         break;
       case 7:
         name = parameter.name;
@@ -171,7 +176,7 @@ class TADO {
           accessory.context.batteryStatus = 1;
         }
         accessory.context.lastCurrentTemp = 0;
-        accessory.context.lastTargetTemp = 5;
+        accessory.context.lastTargetTemp = accessory.context.minValue;
         accessory.context.lastHumidity = 0;
         accessory.context.lastCurrentState = 0;
         accessory.context.lastTargetState = 0;
@@ -191,6 +196,33 @@ class TADO {
         break;
       case 4:
         accessory.context.lastWeatherTemperature = 0.00;
+        break;
+      case 5:
+        accessory.context.extraType = parameter.extraType;
+        accessory.context.zoneID = parameter.zoneID;
+        accessory.context.heatValue = 5;
+        accessory.context.coolValue = 5;
+        accessory.context.oldRoom = undefined;
+        accessory.context.room = parameter.room;
+        if(accessory.context.tempUnit == 'CELSIUS'){
+          accessory.context.minValue = 30;
+          accessory.context.maxValue = 65;
+        } else {
+          accessory.context.minValue = 86;
+          accessory.context.maxValue = 149;
+        }
+        accessory.context.batteryState = parameter.batteryState;
+        if(accessory.context.batteryState == 'NORMAL'){
+          accessory.context.batteryLevel = 100;
+          accessory.context.batteryStatus = 0;
+        } else {
+          accessory.context.batteryLevel = 10;
+          accessory.context.batteryStatus = 1;
+        }
+        accessory.context.lastCurrentTemp = 0;
+        accessory.context.lastTargetTemp = accessory.context.minValue;
+        accessory.context.lastCurrentState = 0;
+        accessory.context.lastTargetState = 0;
         break;
       case 7:
         accessory.context.lastRoomTemperature = 0.00;
@@ -386,6 +418,69 @@ class TADO {
           .updateValue(accessory.context.lastWeatherTemperature);
           
         self.getWeather(accessory, service);      
+        break;
+      }
+      case 5: { // boiler
+      
+        service = accessory.getService(Service.Thermostat);
+        battery = accessory.getService(Service.BatteryService);
+
+        if (!service.testCharacteristic(Characteristic.HeatValue))service.addCharacteristic(Characteristic.HeatValue);
+        service.getCharacteristic(Characteristic.HeatValue)
+          .setProps({
+            minValue: 0,
+            maxValue: 20,
+            minStep: 1
+          })
+          .updateValue(accessory.context.heatValue);
+          
+        if (!service.testCharacteristic(Characteristic.CoolValue))service.addCharacteristic(Characteristic.CoolValue);
+        service.getCharacteristic(Characteristic.CoolValue)
+          .setProps({
+            minValue: 0,
+            maxValue: 20,
+            minStep: 1
+          })
+          .updateValue(accessory.context.coolValue);
+
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)
+          .updateValue(accessory.context.lastCurrentState);
+            
+        service.getCharacteristic(Characteristic.TargetHeatingCoolingState)
+          .updateValue(accessory.context.lastTargetState)
+          .on('set', self.setBoilerState.bind(this, accessory, service));
+            
+        service.getCharacteristic(Characteristic.CurrentTemperature)
+          .setProps({
+            minValue: -100,
+            maxValue: 100,
+            minStep: 0.01
+          })
+          .updateValue(accessory.context.lastCurrentTemp);
+            
+        service.getCharacteristic(Characteristic.TargetTemperature)
+          .setProps({
+            minValue: accessory.context.minValue,
+            maxValue: accessory.context.maxValue,
+            minStep: 1
+          })
+          .updateValue(accessory.context.lastTargetTemp)
+          .on('set', self.setBoilerTemp.bind(this, accessory, service));
+            
+        service.getCharacteristic(Characteristic.TemperatureDisplayUnits)
+          .updateValue(accessory.context.tempUnitState); // 0 = C ; 1 = F
+            
+        battery.getCharacteristic(Characteristic.ChargingState)
+          .updateValue(2); //Not chargable
+
+        battery.getCharacteristic(Characteristic.BatteryLevel)
+          .updateValue(accessory.context.batteryLevel);
+
+        battery.getCharacteristic(Characteristic.StatusLowBattery)
+          .updateValue(accessory.context.batteryStatus);
+            
+        self.getBoilerSettings(accessory, service, battery);
+        self.getBoilerStates(accessory, service, battery);
         break;
       }
       case 7: { //RoomTempSensor
@@ -795,6 +890,307 @@ class TADO {
       let post_data = JSON.stringify({
         'setting': {
           'type': 'HEATING',
+          'power': 'ON',
+          'temperature': {
+            'celsius': accessory.context.lastTargetTemp
+          }
+        },
+        'termination': {
+          'type': 'MANUAL'
+        }
+      });
+      let req =  https.request(options, function(res) {
+        self.log(accessory.displayName + ': ' + accessory.context.lastTargetTemp + '(' + res.statusCode + ')');
+      });
+      req.on('error', function(err) {
+        self.log(accessory.displayName + ': An error occured by setting new temperature!');
+        self.log(err);
+      });
+      req.write(post_data);
+      req.end();
+      if(accessory.context.lastTargetTemp > service.getCharacteristic(Characteristic.CurrentTemperature).value){
+        accessory.context.lastCurrentState = 1;
+        accessory.context.lastTargetState = 1;
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+      } else {
+        accessory.context.lastCurrentState = 2;
+        accessory.context.lastTargetState = 2;
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+      }
+    }
+    callback();
+  }
+  
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  /************************************************************************** BOILER **********************************************************************/
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  
+  getBoilerSettings(accessory, service, battery){
+    const self = this;
+    if(service.getCharacteristic(Characteristic.HeatValue).value != accessory.context.heatValue){
+      accessory.context.heatValue = service.getCharacteristic(Characteristic.HeatValue).value;
+      self.log(accessory.displayName + ': Heat Value changed to ' + accessory.context.heatValue);
+    }
+    if(service.getCharacteristic(Characteristic.CoolValue).value != accessory.context.coolValue){
+      accessory.context.coolValue = service.getCharacteristic(Characteristic.CoolValue).value;
+      self.log(accessory.displayName + ': Cool Value changed to ' + accessory.context.coolValue);
+    }
+    battery.getCharacteristic(Characteristic.BatteryLevel).updateValue(accessory.context.batteryLevel);
+    battery.getCharacteristic(Characteristic.StatusLowBattery).updateValue(accessory.context.batteryStatus);
+    if(accessory.context.room != accessory.context.oldRoom){
+      if(accessory.context.oldRoom != undefined)self.log(accessory.displayName + ': Room changed to ' + accessory.context.room);
+      accessory.context.oldRoom = accessory.context.room;
+    }
+    setTimeout(function(){
+      self.getBoilerSettings(accessory, service, battery);
+    }, 1000);
+  }
+  
+  getBoilerStates(accessory, service, battery){
+    const self = this;
+    const a = accessory.context;
+    self.getContent(a.url + 'homes/' + a.homeID + '/zones/' + a.zoneID + '/state?username=' + a.username + '&password=' + a.password)
+      .then((data) => {
+        const response = JSON.parse(data);
+        if(response.setting.power == 'OFF'){
+          accessory.context.lastCurrentState = 0;  
+          accessory.context.lastTargetState = 0;           
+          /*accessory.context.tempUnitState == 0 ?
+            accessory.context.lastTargetTemp = Math.round(response.sensorDataPoints.insideTemperature.celsius) :
+            accessory.context.lastTargetTemp = Math.round(response.sensorDataPoints.insideTemperature.fahrenheit);*/
+        } else {
+          accessory.context.tempUnitState == 0 ?
+            accessory.context.lastTargetTemp = Math.round(response.setting.temperature.celsius) :
+            accessory.context.lastTargetTemp = Math.round(response.setting.temperature.fahrenheit);
+          accessory.context.tempUnitState == 0 ?
+            accessory.context.lastCurrentTemp = response.setting.temperature.celsius :
+            accessory.context.lastCurrentTemp = response.setting.temperature.fahrenheit;
+          if(response.overlayType == 'MANUAL'){
+            if(Math.round(response.sensorDataPoints.insideTemperature.celsius) < Math.round(response.setting.temperature.celsius)){
+              accessory.context.lastCurrentState = 1;
+              accessory.context.lastTargetState = 1;
+            }else{
+              accessory.context.lastCurrentState = 2;
+              accessory.context.lastTargetState = 2;
+            }
+          } else {
+            accessory.context.lastTargetState = 3;
+            accessory.context.targetAutoTemp = response.setting.temperature.celsius; //new context
+          }
+        }
+        self.error.thermostats = 0;
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastCurrentTemp);
+        setTimeout(function(){
+          self.getBoilerStates(accessory, service, battery);
+        }, 10000);
+      })
+      .catch((err) => {
+        if(self.error.thermostats > 5){
+          self.error.thermostats = 0;
+          self.log('An error occured by getting boiler state, trying again...');
+          self.log(err);
+          setTimeout(function(){
+            self.getBoilerStates(accessory, service, battery);
+          }, 30000);
+        } else {
+          self.error.thermostats += 1;
+          setTimeout(function(){
+            self.getBoilerStates(accessory, service, battery);
+          }, 10000);
+        }
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastCurrentTemp);
+      });
+  }
+  
+  setBoilerState(accessory, service, state, callback){
+    const self = this;
+    switch(state){
+      case 0: {//off
+        let options = {
+          host: 'my.tado.com',
+          path: '/api/v2/homes/' + accessory.context.homeID + '/zones/' + accessory.context.zoneID + '/overlay?username=' + accessory.context.username + '&password=' + accessory.context.password,
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        let post_data = JSON.stringify({
+          'setting': {
+            'type': 'HOT_WATER',
+            'power': 'OFF'
+          },
+          'termination': {
+            'type': 'MANUAL'
+          }
+        });
+        let req = https.request(options, function(res) {
+          self.log(accessory.displayName + ': Switched to OFF (' + res.statusCode + ')');
+        });
+        req.on('error', function(err) {
+          self.log(accessory.displayName + ': An error occured by setting OFF state!');
+          self.log(err);
+        });
+        req.write(post_data);
+        req.end();
+        accessory.context.lastCurrentState = 0;
+        accessory.context.lastTargetTemp = service.getCharacteristic(Characteristic.CurrentTemperature).value;
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        callback();
+        break;
+      }
+      case 1: {//heat
+        let options = {
+          host: 'my.tado.com',
+          path: '/api/v2/homes/' + accessory.context.homeID + '/zones/' + accessory.context.zoneID + '/overlay?username=' + accessory.context.username + '&password=' + accessory.context.password,
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        accessory.context.lastTargetTemp = service.getCharacteristic(Characteristic.CurrentTemperature).value + accessory.context.heatValue;
+        if (accessory.context.tempUnit == 'CELSIUS') {
+          if (accessory.context.lastTargetTemp > 65) {
+            accessory.context.lastTargetTemp = 65;
+          }
+        } else {
+          if (accessory.context.lastTargetTemp > 149) {
+            accessory.context.lastTargetTemp = 149;
+          }
+        }
+        let post_data = JSON.stringify({
+          'setting': {
+            'type': 'HOT_WATER',
+            'power': 'ON',
+            'temperature': {
+              'celsius': accessory.context.lastTargetTemp
+            }
+          },
+          'termination': {
+            'type': 'MANUAL'
+          }
+        });
+        let req = https.request(options, function(res) {
+          self.log(accessory.displayName + ': Switched to HEAT (' + res.statusCode + ')');
+        });
+        req.on('error', function(err) {
+          self.log(accessory.displayName + ': An error occured by setting HEAT state!');
+          self.log(err);
+        });
+        req.write(post_data);
+        req.end();
+        accessory.context.lastCurrentState = 1;
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        callback();
+        break;
+      }
+      case 2: {//cool
+        let options = {
+          host: 'my.tado.com',
+          path: '/api/v2/homes/' + accessory.context.homeID + '/zones/' + accessory.context.zoneID + '/overlay?username=' + accessory.context.username + '&password=' + accessory.context.password,
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        accessory.context.lastTargetTemp = service.getCharacteristic(Characteristic.CurrentTemperature).value - accessory.context.heatValue;
+        if (accessory.context.tempUnit == 'CELSIUS') {
+          if (accessory.context.lastTargetTemp < 30) {
+            accessory.context.lastTargetTemp = 30;
+          }
+        } else {
+          if (accessory.context.lastTargetTemp < 86) {
+            accessory.context.lastTargetTemp = 86;
+          }
+        }
+        let post_data = JSON.stringify({
+          'setting': {
+            'type': 'HOT_WATER',
+            'power': 'ON',
+            'temperature': {
+              'celsius': accessory.context.lastTargetTemp
+            }
+          },
+          'termination': {
+            'type': 'MANUAL'
+          }
+        });
+        let req = https.request(options, function(res) {
+          self.log(accessory.displayName + ': Switched to COOL (' + res.statusCode + ')');
+        });
+        req.on('error', function(err) {
+          self.log(accessory.displayName + ': An error occured by setting COOL state!');
+          self.log(err);
+        });
+        req.write(post_data);
+        req.end();
+        accessory.context.lastCurrentState = 2;
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        callback();
+        break;
+      }
+      case 3: {//auto
+        let options = {
+          host: 'my.tado.com',
+          path: '/api/v2/homes/' + accessory.context.homeID + '/zones/' + accessory.context.zoneID + '/overlay?username=' + accessory.context.username + '&password=' + accessory.context.password,
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        let req = https.request(options, function(res) {
+          self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
+        });
+        req.on('error', function(err) {
+          self.log(accessory.displayName + ': An error occured by setting new temperature!');
+          self.log(err);
+        });
+        req.end();
+        accessory.context.lastCurrentState = 0;
+        accessory.context.lastTargetState = 3;
+        accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        callback();
+        break;
+      }
+    }
+  }
+  
+  setBoilerTemp(accessory, service, value, callback){
+    const self = this;
+    if(service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value == 0 || service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value == 3){
+      if(value != accessory.context.targetAutoTemp){
+        self.log(accessory.displayName + ': Cant set new temperature, boiler is not in MANUAL mode!');
+        accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
+        setTimeout(function(){service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);},300);
+      }
+    } else {
+      accessory.context.lastTargetTemp = value;
+      let options = {
+        host: 'my.tado.com',
+        path: '/api/v2/homes/' + accessory.context.homeID + '/zones/' + accessory.context.zoneID + '/overlay?username=' + accessory.context.username + '&password=' + accessory.context.password,
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      };
+      let post_data = JSON.stringify({
+        'setting': {
+          'type': 'HOT_WATER',
           'power': 'ON',
           'temperature': {
             'celsius': accessory.context.lastTargetTemp
