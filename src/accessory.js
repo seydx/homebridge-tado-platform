@@ -132,7 +132,7 @@ class TADO {
 
     accessory = new PlatformAccessory(name, uuid, deviceType);
     accessory.addService(accessoryType, name);
-    if(parameter.type==self.types.radiatorThermostat)accessory.addService(Service.BatteryService);
+    if(parameter.type==self.types.radiatorThermostat||parameter.type==self.types.boilerThermostat)accessory.addService(Service.BatteryService);
 
     // Setting reachable to true
     accessory.reachable = true;
