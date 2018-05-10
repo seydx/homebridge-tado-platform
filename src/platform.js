@@ -80,15 +80,6 @@ function TadoPlatform (log, config, api) {
     });
   };
   
-  //Function for removing items in array
-  this.splice = function(arr, val) {
-    for (var i = arr.length; i--;) {
-      if (arr[i] === val) {
-        arr.splice(i, 1);
-      }
-    }
-  };
-  
   if (api) {
     if (api.version < 2.2) {
       throw new Error('Unexpected API version. Please update your homebridge!');
@@ -109,6 +100,7 @@ TadoPlatform.prototype = {
           self.didFinishLaunching();
         }, 5000);
       } else {
+        self.log('Connecting to API and looking for new devices...');
         self.checkingThermostats(state);
         self.initPlatform(state);
       }
@@ -196,37 +188,39 @@ TadoPlatform.prototype = {
           configArray.push({
             type: 'HEATING',
             deviceType: 'RU01',
-            thermoType: self.types.remoteThermostat
+            thermoType: self.types.radiatorThermostat
           });
         }
         for(const i in response){
-          if (self.config.externalSensor) {
-            let skip = false;
-            for (const d in self.accessories) {
-              if (self.accessories[d].context.type == self.types.externalSensor) {
-                if (self.accessories[d].context.zoneID == response[i].id) {
-                  skip = true;
+          if(response[i].type == 'HEATING'){
+            if (self.config.externalSensor) {
+              let skip = false;
+              for (const d in self.accessories) {
+                if (self.accessories[d].context.type == self.types.externalSensor) {
+                  if (self.accessories[d].context.zoneID == response[i].id) {
+                    skip = true;
+                  }
                 }
               }
-            }
-            if (!skip) {
-              parameter['zoneID'] = response[i].id;
-              parameter['name'] = response[i].name + ' Temperature';
-              parameter['shortSerialNo'] = parameter.homeID + '-' + self.types.externalSensor;
-              parameter['type'] = self.types.externalSensor;
-              parameter['model'] = 'Temperature';
-              parameter['username'] = self.config.username;
-              parameter['password'] = self.config.password;
-              parameter['url'] = self.config.url;
-              parameter['logging'] = true;
-              parameter['loggingType'] = 'weather';
-              parameter['loggingTimer'] = true;
-              new Device(self, parameter, true);
-            }
-          } else {
-            for (const d in self.accessories) {
-              if (self.accessories[d].context.type == self.types.externalSensor) {
-                self.removeAccessory(self.accessories[d]);
+              if (!skip) {
+                parameter['zoneID'] = response[i].id;
+                parameter['name'] = response[i].name + ' Temperature';
+                parameter['shortSerialNo'] = parameter.homeID + '-' + self.types.externalSensor;
+                parameter['type'] = self.types.externalSensor;
+                parameter['model'] = 'Temperature';
+                parameter['username'] = self.config.username;
+                parameter['password'] = self.config.password;
+                parameter['url'] = self.config.url;
+                parameter['logging'] = true;
+                parameter['loggingType'] = 'weather';
+                parameter['loggingTimer'] = true;
+                new Device(self, parameter, true);  
+              }
+            } else {
+              for (const d in self.accessories) {
+                if (self.accessories[d].context.type == self.types.externalSensor) {
+                  self.removeAccessory(self.accessories[d]);
+                }
               }
             }
           }
@@ -324,7 +318,7 @@ TadoPlatform.prototype = {
         self.error.thermostats = 0;
         setTimeout(function(){
           self.checkingThermostats(parameter);
-        }, self.config.polling);
+        }, 15000);
       })
       .catch((err) => {
         if(self.error.thermostats > 5){
@@ -333,84 +327,91 @@ TadoPlatform.prototype = {
           self.log(err);
           setTimeout(function(){
             self.checkingThermostats(parameter);
-          }, 30000);
+          }, 60000);
         } else {
           self.error.thermostats += 1;
           setTimeout(function(){
             self.checkingThermostats(parameter);
-          }, self.config.polling);
+          }, 30000);
         }
       });
   },
   
   checkingUser: function (parameter) {
     const self = this;
+    let countUser = 0;
     self.getContent(self.config.url + 'homes/' + parameter.homeID + '/mobileDevices?username=' + self.config.username + '&password=' + self.config.password)
       .then((data) => {
         const response = JSON.parse(data);        
         const userArray = [];        
-        for(const i in response){
-          userArray.push(response[i].id);                
-          var skipUser = false;    
-          var skipAnyone = false;            
-          for(const l in self.accessories){
-            if(self.accessories[l].context.type == self.types.occupancy){
-              if(response[i].id == self.accessories[l].context.shortSerialNo){
-                skipUser = true;
-                response[i].settings.geoTrackingEnabled ? self.accessories[l].context.atHome = response[i].location.atHome : self.accessories[l].context.atHome = false;
-              }
-              if(self.accessories[l].displayName == self.config.name + ' Anyone'){
-                skipAnyone = true;
+        for(const i in response){	        
+          if(response[i].settings.geoTrackingEnabled){	        
+            userArray.push(response[i].id);                
+            let skipUser = false;    
+            let skipAnyone = false;   
+            countUser += 1;  
+            for(const l in self.accessories){
+              if(self.accessories[l].context.type == self.types.occupancy){
+                if(response[i].id == self.accessories[l].context.shortSerialNo){
+                  skipUser = true;
+                  self.accessories[l].context.atHome = response[i].location.atHome;
+                  //response[i].settings.geoTrackingEnabled ? self.accessories[l].context.atHome = response[i].location.atHome : self.accessories[l].context.atHome = false;
+                }
+                if(self.accessories[l].displayName == self.config.name + ' Anyone'){
+                  skipAnyone = true;
+                  if(response[i].location.atHome)self.accessories[l].context.atHome = true;
+                }
               }
             }
-          }
-          //Adding    
-          if(!skipUser){
-            parameter['name'] = response[i].name;
-            parameter['shortSerialNo'] = response[i].id;
-            parameter['type'] = self.types.occupancy;
-            parameter['model'] = response[i].deviceMetadata.model;
-            parameter['username'] = self.config.username;
-            parameter['password'] = self.config.password;
-            parameter['url'] = self.config.url;
-            parameter['logging'] = true;
-            parameter['loggingType'] = 'motion';
-            parameter['loggingTimer'] = true;
-            response[i].settings.geoTrackingEnabled ? parameter['atHome'] = response[i].location.atHome : parameter['atHome'] = false;
-            new Device(self, parameter, true);
-          }   
-          if(!skipAnyone){
-            parameter['name'] = self.config.name + ' Anyone';
-            parameter['shortSerialNo'] = '1234567890';
-            parameter['type'] = self.types.occupancy;
-            parameter['model'] = 'Occupancy Sensor';
-            parameter['username'] = self.config.username;
-            parameter['password'] = self.config.password;
-            parameter['url'] = self.config.url;
-            parameter['atHome'] = false;
-            parameter['logging'] = true;
-            parameter['loggingType'] = 'motion';
-            parameter['loggingTimer'] = true;
-            new Device(self, parameter, true);
-          }   
+            //Adding    
+            if(!skipUser){
+              parameter['name'] = response[i].name;
+              parameter['shortSerialNo'] = response[i].id;
+              parameter['type'] = self.types.occupancy;
+              parameter['model'] = response[i].deviceMetadata.model;
+              parameter['username'] = self.config.username;
+              parameter['password'] = self.config.password;
+              parameter['url'] = self.config.url;
+              parameter['logging'] = true;
+              parameter['loggingType'] = 'motion';
+              parameter['loggingTimer'] = true;
+              response[i].settings.geoTrackingEnabled ? parameter['atHome'] = response[i].location.atHome : parameter['atHome'] = false;
+              new Device(self, parameter, true);
+            }   
+            if(!skipAnyone){
+              parameter['name'] = self.config.name + ' Anyone';
+              parameter['shortSerialNo'] = '1234567890';
+              parameter['type'] = self.types.occupancy;
+              parameter['model'] = 'Occupancy Sensor';
+              parameter['username'] = self.config.username;
+              parameter['password'] = self.config.password;
+              parameter['url'] = self.config.url;
+              parameter['atHome'] = false;
+              parameter['logging'] = true;
+              parameter['loggingType'] = 'motion';
+              parameter['loggingTimer'] = true;
+              new Device(self, parameter, true);
+            } 
+          }  
         }
         //Removing
         for(const i in self.accessories){
           if(self.accessories[i].context.type == self.types.occupancy){
             if(!userArray.includes(self.accessories[i].context.shortSerialNo) && self.accessories[i].displayName != self.config.name + ' Anyone'){
               self.removeAccessory(self.accessories[i]);
-            }
-          }
-          if(self.accessories[i].displayName == self.config.name + ' Anyone'){
-            if(userArray.length == 0){
-              self.removeAccessory(self.accessories[i]); 
+            } else {
+              if(self.accessories[i].displayName == self.config.name + ' Anyone'){
+                if(countUser == 0){
+                  self.removeAccessory(self.accessories[i]); 
+                }
+              }
             }
           }
         }
         self.error.occupancy = 0;
         setTimeout(function(){
           self.checkingUser(parameter);
-        }, self.config.polling);
+        }, 15000);
       })
       .catch((err) => {
         if(self.error.occupancy > 5){
@@ -419,12 +420,12 @@ TadoPlatform.prototype = {
           self.log(err);
           setTimeout(function(){
             self.checkingUser(parameter);
-          }, 30000);
+          }, 60000);
         } else {
           self.error.occupancy += 1;
           setTimeout(function(){
             self.checkingUser(parameter);
-          }, self.config.polling);
+          },30000);
         }
       });
   },
@@ -459,6 +460,7 @@ TadoPlatform.prototype = {
     }
     
     if (this.config.occupancy) {
+      self.log('Connecting to API and looking for new user...');
       self.checkingUser(parameter);
     } else {
       for (const i in this.accessories) {
