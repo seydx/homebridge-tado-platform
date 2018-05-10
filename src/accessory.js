@@ -541,7 +541,7 @@ class TADO {
           var newState = accessory.context.atHome ? 1:0;
           if(accessory.displayName == self.config.name + ' Anyone'){
             if(newState != accessory.context.lastState){
-              if(newState == 0) self.log('Nobody at home!');
+              //if(newState == 0) self.log('Nobody at home!');
               accessory.context.lastState = newState;
               accessory.context.loggingService.addEntry({
                 time: moment().unix(),
