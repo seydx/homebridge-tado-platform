@@ -94,7 +94,8 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
     "radiatorThermostat":true,
     "boilerThermostat":true,
     "remoteThermostat":true,
-    "externalSensor":false
+    "externalSensor":false,
+    "onePerRoom":false
     }
   ]
 }
@@ -117,6 +118,7 @@ See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/mast
 | boilerThermostat | No | Exposes new thermostat accessory for boiler thermostat (Default: false) | 
 | remoteThermostat | No | Exposes new thermostat accessory for remote thermostat (Default: false) |
 | externalSensor | No | Exposes built-in temperature and humidty sensors as new accessories | 
+| onePerRoom | No | Ignores all thermostats in config.json (except boiler) and exposes for each room ONE thermostat (default: false) | 
 
 
 ## In App settings
@@ -147,7 +149,7 @@ This plugin has been verified to work with the following apps on iOS 11.3:
 
 ### TODO:
 - [x] Support more types: Boiler(BU01) and remote thermostat(RU01) (in work)
-- [ ] New Option: 'onePerRoom' (exposes only one thermostet per room)
+- [x] New Option: 'onePerRoom' (exposes only one thermostet per room)
 - [ ] New Accessory: Window Sensor (based on open window detection)
 - [ ] More functions for weather accessory with OpenWeather API
 - [ ] DEBUG
