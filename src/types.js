@@ -62,7 +62,7 @@ module.exports = {
     // DummSwitch Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.DummySwitch = function() {
-      Characteristic.call(this, 'Dummy Switch', 'a33a7443-ec88-4760-a48e-cff68f78e6d3');
+      Characteristic.call(this, 'Window Switch', 'a33a7443-ec88-4760-a48e-cff68f78e6d3');
       this.setProps({
         format: Characteristic.Formats.BOOL,
         perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
