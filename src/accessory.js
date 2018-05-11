@@ -42,7 +42,8 @@ class TADO {
       weather: 4,
       boilerThermostat: 5,
       remoteThermostat: 6,
-      externalSensor: 7
+      externalSensor: 7,
+      onePerRoom: 8
     };
 
     // Error count
@@ -51,7 +52,8 @@ class TADO {
       central: 0,
       occupancy: 0,
       weather: 0,
-      externalSensor: 0
+      externalSensor: 0,
+      boiler: 0
     };
     
     //Sleep function
@@ -666,27 +668,33 @@ class TADO {
         service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastHumidity);
         setTimeout(function(){
           self.getThermoStates(accessory, service, battery);
-        }, 10000);
+        }, self.config.polling);
       })
       .catch((err) => {
-        if(self.error.thermostats > 5){
-          self.error.thermostats = 0;
-          self.log('An error occured by getting thermostat state, trying again...');
-          self.log(err);
-          setTimeout(function(){
-            self.getThermoStates(accessory, service, battery);
-          }, 30000);
-        } else {
-          self.error.thermostats += 1;
-          setTimeout(function(){
-            self.getThermoStates(accessory, service, battery);
-          }, 10000);
+        for(const i in self.accessories){
+          if(self.accessories[i].context.type==self.types.radiatorThermostat||self.accessories[i].context.type==self.types.remoteThermostat){
+            if(self.accessories[i].displayName==accessory.displayName){
+              if(self.error.thermostats > 5){
+                self.error.thermostats = 0;
+                self.log(accessory.displayName + ': An error occured by getting thermostat state, trying again...');
+                self.log(err);
+                setTimeout(function(){
+                  self.getThermoStates(accessory, service, battery);
+                }, 30000);
+              } else {
+                self.error.thermostats += 1;
+                setTimeout(function(){
+                  self.getThermoStates(accessory, service, battery);
+                }, 15000);
+              }
+              service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+              service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+              service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+              service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastCurrentTemp);
+              service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastHumidity);
+            }
+          }
         }
-        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
-        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
-        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
-        service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastCurrentTemp);
-        service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastHumidity);
       });
   }
   
@@ -981,33 +989,39 @@ class TADO {
             accessory.context.targetAutoTemp = response.setting.temperature.celsius; //new context
           }
         }
-        self.error.thermostats = 0;
+        self.error.boiler = 0;
         service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
         service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
         service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
         service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastCurrentTemp);
         setTimeout(function(){
           self.getBoilerStates(accessory, service, battery);
-        }, 10000);
+        }, self.config.polling);
       })
       .catch((err) => {
-        if(self.error.thermostats > 5){
-          self.error.thermostats = 0;
-          self.log('An error occured by getting boiler state, trying again...');
-          self.log(err);
-          setTimeout(function(){
-            self.getBoilerStates(accessory, service, battery);
-          }, 30000);
-        } else {
-          self.error.thermostats += 1;
-          setTimeout(function(){
-            self.getBoilerStates(accessory, service, battery);
-          }, 10000);
+        for(const i in self.accessories){
+          if(self.accessories[i].context.type == self.types.boilerThermostat){
+            if(self.accessories[i].displayName == accessory.displayName){
+              if(self.error.boiler > 5){
+                self.error.boiler = 0;
+                self.log(accessory.displayName + ': An error occured by getting boiler state, trying again...');
+                self.log(err);
+                setTimeout(function(){
+                  self.getBoilerStates(accessory, service, battery);
+                }, 30000);
+              } else {
+                self.error.boiler += 1;
+                setTimeout(function(){
+                  self.getBoilerStates(accessory, service, battery);
+                }, 15000);
+              }
+              service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+              service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+              service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+              service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastCurrentTemp);
+            }
+          }
         }
-        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
-        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
-        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
-        service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastCurrentTemp);
       });
   }
   
@@ -1369,12 +1383,12 @@ class TADO {
         self.error.weather = 0;
         setTimeout(function(){
           self.getWeather(accessory, service);
-        }, 10000);
+        }, self.config.polling);
       })
       .catch((err) => {
         if(self.error.weather > 5){
           self.error.weather = 0;
-          self.log('An error occured by getting weather data, trying again...');
+          self.log(accessory.displayName + ': An error occured by getting weather data, trying again...');
           self.log(err);
           setTimeout(function(){
             self.getWeather(accessory, service);
@@ -1383,7 +1397,7 @@ class TADO {
           self.error.weather += 1;
           setTimeout(function(){
             self.getWeather(accessory, service);
-          }, 10000);
+          }, 15000);
         }
         service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastWeatherTemperature);
       });
@@ -1404,24 +1418,30 @@ class TADO {
         service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastRoomHumidity);
         setTimeout(function(){
           self.getRoomTemperature(accessory, service);
-        }, 10000);
+        }, self.config.polling);
       })
       .catch((err) => {
-        if(self.error.externalSensor > 5){
-          self.error.externalSensor = 0;
-          self.log('An error occured by getting room temperature, trying again...');
-          self.log(err);
-          setTimeout(function(){
-            self.getRoomTemperature(accessory, service);
-          }, 30000);
-        } else {
-          self.error.externalSensor += 1;
-          setTimeout(function(){
-            self.getRoomTemperature(accessory, service);
-          }, 10000);
+        for(const i in self.accessories){
+          if(self.accessories[i].context.type == self.types.externalSensor){
+            if(self.accessories[i].displayName == accessory.displayName){
+              if(self.error.externalSensor > 5){
+                self.error.externalSensor = 0;
+                self.log(accessory.displayName + ': An error occured by getting room temperature, trying again...');
+                self.log(err);
+                setTimeout(function(){
+                  self.getRoomTemperature(accessory, service);
+                }, 30000);
+              } else {
+                self.error.externalSensor += 1;
+                setTimeout(function(){
+                  self.getRoomTemperature(accessory, service);
+                }, 15000);
+              }
+              service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastRoomTemperature);
+              service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastRoomHumidity);
+            }
+          }
         }
-        service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastRoomTemperature);
-        service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastRoomHumidity);
       });
   }
   
