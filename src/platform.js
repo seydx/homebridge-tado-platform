@@ -172,7 +172,7 @@ TadoPlatform.prototype = {
         const thermoArray = [];
         const extraArray = [];
         const configArray = [];
-        if(self.config.radiatorThermostat){
+        if(self.config.radiatorThermostat&&!self.config.onePerRoom){
           configArray.push({
             type: 'HEATING',
             deviceType: 'VA01',
@@ -186,7 +186,7 @@ TadoPlatform.prototype = {
             thermoType: self.types.boilerThermostat
           });
         }
-        if(self.config.remoteThermostat){
+        if(self.config.remoteThermostat&&!self.config.onePerRoom){
           configArray.push({
             type: 'HEATING',
             deviceType: 'RU01',
@@ -252,68 +252,66 @@ TadoPlatform.prototype = {
             }
           }
           //Radiator, Boiler & Remote Thermostats
-          if(!self.config.onePerRoom){
-            for(const config in configArray){
-              if(configArray[config].type == response[i].type){
-                for(const j in response[i].devices){
-                  const devices = response[i].devices;
-                  if(configArray[config].deviceType == devices[j].deviceType){
-                    thermoArray.push(devices[j].shortSerialNo);
-                    let skipThermo = false;
-                    for(const l in self.accessories){
-                      if(configArray[config].thermoType == self.accessories[l].context.type){
-                        if(devices[j].shortSerialNo == self.accessories[l].context.shortSerialNo){
-                          skipThermo = true;
-                          //refresh zoneID/room to avoid error by changing room
-                          self.accessories[l].context.zoneID = response[i].id;
-                          self.accessories[l].context.room = response[i].name;
-                          if(self.accessories[l].context.type != self.types.boilerThermostat){
-                            self.accessories[l].context.batteryState = devices[j].batteryState;
-                            if(self.accessories[l].context.batteryState == 'NORMAL'){
-                              self.accessories[l].context.batteryLevel = 100;
-                              self.accessories[l].context.batteryStatus = 0;
-                            } else {
-                              self.accessories[l].context.batteryLevel = 10;
-                              self.accessories[l].context.batteryStatus = 1;
-                            }
+          for(const config in configArray){
+            if(configArray[config].type == response[i].type){
+              for(const j in response[i].devices){
+                const devices = response[i].devices;
+                if(configArray[config].deviceType == devices[j].deviceType){
+                  thermoArray.push(devices[j].shortSerialNo);
+                  let skipThermo = false;
+                  for(const l in self.accessories){
+                    if(configArray[config].thermoType == self.accessories[l].context.type){
+                      if(devices[j].shortSerialNo == self.accessories[l].context.shortSerialNo){
+                        skipThermo = true;
+                        //refresh zoneID/room to avoid error by changing room
+                        self.accessories[l].context.zoneID = response[i].id;
+                        self.accessories[l].context.room = response[i].name;
+                        if(self.accessories[l].context.type != self.types.boilerThermostat){
+                          self.accessories[l].context.batteryState = devices[j].batteryState;
+                          if(self.accessories[l].context.batteryState == 'NORMAL'){
+                            self.accessories[l].context.batteryLevel = 100;
+                            self.accessories[l].context.batteryStatus = 0;
+                          } else {
+                            self.accessories[l].context.batteryLevel = 10;
+                            self.accessories[l].context.batteryStatus = 1;
                           }
-                          //self.removeAccessory(self.accessories[l]); //FOR DEVELOPING
                         }
+                        //self.removeAccessory(self.accessories[l]); //FOR DEVELOPING
                       }
-                    }
-                    //Adding    
-                    if(!skipThermo){
-                      parameter['zoneID'] = response[i].id;
-                      parameter['room'] = response[i].name;
-                      parameter['name'] = response[i].name + ' ' + devices[j].shortSerialNo;
-                      parameter['shortSerialNo'] = devices[j].shortSerialNo;
-                      devices[j].deviceType != 'BU01' ? parameter['batteryState'] = devices[j].batteryState : parameter['batteryState'] = 'NORMAL';
-                      if(devices[j].deviceType == 'BU01'){
-                        parameter['type'] = self.types.boilerThermostat;
-                        parameter['extraType'] = self.types.boilerThermostat;
-                        parameter['logging'] = false;
-                      } else if(devices[j].deviceType == 'RU01'){
-                        parameter['type'] = self.types.radiatorThermostat;
-                        parameter['extraType'] = self.types.remoteThermostat;
-                        parameter['logging'] = true;
-                        parameter['loggingType'] = 'weather';
-                        parameter['loggingTimer'] = true;
-                      } else {
-                        parameter['type'] = self.types.radiatorThermostat;
-                        parameter['extraType'] = self.types.radiatorThermostat;
-                        parameter['logging'] = true;
-                        parameter['loggingType'] = 'weather';
-                        parameter['loggingTimer'] = true;
-                      }
-                      parameter['model'] = devices[j].deviceType;
-                      parameter['username'] = self.config.username;
-                      parameter['password'] = self.config.password;
-                      parameter['url'] = self.config.url;
-                      new Device(self, parameter, true);
                     }
                   }
-                } 
-              }
+                  //Adding    
+                  if(!skipThermo){
+                    parameter['zoneID'] = response[i].id;
+                    parameter['room'] = response[i].name;
+                    parameter['name'] = response[i].name + ' ' + devices[j].shortSerialNo;
+                    parameter['shortSerialNo'] = devices[j].shortSerialNo;
+                    devices[j].deviceType != 'BU01' ? parameter['batteryState'] = devices[j].batteryState : parameter['batteryState'] = 'NORMAL';
+                    if(devices[j].deviceType == 'BU01'){
+                      parameter['type'] = self.types.boilerThermostat;
+                      parameter['extraType'] = self.types.boilerThermostat;
+                      parameter['logging'] = false;
+                    } else if(devices[j].deviceType == 'RU01'){
+                      parameter['type'] = self.types.radiatorThermostat;
+                      parameter['extraType'] = self.types.remoteThermostat;
+                      parameter['logging'] = true;
+                      parameter['loggingType'] = 'weather';
+                      parameter['loggingTimer'] = true;
+                    } else {
+                      parameter['type'] = self.types.radiatorThermostat;
+                      parameter['extraType'] = self.types.radiatorThermostat;
+                      parameter['logging'] = true;
+                      parameter['loggingType'] = 'weather';
+                      parameter['loggingTimer'] = true;
+                    }
+                    parameter['model'] = devices[j].deviceType;
+                    parameter['username'] = self.config.username;
+                    parameter['password'] = self.config.password;
+                    parameter['url'] = self.config.url;
+                    new Device(self, parameter, true);
+                  }
+                }
+              } 
             }
           }
         }
