@@ -7,7 +7,7 @@
 ],
 "platforms": [
    {
-	   "platform": "TadoPlatform",
+       "platform": "TadoPlatform",
        "name": "Tado",
        "username": "test@test.de",
        "password": "TadoPasswordHere",
@@ -15,7 +15,11 @@
        "centralSwitch": true,
        "occupancy": true,
        "weather": true,
-       "externalSensor":false
+       "externalSensor":false,
+       "radiatorThermostat":false,
+       "remoteThermostat":false,
+       "boilerThermostat":false,
+       "onePerRoom":true
    }
 ]
 }
