@@ -37,7 +37,8 @@ function TadoPlatform (log, config, api) {
     boilerThermostat: config.boilerThermostat||false,
     remoteThermostat: config.remoteThermostat||false,
     onePerRoom: config.onePerRoom||false,
-    externalSensor: config.externalSensor||false
+    externalSensor: config.externalSensor||false,
+    openWindow: config.openWindow||false
   };
   
   this.config.polling < 10000 ? this.config.polling = 10000 : this.config.polling;
@@ -56,7 +57,8 @@ function TadoPlatform (log, config, api) {
     boilerThermostat: 5,
     remoteThermostat: 6,
     externalSensor: 7,
-    onePerRoom: 8
+    onePerRoom: 8,
+    windowSensor: 9
   };
   
   this.error = {
@@ -171,6 +173,7 @@ TadoPlatform.prototype = {
         const response = JSON.parse(data);
         const thermoArray = [];
         const extraArray = [];
+        const windowArray = [];
         const configArray = [];
         if(self.config.radiatorThermostat&&!self.config.onePerRoom){
           configArray.push({
@@ -198,15 +201,15 @@ TadoPlatform.prototype = {
             extraArray.push(response[i].id);
             //External Sensors
             if (self.config.externalSensor) {
-              let skip = false;
+              let skipSensor = false;
               for (const d in self.accessories) {
                 if (self.accessories[d].context.type == self.types.externalSensor) {
                   if (self.accessories[d].context.zoneID == response[i].id) {
-                    skip = true;
+                    skipSensor = true;
                   }
                 }
               }
-              if (!skip) {
+              if (!skipSensor) {
                 parameter['zoneID'] = response[i].id;
                 parameter['room'] = response[i].name;
                 parameter['name'] = response[i].name + ' Temperature';
@@ -220,6 +223,33 @@ TadoPlatform.prototype = {
                 parameter['loggingType'] = 'weather';
                 parameter['loggingTimer'] = true;
                 new Device(self, parameter, true);  
+              }
+            }
+            //Window Sensors
+            if (self.config.openWindow) {
+              if(response[i].openWindowDetection.supported&&response[i].openWindowDetection.enabled){
+                windowArray.push(response[i].id);
+                let skipWindow = false;
+                for (const windows in self.accessories) {
+                  if (self.accessories[windows].context.type == self.types.windowSensor) {
+                    if (self.accessories[windows].context.zoneID == response[i].id) {
+                      skipWindow = true;
+                    }
+                  }
+                }
+                if (!skipWindow) {
+                  parameter['zoneID'] = response[i].id;
+                  parameter['room'] = response[i].name;
+                  parameter['name'] = response[i].name + ' Window';
+                  parameter['shortSerialNo'] = parameter.homeID + '-' + self.types.windowSensor + '-' + response[i].id;
+                  parameter['type'] = self.types.windowSensor;
+                  parameter['model'] = 'Window';
+                  parameter['username'] = self.config.username;
+                  parameter['password'] = self.config.password;
+                  parameter['url'] = self.config.url;
+                  parameter['logging'] = false;
+                  new Device(self, parameter, true);  
+                }
               }
             }
             //One per room thermostats
@@ -357,6 +387,14 @@ TadoPlatform.prototype = {
             } else {
               self.removeAccessory(self.accessories[i]);
             }
+          } else if(self.accessories[i].context.type == self.types.windowSensor){
+            if(self.config.openWindow){
+              if(!windowArray.includes(self.accessories[i].context.zoneID)){
+                self.removeAccessory(self.accessories[i]);
+              }
+            } else {
+              self.removeAccessory(self.accessories[i]);
+            }
           }
         }
         self.error.thermostats = 0;
@@ -384,10 +422,10 @@ TadoPlatform.prototype = {
   checkingUser: function (parameter) {
     const self = this;
     let countUser = 0;
+    const userArray = [];  
     self.getContent(self.config.url + 'homes/' + parameter.homeID + '/mobileDevices?username=' + self.config.username + '&password=' + self.config.password)
       .then((data) => {
-        const response = JSON.parse(data);        
-        const userArray = [];        
+        const response = JSON.parse(data);  
         for(const i in response){	        
           if(response[i].settings.geoTrackingEnabled){	        
             userArray.push(response[i].id);                
@@ -399,7 +437,6 @@ TadoPlatform.prototype = {
                 if(response[i].id == self.accessories[l].context.shortSerialNo){
                   skipUser = true;
                   self.accessories[l].context.atHome = response[i].location.atHome;
-                  //response[i].settings.geoTrackingEnabled ? self.accessories[l].context.atHome = response[i].location.atHome : self.accessories[l].context.atHome = false;
                 }
                 if(self.accessories[l].displayName == self.config.name + ' Anyone'){
                   skipAnyone = true;
