@@ -19,7 +19,8 @@
        "radiatorThermostat":false,
        "remoteThermostat":false,
        "boilerThermostat":false,
-       "onePerRoom":true
+       "onePerRoom":true,
+       "openWindow":false
    }
 ]
 }
