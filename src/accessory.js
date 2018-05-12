@@ -43,7 +43,8 @@ class TADO {
       boilerThermostat: 5,
       remoteThermostat: 6,
       externalSensor: 7,
-      onePerRoom: 8
+      onePerRoom: 8,
+      windowSensor: 9
     };
 
     // Error count
@@ -53,6 +54,7 @@ class TADO {
       occupancy: 0,
       weather: 0,
       externalSensor: 0,
+      windowSensor: 0,
       boiler: 0
     };
     
@@ -124,6 +126,11 @@ class TADO {
         name = parameter.name;
         deviceType = Accessory.Categories.SENSOR;
         accessoryType = Service.TemperatureSensor;
+        break;
+      case 9:
+        name = parameter.name;
+        deviceType = Accessory.Categories.SENSOR;
+        accessoryType = Service.ContactSensor;
         break;
     }
 
@@ -230,6 +237,14 @@ class TADO {
         accessory.context.lastRoomTemperature = 0.00;
         accessory.context.lastRoomHumidity = 0.00;
         accessory.context.zoneID = parameter.zoneID;
+        accessory.context.room = parameter.room;
+        break;
+      case 9:
+        accessory.context.zoneID = parameter.zoneID;
+        accessory.context.windowState = 0;
+        accessory.context.windowDuration = 0;
+        accessory.context.oldState = undefined;
+        accessory.context.room = parameter.room;
         break;
     }
     
@@ -506,6 +521,15 @@ class TADO {
           .updateValue(accessory.context.lastRoomTemperature);
           
         self.getRoomTemperature(accessory, service);      
+        break;
+      }
+      case 9: { //WindowSensor
+        service = accessory.getService(Service.ContactSensor);
+        
+        service.getCharacteristic(Characteristic.ContactSensorState)
+          .updateValue(accessory.context.windowState);
+          
+        self.getWindowState(accessory, service);      
         break;
       }
     } setTimeout(function(){self.getHistory(accessory, service, type);},5000); //Wait for FakeGato
@@ -1413,9 +1437,9 @@ class TADO {
           accessory.context.lastRoomTemperature = response.sensorDataPoints.insideTemperature.celsius :
           accessory.context.lastRoomTemperature = response.sensorDataPoints.insideTemperature.fahrenheit;
         accessory.context.lastRoomHumidity = response.sensorDataPoints.humidity.percentage;
-        self.error.externalSensor = 0;
         service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastRoomTemperature);
         service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastRoomHumidity);
+        self.error.externalSensor = 0;
         setTimeout(function(){
           self.getRoomTemperature(accessory, service);
         }, self.config.polling);
@@ -1435,6 +1459,59 @@ class TADO {
                 self.error.externalSensor += 1;
                 setTimeout(function(){
                   self.getRoomTemperature(accessory, service);
+                }, 15000);
+              }
+              service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastRoomTemperature);
+              service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastRoomHumidity);
+            }
+          }
+        }
+      });
+  }
+  
+  getWindowState(accessory, service){
+    const self = this;
+    const a = accessory.context;
+    self.getContent(a.url + 'homes/' + a.homeID + '/zones/' + a.zoneID + '/state?username=' + a.username + '&password=' + a.password)
+      .then((data) => {
+        const response = JSON.parse(data);
+        if(response.openWindow != null){
+          accessory.context.windowState = 1;
+          accessory.context.windowDuration = response.openWindow.durationInSeconds;
+        } else {
+          accessory.context.windowState = 0;
+          accessory.context.windowDuration = 0;
+        }
+        if(accessory.context.windowState!=accessory.context.oldState){
+          if(accessory.context.oldState != undefined){
+            accessory.context.windowState == 1 ? 
+              self.log('Open window detected! Turning off thermostat in ' + accessory.context.room + ' for ' + accessory.context.windowDuration/60 + ' minutes!') : 
+              self.log('Window closed! Turning on thermostat in ' + accessory.context.room);
+          }
+          accessory.context.oldState = accessory.context.windowState;
+        }
+        if(accessory.context.windowState!=accessory.context.oldState&&accessory.context.oldState != undefined)self.log(accessory.displayName + ': Room changed to ' + accessory.context.room);
+        service.getCharacteristic(Characteristic.ContactSensorState).updateValue(accessory.context.windowState);
+        self.error.windowSensor = 0;
+        setTimeout(function(){
+          self.getWindowState(accessory, service);
+        }, self.config.polling);
+      })
+      .catch((err) => {
+        for(const i in self.accessories){
+          if(self.accessories[i].context.type == self.types.windowSensor){
+            if(self.accessories[i].displayName == accessory.displayName){
+              if(self.error.windowSensor > 5){
+                self.error.windowSensor = 0;
+                self.log(accessory.displayName + ': An error occured by getting room temperature, trying again...');
+                self.log(err);
+                setTimeout(function(){
+                  self.getWindowState(accessory, service);
+                }, 30000);
+              } else {
+                self.error.windowSensor += 1;
+                setTimeout(function(){
+                  self.getWindowState(accessory, service);
                 }, 15000);
               }
               service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastRoomTemperature);
