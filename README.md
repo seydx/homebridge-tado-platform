@@ -1,4 +1,4 @@
-# homebridge-tado-platform v4.2
+# homebridge-tado-platform v4.3
 
 [![npm](https://img.shields.io/npm/v/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![npm](https://img.shields.io/npm/dt/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
@@ -39,8 +39,8 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 - Elgato EVE history feature (Fakegato)
 - OpenWeather Support (CURRENTLY NOT AVAILABLE): If API and Location setted in config, the Weather accessory will also show the current humidity state and Elgato EVE will also show the airpressure, sunrise, sunset and weather state with FakeGato support! Note: You can get an API-Key from [openweathermap.org](https://openweathermap.org) - After sign up, you can create an API Key in the profile section
 
-**Window sensors (CURRENTLY NOT AVAILABLE):**
-- If enabled in config.json **AND** under the setting in the tado app (open window detection), this plugin creates window sensors for each room.
+**Window sensors:**
+- If enabled in config.json (openWindow) **AND** under the setting in the tado app (open window detection), this plugin creates window sensors for each room. So if the Tado open window detection detects an open window, the sensor will go on, and if the open window goes off, the sensor will also goes off
 
 **Central Switch:**
 - If enabled in config.json this plugin creates a central switch to turning off/on all thermostats together with just one click!
@@ -100,7 +100,8 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
     "boilerThermostat":true,
     "remoteThermostat":true,
     "externalSensor":false,
-    "onePerRoom":false
+    "onePerRoom":false,
+    "openWindow":false
     }
   ]
 }
@@ -123,7 +124,8 @@ See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/mast
 | boilerThermostat | No | Exposes new thermostat accessory for boiler thermostat (Default: false) | 
 | remoteThermostat | No | Exposes new thermostat accessory for remote thermostat (Default: false) |
 | externalSensor | No | Exposes built-in temperature and humidty sensors as new accessories for each room | 
-| onePerRoom | No | Ignores all thermostats in config.json (except boiler) and exposes for each room ONE thermostat (default: false) | 
+| onePerRoom | No | Ignores all thermostats in config.json (except boiler) and exposes for each room ONE thermostat (Default: false) | 
+| openWindow | No | Exposes window contact sensors to HomeKit (if OpenWindowDetection activated in Tado settings! - Default: false) | 
 
 
 ## In App settings
@@ -155,7 +157,7 @@ This plugin has been verified to work with the following apps on iOS 11.3:
 ### TODO:
 - [x] Support more types: Boiler(BU01) and remote thermostat(RU01) (in work)
 - [x] New Option: 'onePerRoom' (exposes only one thermostet per room)
-- [ ] New Accessory: Window Sensor (based on open window detection)
+- [x] New Accessory: Window Sensor (based on open window detection)
 - [ ] More functions for weather accessory with OpenWeather API
 - [ ] DEBUG
 
