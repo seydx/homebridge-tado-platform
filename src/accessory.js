@@ -1319,7 +1319,7 @@ class TADO {
     }
     if(service.getCharacteristic(Characteristic.DummySwitch).value != accessory.context.lastDummyState){
       accessory.context.lastDummyState = service.getCharacteristic(Characteristic.DummySwitch).value;
-      accessory.context.lastDummyState ? self.log('Dummy Switch: ON') : self.log('Dummy Switch: OFF');
+      accessory.context.lastDummyState ? self.log('Window Switch: ON') : self.log('Window Switch: OFF');
     }
     service.getCharacteristic(Characteristic.On).updateValue(accessory.context.lastMainState);
     service.getCharacteristic(Characteristic.AutoThermostats)
