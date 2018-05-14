@@ -167,6 +167,7 @@ class TADO {
         accessory.context.heatValue = 5;
         accessory.context.coolValue = 5;
         accessory.context.delayTimer = 0;
+        accessory.context.delayState = false;
         accessory.context.oldRoom = undefined;
         accessory.context.room = parameter.room;
         if(accessory.context.tempUnit == 'CELSIUS'){
@@ -324,6 +325,11 @@ class TADO {
             minStep: 1
           })
           .updateValue(accessory.context.delayTimer);
+          
+        if (!service.testCharacteristic(Characteristic.DelaySwitch))service.addCharacteristic(Characteristic.DelaySwitch);
+        service.getCharacteristic(Characteristic.DelaySwitch)
+          .on('set', self.setDelay.bind(this, accessory, service))
+          .updateValue(accessory.context.delayState);
 
         service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)
           .updateValue(accessory.context.lastCurrentState);
@@ -722,6 +728,32 @@ class TADO {
       });
   }
   
+  setDelay(accessory, service, state, callback){
+    const self = this;
+    const timer = service.getCharacteristic(Characteristic.DelayTimer).value;
+    if(timer>0){
+      if(state){
+        self.log('Activating delay (' + timer + 's) for ' + accessory.displayName);
+        self.sleep(accessory.context.delayTimer*1000).then(() => {
+          service.getCharacteristic(Characteristic.DelaySwitch).setValue(false);
+        });
+      } else {
+        self.log('Turning off delay for ' + accessory.displayName);
+      }
+      accessory.context.delayState = state;
+      accessory.context.delayTimer = timer;
+      callback(null, state);
+    } else {
+      setTimeout(function(){
+        accessory.context.delayState = false;
+        accessory.context.delayTimer = 0;
+        service.getCharacteristic(Characteristic.DelayTimer).updateValue(accessory.context.delayTimer);
+        service.getCharacteristic(Characteristic.DelaySwitch).updateValue(accessory.context.delayState);
+      }, 500);
+      callback(null, false);
+    }
+  }
+  
   setThermostatState(accessory, service, state, callback){
     const self = this;
     switch(state){
@@ -860,40 +892,20 @@ class TADO {
             'Content-Type': 'application/json'
           }
         };
-        if (accessory.context.delayTimer > 0) {
-          self.log(accessory.displayName + ': Switching to automatic mode in ' + accessory.context.delayTimer + ' seconds...');
-          self.sleep(accessory.context.delayTimer*1000).then(() => {
-            let req = https.request(options, function(res) {
-              self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
-            });
-            req.on('error', function(err) {
-              self.log(accessory.displayName + ': An error occured by setting AUTO state!');
-              self.log(err);
-            });
-            req.end();
-            accessory.context.lastCurrentState = 0;
-            accessory.context.lastTargetState = 3;
-            accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
-            service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
-            service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
-            service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
-          });
-        } else {
-          let req = https.request(options, function(res) {
-            self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
-          });
-          req.on('error', function(err) {
-            self.log(accessory.displayName + ': An error occured by setting new temperature!');
-            self.log(err);
-          });
-          req.end();
-          accessory.context.lastCurrentState = 0;
-          accessory.context.lastTargetState = 3;
-          accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
-          service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
-          service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
-          service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
-        }
+        let req = https.request(options, function(res) {
+          self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
+        });
+        req.on('error', function(err) {
+          self.log(accessory.displayName + ': An error occured by setting new temperature!');
+          self.log(err);
+        });
+        req.end();
+        accessory.context.lastCurrentState = 0;
+        accessory.context.lastTargetState = 3;
+        accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
+        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
         callback();
         break;
       }
