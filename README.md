@@ -16,7 +16,7 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 - Battery state and notification
 - Built-in humidity sensor
 - Possibility to expose built-in temperature & humidity sensors as new accessories to HomeKit
-- Delay timer: You can set up a timer as delay for your thermostats to wait a certain time to go back to the automatic mode (Helpful in automations where you shut off the thermostat after window is opened and in automatic mode if window is closed. So this timer let the thermostat wait a certain time in off mode before going back to auto mode. Helpful if you open the window only for a few minutes, also configurable within 3rd party app)
+- Delay: Every thermostat has two options which are accessible over 3rd party apps like Elgato EVE etc - Delay Switch and Delay Timer. If delay timer > 0 and you turn on delay switch, the delay timer will begin to run and after the time is up, the switch will automatically turn off. (Thats helpfull for creating automations which needs a delay for turning on/off)
 - Elgato EVE history feature (Fakegato)
 
 **Boiler :**
@@ -138,7 +138,9 @@ There are more settings available within the app to customize the plugin for you
 
 - **Cool Value:** Value for the "Cool" mode. Example: a value of 4 will cool up the room to **Current Room Temperature - 4 degrees**
 
-- **Delay Timer:** Delay for setting the thermostat back in automatic mode (0 == not enabled)
+- **Delay Timer:** Delay (in seconds) for the delay switch to turning it off
+
+- **Delay Switch:** After switching it on, the delay timer will begin to run, and if the time is up, the switch will turn off (helpfull for automations that needs a delay)
 
 
 ## Supported clients
