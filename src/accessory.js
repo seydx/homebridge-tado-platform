@@ -356,6 +356,7 @@ class TADO {
           .on('set', self.setThermostatTemp.bind(this, accessory, service));
             
         service.getCharacteristic(Characteristic.TemperatureDisplayUnits)
+          .on('set', self.setTempUnit.bind(this, accessory, service))
           .updateValue(accessory.context.tempUnitState); // 0 = C ; 1 = F
             
         service.getCharacteristic(Characteristic.CurrentRelativeHumidity)
@@ -752,6 +753,18 @@ class TADO {
       }, 500);
       callback(null, false);
     }
+  }
+  
+  setTempUnit(accessory, service, state, callback){
+    const self = this;
+    if(state == 0){
+      self.log('Temperature Unit: Celsius');
+      accessory.context.tempUnitState = 0;
+    } else {
+      self.log('Temperature Unit: Fahrenheit');
+      accessory.context.tempUnitState = 1;
+    }
+    callback(null, state);
   }
   
   setThermostatState(accessory, service, state, callback){
