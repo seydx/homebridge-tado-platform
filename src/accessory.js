@@ -97,7 +97,7 @@ class TADO {
     var accessory, name, deviceType, accessoryType;
 
     switch (parameter.type) {
-      case 1: //case 5 == case 1
+      case 1: //case 6 == case 1
         name = parameter.name;
         deviceType = Accessory.Categories.THERMOSTAT;
         accessoryType = Service.Thermostat;
@@ -492,6 +492,7 @@ class TADO {
           .on('set', self.setBoilerTemp.bind(this, accessory, service));
             
         service.getCharacteristic(Characteristic.TemperatureDisplayUnits)
+          .on('set', self.setTempUnit.bind(this, accessory, service))
           .updateValue(accessory.context.tempUnitState); // 0 = C ; 1 = F
             
         battery.getCharacteristic(Characteristic.ChargingState)
