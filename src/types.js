@@ -106,6 +106,20 @@ module.exports = {
     Characteristic.DelayTimer.UUID = 'e36f5d74-3c26-4f77-871a-710b4b764765';
     
     /// /////////////////////////////////////////////////////////////////////////
+    // DelaySwitch Characteristic
+    /// /////////////////////////////////////////////////////////////////////////
+    Characteristic.DelaySwitch = function() {
+      Characteristic.call(this, 'Delay Switch', '2676c66d-4f15-4a71-b5bd-3abe7704f9ac');
+      this.setProps({
+        format: Characteristic.Formats.BOOL,
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+      });
+      this.value = this.getDefaultValue();
+    };
+    inherits(Characteristic.DelaySwitch, Characteristic);
+    Characteristic.DelaySwitch.UUID = '2676c66d-4f15-4a71-b5bd-3abe7704f9ac';
+    
+    /// /////////////////////////////////////////////////////////////////////////
     // HeatValue Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.HeatValue = function () {
