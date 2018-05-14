@@ -1,26 +1,28 @@
 {
-"bridge": {
-  ...
-},
-"accessories": [
-  ...
-],
-"platforms": [
+ "bridge": {
+     ...
+ },
+ "platforms": [
    {
-       "platform": "TadoPlatform",
-       "name": "Tado",
-       "username": "test@test.de",
-       "password": "TadoPasswordHere",
-       "polling": 10,
-       "centralSwitch": true,
-       "occupancy": true,
-       "weather": true,
-       "externalSensor":false,
-       "radiatorThermostat":false,
-       "remoteThermostat":false,
-       "boilerThermostat":false,
-       "onePerRoom":true,
-       "openWindow":false
+     "platform": "TadoPlatform",
+     "name": "Tado",
+     "username": "TadoUsername",
+     "password": "TadoPassword",
+     "polling": 10,
+     "centralSwitch":true,
+     "occupancy":true,
+     "weather": true,
+     "radiatorThermostat":true,
+     "boilerThermostat":true,
+     "remoteThermostat":true,
+     "externalSensor":false,
+     "onePerRoom":false,
+     "openWindow":false,
+     "extendedWeather":{
+               "activate":false,
+               "key": "abcdefghijklmno12345678",
+               "location":"Berlin"
+     }
    }
-]
+ ]
 }
