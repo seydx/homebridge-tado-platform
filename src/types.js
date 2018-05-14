@@ -8,6 +8,66 @@ module.exports = {
     //const Service = hap.Service;
 
     /// /////////////////////////////////////////////////////////////////////////
+    // AirPressure Characteristic
+    /// ///////////////////////////////////////////////////////////////////////// 
+    Characteristic.AirPressure = function() {
+      Characteristic.call(this, 'Air Pressure', 'E863F10F-079E-48FF-8F27-9C2605A29F52');
+      this.setProps({
+        format: Characteristic.Formats.UINT16,
+        unit: 'hPa',
+        maxValue: 1100,
+        minValue: 700,
+        minStep: 1,
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+      });
+      this.value = this.getDefaultValue();
+    };
+    inherits(Characteristic.AirPressure, Characteristic);
+    Characteristic.AirPressure.UUID = 'E863F10F-079E-48FF-8F27-9C2605A29F52';
+
+    /// /////////////////////////////////////////////////////////////////////////
+    // WeatherState Characteristic
+    /// /////////////////////////////////////////////////////////////////////////
+    Characteristic.WeatherState = function() {
+      Characteristic.call(this, 'Weather', '896f41ad-ef68-4d74-ae34-bd2c6266129f');
+      this.setProps({
+        format: Characteristic.Formats.STRING,
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+      });
+      this.value = this.getDefaultValue();
+    };
+    inherits(Characteristic.WeatherState, Characteristic);
+    Characteristic.WeatherState.UUID = '896f41ad-ef68-4d74-ae34-bd2c6266129f';
+
+    /// /////////////////////////////////////////////////////////////////////////
+    // Sunrise Characteristic
+    /// /////////////////////////////////////////////////////////////////////////
+    Characteristic.Sunrise = function() {
+      Characteristic.call(this, 'Sunrise', '2a3f45d4-8191-4fc7-a102-359237c8a834');
+      this.setProps({
+        format: Characteristic.Formats.STRING,
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+      });
+      this.value = this.getDefaultValue();
+    };
+    inherits(Characteristic.Sunrise, Characteristic);
+    Characteristic.Sunrise.UUID = '2a3f45d4-8191-4fc7-a102-359237c8a834';
+
+    /// /////////////////////////////////////////////////////////////////////////
+    // Sunset Characteristic
+    /// /////////////////////////////////////////////////////////////////////////
+    Characteristic.Sunset = function() {
+      Characteristic.call(this, 'Sunset', 'f1dfeacb-2519-47d5-8608-cf453c2d7a74');
+      this.setProps({
+        format: Characteristic.Formats.STRING,
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+      });
+      this.value = this.getDefaultValue();
+    };
+    inherits(Characteristic.Sunset, Characteristic);
+    Characteristic.Sunset.UUID = 'f1dfeacb-2519-47d5-8608-cf453c2d7a74';
+
+    /// /////////////////////////////////////////////////////////////////////////
     // AutoThermostats Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.AutoThermostats = function() {
