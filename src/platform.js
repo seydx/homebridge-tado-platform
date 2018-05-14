@@ -2,6 +2,7 @@
 
 const async = require('async');
 const Device = require('./accessory.js');
+const version = require('../package.json').version;
 
 var HomebridgeAPI, FakeGatoHistoryService;
 
@@ -17,6 +18,8 @@ module.exports = function (homebridge) {
 function TadoPlatform (log, config, api) {
   if (!api || !config) return;
   if (!config.username || !config.password) throw new Error('Please check your config.json!');
+  
+  log('Homebridge TadoPlatform v' + version + ' loaded');
 
   // HB
   const self = this;
