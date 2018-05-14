@@ -1,8 +1,8 @@
 'use strict';
 
 const HomeKitTypes = require('./types.js');
-const https = require('https');
 const moment = require('moment');
+const https = require('https');
 
 var Accessory, Service, Characteristic, UUIDGen, PlatformAccessory, FakeGatoHistoryService;
 
@@ -53,6 +53,7 @@ class TADO {
       central: 0,
       occupancy: 0,
       weather: 0,
+      openweather: 0,
       externalSensor: 0,
       windowSensor: 0,
       boiler: 0
@@ -66,7 +67,8 @@ class TADO {
     // Init req promise
     this.getContent = function(url) {
       return new Promise((resolve, reject) => {
-        const request = https.get(url, (response) => {
+        const lib = url.startsWith('https') ? require('https') : require('http');
+        const request = lib.get(url, (response) => {
           if (response.statusCode < 200 || response.statusCode > 299) {
             reject(new Error('Failed to load data, status code: ' + response.statusCode));
           }
@@ -206,6 +208,17 @@ class TADO {
         break;
       case 4:
         accessory.context.lastWeatherTemperature = 0.00;
+        accessory.context.lastWeatherHumidity = 0.00;
+        accessory.context.lastWeatherPressure = 0;
+        accessory.context.lastWeatherState = '';
+        accessory.context.lastWeatherSunset = '';
+        accessory.context.lastWeatherSunrise = '';
+        accessory.context.activate = parameter.activate;
+        accessory.context.key = parameter.key;
+        accessory.context.location = parameter.location;
+        accessory.context.tempUnit == 'CELSIUS' ? 
+          accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=metric' :
+          accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=imperial';
         break;
       case 5:
         accessory.context.extraType = parameter.extraType;
@@ -441,7 +454,45 @@ class TADO {
           })
           .updateValue(accessory.context.lastWeatherTemperature);
           
-        self.getWeather(accessory, service);      
+        self.getWeather(accessory, service);
+        
+        if(self.config.extendedWeatherActive&&self.config.extendedWeatherKey&&self.config.extendedWeatherLocation){	        
+          //Refresh context
+          accessory.context.activate = self.config.extendedWeatherActive;
+          accessory.context.key = self.config.extendedWeatherKey;
+          accessory.context.location = self.config.extendedWeatherLocation;
+          accessory.context.tempUnit == 'CELSIUS' ? 
+            accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=metric' :
+            accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=imperial';
+          
+          if (!service.testCharacteristic(Characteristic.CurrentRelativeHumidity))service.addCharacteristic(Characteristic.CurrentRelativeHumidity);
+          service.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+            .updateValue(accessory.context.lastWeatherHumidity);
+                      
+          if (!service.testCharacteristic(Characteristic.AirPressure))service.addCharacteristic(Characteristic.AirPressure);
+          service.getCharacteristic(Characteristic.AirPressure)
+            .updateValue(accessory.context.lastWeatherPressure); 
+          
+          if (!service.testCharacteristic(Characteristic.WeatherState))service.addCharacteristic(Characteristic.WeatherState);
+          service.getCharacteristic(Characteristic.WeatherState)
+            .updateValue(accessory.context.lastWeatherState); 
+           
+          if (!service.testCharacteristic(Characteristic.Sunrise))service.addCharacteristic(Characteristic.Sunrise);
+          service.getCharacteristic(Characteristic.Sunrise)
+            .updateValue(accessory.context.lastWeatherSunrise); 
+          
+          if (!service.testCharacteristic(Characteristic.Sunset))service.addCharacteristic(Characteristic.Sunset);
+          service.getCharacteristic(Characteristic.Sunset)
+            .updateValue(accessory.context.lastWeatherSunset); 
+          
+          self.getOpenWeather(accessory, service);     
+        } else {
+          if(service.testCharacteristic(Characteristic.CurrentRelativeHumidity))service.removeCharacteristic(service.getCharacteristic(Characteristic.CurrentRelativeHumidity));          
+          if(service.testCharacteristic(Characteristic.AirPressure))service.removeCharacteristic(service.getCharacteristic(Characteristic.AirPressure));          
+          if(service.testCharacteristic(Characteristic.WeatherState))service.removeCharacteristic(service.getCharacteristic(Characteristic.WeatherState));           
+          if(service.testCharacteristic(Characteristic.Sunrise))service.removeCharacteristic(service.getCharacteristic(Characteristic.Sunrise));         
+          if(service.testCharacteristic(Characteristic.Sunset))service.removeCharacteristic(service.getCharacteristic(Characteristic.Sunset));
+        }
         break;
       }
       case 5: { // boiler
@@ -601,8 +652,8 @@ class TADO {
             accessory.context.loggingService.addEntry({
               time: moment().unix(),
               temp: accessory.context.lastWeatherTemperature,
-              pressure: 0,
-              humidity: 0
+              pressure: accessory.context.lastWeatherPressure,
+              humidity: accessory.context.lastWeatherHumidity
             });
           }
           break;
@@ -1453,6 +1504,54 @@ class TADO {
       });
   }
   
+  getOpenWeather(accessory, service){
+    const self = this;
+    self.getContent(accessory.context.weatherUrl)
+      .then((data) => {
+        const response = JSON.parse(data);
+        accessory.context.lastWeatherHumidity = response.main.humidity;
+        accessory.context.lastWeatherPressure = response.main.pressure;
+        accessory.context.lastWeatherState = response.weather[0].main;
+        accessory.context.lastWeatherSunrise = moment(response.sys.sunrise * 1000).format('HH:mm').toString();
+        accessory.context.lastWeatherSunset = moment(response.sys.sunset * 1000).format('HH:mm').toString();
+        service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastWeatherHumidity);
+        service.getCharacteristic(Characteristic.AirPressure).updateValue(accessory.context.lastWeatherPressure);
+        service.getCharacteristic(Characteristic.WeatherState).updateValue(accessory.context.lastWeatherState);
+        service.getCharacteristic(Characteristic.Sunrise).updateValue(accessory.context.lastWeatherSunrise);
+        service.getCharacteristic(Characteristic.Sunset).updateValue(accessory.context.lastWeatherSunset);
+        self.error.openweather = 0;
+        setTimeout(function(){
+          self.getOpenWeather(accessory, service);
+        }, self.config.polling);
+      })
+      .catch((err) => {
+        if(self.error.openweather > 5){
+          self.error.openweather = 0;
+          self.log(accessory.displayName + ': An error occured by getting openweather data, trying again...');
+          self.log(err);
+          setTimeout(function(){
+            self.getOpenWeather(accessory, service);
+          }, 30000);
+        } else {
+          self.error.openweather += 1;
+          setTimeout(function(){
+            self.getOpenWeather(accessory, service);
+          }, 15000);
+        }
+        service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastWeatherHumidity);
+        service.getCharacteristic(Characteristic.AirPressure).updateValue(accessory.context.lastWeatherPressure);
+        service.getCharacteristic(Characteristic.WeatherState).updateValue(accessory.context.lastWeatherState);
+        service.getCharacteristic(Characteristic.Sunrise).updateValue(accessory.context.lastWeatherSunrise);
+        service.getCharacteristic(Characteristic.Sunset).updateValue(accessory.context.lastWeatherSunset);
+      });
+  }
+  
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  /************************************************************ EXTERNAL SENSORS **************************************************************************/
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  
   getRoomTemperature(accessory, service){
     const self = this;
     const a = accessory.context;
@@ -1494,6 +1593,12 @@ class TADO {
         }
       });
   }
+  
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  /********************************************************************* WINDOW ***************************************************************************/
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
   
   getWindowState(accessory, service){
     const self = this;
