@@ -155,7 +155,13 @@ class TADO {
     accessory.context.username = parameter.username;
     accessory.context.password = parameter.password;
     accessory.context.url = parameter.url;
-    accessory.context.tempUnit == 'CELSIUS' ? accessory.context.tempUnitState = 0 : accessory.context.tempUnitState = 1;
+    if(accessory.context.tempUnit == 'CELSIUS'){
+      accessory.context.tempUnitState = 0;
+      accessory.context.propsUnit = 'celsius';
+    } else {
+      accessory.context.tempUnitState = 0;
+      accessory.context.propsUnit = 'fahrenheit';
+    }
     
     //Accessory Information
     accessory.context.shortSerialNo = parameter.shortSerialNo;
@@ -300,7 +306,6 @@ class TADO {
     const self = this;
     
     //Refresh AccessoryInformation
-    
     accessory.getService(Service.AccessoryInformation)
       .setCharacteristic(Characteristic.Name, accessory.context.name)
       .setCharacteristic(Characteristic.Identify, accessory.context.name)
@@ -365,7 +370,8 @@ class TADO {
           .setProps({
             minValue: -100,
             maxValue: 100,
-            minStep: 0.01
+            minStep: 0.01,
+            unit: accessory.context.propsUnit
           })
           .updateValue(accessory.context.lastCurrentTemp);
             
@@ -373,7 +379,8 @@ class TADO {
           .setProps({
             minValue: accessory.context.minValue,
             maxValue: accessory.context.maxValue,
-            minStep: 1
+            minStep: 1,
+            unit: accessory.context.propsUnit
           })
           .updateValue(accessory.context.lastTargetTemp)
           .on('set', self.setThermostatTemp.bind(this, accessory, service));
@@ -460,7 +467,8 @@ class TADO {
           .setProps({
             minValue: -100,
             maxValue: 100,
-            minStep: 0.01
+            minStep: 0.01,
+            unit: accessory.context.propsUnit
           })
           .updateValue(accessory.context.lastWeatherTemperature);
           
@@ -539,7 +547,8 @@ class TADO {
           .setProps({
             minValue: -100,
             maxValue: 100,
-            minStep: 0.01
+            minStep: 0.01,
+            unit: accessory.context.propsUnit
           })
           .updateValue(accessory.context.lastCurrentTemp);
             
@@ -547,7 +556,8 @@ class TADO {
           .setProps({
             minValue: accessory.context.minValue,
             maxValue: accessory.context.maxValue,
-            minStep: 1
+            minStep: 1,
+            unit: accessory.context.propsUnit
           })
           .updateValue(accessory.context.lastTargetTemp)
           .on('set', self.setBoilerTemp.bind(this, accessory, service));
@@ -577,7 +587,8 @@ class TADO {
           .setProps({
             minValue: 0,
             maxValue: 100,
-            minStep: 0.01
+            minStep: 0.01,
+            unit: accessory.context.propsUnit
           })
           .updateValue(accessory.context.lastRoomHumidity);
         
@@ -585,7 +596,8 @@ class TADO {
           .setProps({
             minValue: -100,
             maxValue: 100,
-            minStep: 0.01
+            minStep: 0.01,
+            unit: accessory.context.propsUnit
           })
           .updateValue(accessory.context.lastRoomTemperature);
           
@@ -749,14 +761,29 @@ class TADO {
             accessory.context.targetAutoTemp = response.setting.temperature.celsius; //new context
           }
         }
-        accessory.context.tempUnitState == 0 ?
-          accessory.context.lastCurrentTemp = response.sensorDataPoints.insideTemperature.celsius :
+        if(accessory.context.tempUnitState == 0){
+          accessory.context.lastCurrentTemp = response.sensorDataPoints.insideTemperature.celsius;
+          accessory.context.minValue = 5;
+          accessory.context.maxValue = 25;
+          accessory.context.propsUnit = 'celsius';
+        } else {
           accessory.context.lastCurrentTemp = response.sensorDataPoints.insideTemperature.fahrenheit;
+          accessory.context.minValue = 41;
+          accessory.context.maxValue = 71;
+          accessory.context.propsUnit = 'fahrenheit';
+        }
         accessory.context.lastHumidity = response.sensorDataPoints.humidity.percentage;
         self.error.thermostats = 0;
         service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
         service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
-        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        service.getCharacteristic(Characteristic.TargetTemperature)
+          .updateValue(accessory.context.lastTargetTemp)
+          .setProps({
+            minValue: accessory.context.minValue, 
+            maxValue: accessory.context.maxValue,
+            unit: accessory.context.propsUnit,
+            minStep: 1
+          });
         service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastCurrentTemp);
         service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastHumidity);
         setTimeout(function(){
@@ -817,43 +844,16 @@ class TADO {
     }
   }
   
-  setTempUnit(accessory, service, state, callback){
+  setTempUnit(accessory, service, unitState, callback){
     const self = this;
-    if(state == 0){
-      self.log('Temperature Unit: Celsius - Changing values...');
+    if(unitState == 0){
+      self.log(accessory.displayName + ': Temperature Unit: Celsius');
       accessory.context.tempUnitState = 0;
-      if(accessory.context.type == self.types.radiatorThermostat){
-        self.log('Changing min/max props for radiator/remote thermostat (Celsius)');
-        accessory.context.minValue = 5;
-        accessory.context.maxValue = 25;
-      } else {
-        self.log('Changing min/max props for boiler thermostat (Celsius)');
-        accessory.context.minValue = 30;
-        accessory.context.maxValue = 65;
-      }
     } else {
-      self.log('Temperature Unit: Fahrenheit - Changing values...');
+      self.log(accessory.displayName + ': Temperature Unit: Fahrenheit');
       accessory.context.tempUnitState = 1;
-      if(accessory.context.type == self.types.radiatorThermostat){
-        self.log('Changing min/max props for radiator/remote thermostat (Fahrenheit)');
-        accessory.context.minValue = 41;
-        accessory.context.maxValue = 71;
-      } else {
-        self.log('Changing min/max props for boiler thermostat (Fahrenheit)');
-        accessory.context.minValue = 86;
-        accessory.context.maxValue = 149;
-      }
     }
-    // TODO - Updating props might be buggy atm, need further tests
-    setTimeout(function(){
-      service.getCharacteristic(Characteristic.TargetTemperature)
-        .setProps({
-          minValue: accessory.context.minValue, 
-          maxValue: accessory.context.maxValue,
-          minStep: 1
-        });
-    }, 1000);
-    callback(null, state);
+    callback(null, unitState);
   }
   
   setThermostatState(accessory, service, state, callback){
@@ -1151,17 +1151,15 @@ class TADO {
         const response = JSON.parse(data);
         if(response.setting.power == 'OFF'){
           accessory.context.lastCurrentState = 0;  
-          accessory.context.lastTargetState = 0;           
-          /*accessory.context.tempUnitState == 0 ?
-            accessory.context.lastTargetTemp = Math.round(response.sensorDataPoints.insideTemperature.celsius) :
-            accessory.context.lastTargetTemp = Math.round(response.sensorDataPoints.insideTemperature.fahrenheit);*/
+          accessory.context.lastTargetState = 0;
         } else {
-          accessory.context.tempUnitState == 0 ?
-            accessory.context.lastTargetTemp = Math.round(response.setting.temperature.celsius) :
+          if(accessory.context.tempUnitState == 0){
+            accessory.context.lastTargetTemp = Math.round(response.setting.temperature.celsius);
+            accessory.context.lastCurrentTemp = response.setting.temperature.celsius;
+          } else {
             accessory.context.lastTargetTemp = Math.round(response.setting.temperature.fahrenheit);
-          accessory.context.tempUnitState == 0 ?
-            accessory.context.lastCurrentTemp = response.setting.temperature.celsius :
-            accessory.context.lastCurrentTemp = response.setting.temperature.fahrenheit;
+            accessory.context.lastCurrentTemp = response.setting.temperature.fahrenheit; 
+          } 
           if(response.overlayType == 'MANUAL'){
             if(Math.round(response.sensorDataPoints.insideTemperature.celsius) < Math.round(response.setting.temperature.celsius)){
               accessory.context.lastCurrentState = 1;
@@ -1175,10 +1173,26 @@ class TADO {
             accessory.context.targetAutoTemp = response.setting.temperature.celsius; //new context
           }
         }
+        if(accessory.context.tempUnitState == 0){
+          accessory.context.minValue = 30;
+          accessory.context.maxValue = 65;
+          accessory.context.propsUnit = 'celsius';
+        } else {
+          accessory.context.minValue = 86;
+          accessory.context.maxValue = 149;
+          accessory.context.propsUnit = 'fahrenheit';
+        }
         self.error.boiler = 0;
         service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
         service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
-        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        service.getCharacteristic(Characteristic.TargetTemperature)
+          .updateValue(accessory.context.lastTargetTemp)
+          .setProps({
+            minValue: accessory.context.minValue, 
+            maxValue: accessory.context.maxValue,
+            unit: accessory.context.propsUnit,
+            minStep: 1
+          });
         service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastCurrentTemp);
         setTimeout(function(){
           self.getBoilerStates(accessory, service, battery);
@@ -1610,10 +1624,14 @@ class TADO {
     self.getContent(a.url + 'homes/' + a.homeID + '/weather?username=' + a.username + '&password=' + a.password)
       .then((data) => {
         const response = JSON.parse(data);
-        accessory.context.tempUnitState == 0 ?
-          accessory.context.lastWeatherTemperature = response.outsideTemperature.celsius :
+        if(accessory.context.tempUnitState == 0){
+          accessory.context.lastWeatherTemperature = response.outsideTemperature.celsius;
+          accessory.context.propsUnit = 'celsius'; 
+        } else {
           accessory.context.lastWeatherTemperature = response.outsideTemperature.fahrenheit;
-        service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastWeatherTemperature);
+          accessory.context.propsUnit = 'fahrenheit';  
+        }
+        service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastWeatherTemperature).setProps({unit:accessory.context.propsUnit});
         self.error.weather = 0;
         setTimeout(function(){
           self.getWeather(accessory, service);
@@ -1691,11 +1709,15 @@ class TADO {
     self.getContent(a.url + 'homes/' + a.homeID + '/zones/' + a.zoneID + '/state?username=' + a.username + '&password=' + a.password)
       .then((data) => {
         const response = JSON.parse(data);
-        accessory.context.tempUnitState == 0 ?
-          accessory.context.lastRoomTemperature = response.sensorDataPoints.insideTemperature.celsius :
-          accessory.context.lastRoomTemperature = response.sensorDataPoints.insideTemperature.fahrenheit;
+        if(accessory.context.tempUnitState == 0){
+          accessory.context.lastRoomTemperature = response.sensorDataPoints.insideTemperature.celsius;
+          accessory.context.propsUnit = 'celsius'; 
+        } else {
+          accessory.context.lastRoomTemperature = response.sensorDataPoints.insideTemperature.fahrenheit; 
+          accessory.context.propsUnit = 'fahrenheit';  
+        }
         accessory.context.lastRoomHumidity = response.sensorDataPoints.humidity.percentage;
-        service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastRoomTemperature);
+        service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.lastRoomTemperature).setProps({unit:accessory.context.propsUnit});
         service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.lastRoomHumidity);
         self.error.externalSensor = 0;
         setTimeout(function(){
