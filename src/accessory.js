@@ -298,6 +298,16 @@ class TADO {
 
   getService (accessory, type) {
     const self = this;
+    
+    //Refresh AccessoryInformation
+    
+    accessory.getService(Service.AccessoryInformation)
+      .setCharacteristic(Characteristic.Name, accessory.context.name)
+      .setCharacteristic(Characteristic.Identify, accessory.context.name)
+      .setCharacteristic(Characteristic.Manufacturer, 'SeydX')
+      .setCharacteristic(Characteristic.Model, accessory.context.model)
+      .setCharacteristic(Characteristic.SerialNumber, accessory.context.shortSerialNo)
+      .setCharacteristic(Characteristic.FirmwareRevision, require('../package.json').version);
 
     accessory.on('identify', function (paired, callback) {
       self.log(accessory.displayName + ': Identify!!!');
