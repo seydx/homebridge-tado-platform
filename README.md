@@ -8,6 +8,7 @@
 >_Note: If you are looking for the non dynamic version, install the old version! [homebridge-tado-thermostat v3](https://github.com/SeydX/homebridge-tado-thermostat)_ 
 
 **What means 'dynamic'?**
+
 Every thermostat, user (occupancy sensor) or open window detection (window sensor) are affected by the settings in the Tado app. That means, the plugin knows when you turning on/off the open window detection for a thermostat, adding/removing an user or adding/removing a thermostat or just changing the room of a thermostat, the plugin will expose these or remove them dynamically from HomeKit. You dont need to add it manually or even restart homebridge. Just install the plugin, configure the config.json and lean back!
 
 This homebridge plugin exposes Tado thermostats, occupancy sensors and weather sensor to Apple's HomeKit. It provides following features:
