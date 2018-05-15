@@ -172,7 +172,7 @@ class TADO {
         accessory.context.delayState = false;
         accessory.context.oldRoom = undefined;
         accessory.context.room = parameter.room;
-        if(accessory.context.tempUnit == 'CELSIUS'){
+        if(accessory.context.tempUnitState == 0){
           accessory.context.minValue = 5;
           accessory.context.maxValue = 25;
         } else {
@@ -216,7 +216,7 @@ class TADO {
         accessory.context.activate = parameter.activate;
         accessory.context.key = parameter.key;
         accessory.context.location = parameter.location;
-        accessory.context.tempUnit == 'CELSIUS' ? 
+        accessory.context.tempUnitState == 0 ? 
           accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=metric' :
           accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=imperial';
         break;
@@ -227,7 +227,7 @@ class TADO {
         accessory.context.coolValue = 5;
         accessory.context.oldRoom = undefined;
         accessory.context.room = parameter.room;
-        if(accessory.context.tempUnit == 'CELSIUS'){
+        if(accessory.context.tempUnitState == 0){
           accessory.context.minValue = 30;
           accessory.context.maxValue = 65;
         } else {
@@ -461,7 +461,7 @@ class TADO {
           accessory.context.activate = self.config.extendedWeatherActive;
           accessory.context.key = self.config.extendedWeatherKey;
           accessory.context.location = self.config.extendedWeatherLocation;
-          accessory.context.tempUnit == 'CELSIUS' ? 
+          accessory.context.tempUnitState == 0 ? 
             accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=metric' :
             accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=imperial';
           
@@ -810,12 +810,39 @@ class TADO {
   setTempUnit(accessory, service, state, callback){
     const self = this;
     if(state == 0){
-      self.log('Temperature Unit: Celsius');
+      self.log('Temperature Unit: Celsius - Changing values...');
       accessory.context.tempUnitState = 0;
+      if(accessory.context.type == self.types.radiatorThermostat){
+        self.log('Changing min/max props for radiator/remote thermostat (Celsius)');
+        accessory.context.minValue = 5;
+        accessory.context.maxValue = 25;
+      } else {
+        self.log('Changing min/max props for boiler thermostat (Celsius)');
+        accessory.context.minValue = 30;
+        accessory.context.maxValue = 65;
+      }
     } else {
-      self.log('Temperature Unit: Fahrenheit');
+      self.log('Temperature Unit: Fahrenheit - Changing values...');
       accessory.context.tempUnitState = 1;
+      if(accessory.context.type == self.types.radiatorThermostat){
+        self.log('Changing min/max props for radiator/remote thermostat (Fahrenheit)');
+        accessory.context.minValue = 41;
+        accessory.context.maxValue = 71;
+      } else {
+        self.log('Changing min/max props for boiler thermostat (Fahrenheit)');
+        accessory.context.minValue = 86;
+        accessory.context.maxValue = 149;
+      }
     }
+    // TODO - Updating props might be buggy atm, need further tests
+    setTimeout(function(){
+      service.getCharacteristic(Characteristic.TargetTemperature)
+        .setProps({
+          minValue: accessory.context.minValue, 
+          maxValue: accessory.context.maxValue,
+          minStep: 1
+        });
+    }, 1000);
     callback(null, state);
   }
   
@@ -866,7 +893,7 @@ class TADO {
           }
         };
         accessory.context.lastTargetTemp = service.getCharacteristic(Characteristic.CurrentTemperature).value + accessory.context.heatValue;
-        if (accessory.context.tempUnit == 'CELSIUS') {
+        if (accessory.context.tempUnitState == 0) {
           if (accessory.context.lastTargetTemp > 25) {
             accessory.context.lastTargetTemp = 25;
           }
@@ -875,18 +902,34 @@ class TADO {
             accessory.context.lastTargetTemp = 77;
           }
         }
-        let post_data = JSON.stringify({
-          'setting': {
-            'type': 'HEATING',
-            'power': 'ON',
-            'temperature': {
-              'celsius': accessory.context.lastTargetTemp
+        let post_data = {};
+        if(accessory.context.tempUnitState == 0){
+          post_data = JSON.stringify({
+            'setting': {
+              'type': 'HEATING',
+              'power': 'ON',
+              'temperature': {
+                'celsius': accessory.context.lastTargetTemp
+              }
+            },
+            'termination': {
+              'type': 'MANUAL'
             }
-          },
-          'termination': {
-            'type': 'MANUAL'
-          }
-        });
+          });
+        } else {
+          post_data = JSON.stringify({
+            'setting': {
+              'type': 'HEATING',
+              'power': 'ON',
+              'temperature': {
+                'fahrenheit': accessory.context.lastTargetTemp
+              }
+            },
+            'termination': {
+              'type': 'MANUAL'
+            }
+          });
+        }
         let req = https.request(options, function(res) {
           self.log(accessory.displayName + ': Switched to HEAT (' + res.statusCode + ')');
         });
@@ -911,8 +954,8 @@ class TADO {
             'Content-Type': 'application/json'
           }
         };
-        accessory.context.lastTargetTemp = service.getCharacteristic(Characteristic.CurrentTemperature).value - accessory.context.heatValue;
-        if (accessory.context.tempUnit == 'CELSIUS') {
+        accessory.context.lastTargetTemp = service.getCharacteristic(Characteristic.CurrentTemperature).value - accessory.context.coolValue;
+        if (accessory.context.tempUnitState == 0) {
           if (accessory.context.lastTargetTemp < 5) {
             accessory.context.lastTargetTemp = 5;
           }
@@ -921,18 +964,34 @@ class TADO {
             accessory.context.lastTargetTemp = 41;
           }
         }
-        let post_data = JSON.stringify({
-          'setting': {
-            'type': 'HEATING',
-            'power': 'ON',
-            'temperature': {
-              'celsius': accessory.context.lastTargetTemp
+        let post_data = {};
+        if(accessory.context.tempUnitState == 0){
+          post_data = JSON.stringify({
+            'setting': {
+              'type': 'HEATING',
+              'power': 'ON',
+              'temperature': {
+                'celsius': accessory.context.lastTargetTemp
+              }
+            },
+            'termination': {
+              'type': 'MANUAL'
             }
-          },
-          'termination': {
-            'type': 'MANUAL'
-          }
-        });
+          });
+        } else {
+          post_data = JSON.stringify({
+            'setting': {
+              'type': 'HEATING',
+              'power': 'ON',
+              'temperature': {
+                'fahrenheit': accessory.context.lastTargetTemp
+              }
+            },
+            'termination': {
+              'type': 'MANUAL'
+            }
+          });
+        }
         let req = https.request(options, function(res) {
           self.log(accessory.displayName + ': Switched to COOL (' + res.statusCode + ')');
         });
@@ -995,18 +1054,34 @@ class TADO {
           'Content-Type': 'application/json'
         }
       };
-      let post_data = JSON.stringify({
-        'setting': {
-          'type': 'HEATING',
-          'power': 'ON',
-          'temperature': {
-            'celsius': accessory.context.lastTargetTemp
+      let post_data = {};
+      if(accessory.context.tempUnitState == 0){
+        post_data = JSON.stringify({
+          'setting': {
+            'type': 'HEATING',
+            'power': 'ON',
+            'temperature': {
+              'celsius': accessory.context.lastTargetTemp
+            }
+          },
+          'termination': {
+            'type': 'MANUAL'
           }
-        },
-        'termination': {
-          'type': 'MANUAL'
-        }
-      });
+        });
+      } else {
+        post_data = JSON.stringify({
+          'setting': {
+            'type': 'HEATING',
+            'power': 'ON',
+            'temperature': {
+              'fahrenheit': accessory.context.lastTargetTemp
+            }
+          },
+          'termination': {
+            'type': 'MANUAL'
+          }
+        });
+      }
       let req =  https.request(options, function(res) {
         self.log(accessory.displayName + ': ' + accessory.context.lastTargetTemp + '(' + res.statusCode + ')');
       });
@@ -1173,7 +1248,7 @@ class TADO {
           }
         };
         accessory.context.lastTargetTemp = service.getCharacteristic(Characteristic.CurrentTemperature).value + accessory.context.heatValue;
-        if (accessory.context.tempUnit == 'CELSIUS') {
+        if (accessory.context.tempUnitState == 0) {
           if (accessory.context.lastTargetTemp > 65) {
             accessory.context.lastTargetTemp = 65;
           }
@@ -1182,18 +1257,34 @@ class TADO {
             accessory.context.lastTargetTemp = 149;
           }
         }
-        let post_data = JSON.stringify({
-          'setting': {
-            'type': 'HOT_WATER',
-            'power': 'ON',
-            'temperature': {
-              'celsius': accessory.context.lastTargetTemp
+        let post_data = {};
+        if(accessory.context.tempUnitState == 0){
+          post_data = JSON.stringify({
+            'setting': {
+              'type': 'HOT_WATER',
+              'power': 'ON',
+              'temperature': {
+                'celsius': accessory.context.lastTargetTemp
+              }
+            },
+            'termination': {
+              'type': 'MANUAL'
             }
-          },
-          'termination': {
-            'type': 'MANUAL'
-          }
-        });
+          });
+        } else {
+          post_data = JSON.stringify({
+            'setting': {
+              'type': 'HOT_WATER',
+              'power': 'ON',
+              'temperature': {
+                'fahrenheit': accessory.context.lastTargetTemp
+              }
+            },
+            'termination': {
+              'type': 'MANUAL'
+            }
+          });
+        }
         let req = https.request(options, function(res) {
           self.log(accessory.displayName + ': Switched to HEAT (' + res.statusCode + ')');
         });
@@ -1218,8 +1309,8 @@ class TADO {
             'Content-Type': 'application/json'
           }
         };
-        accessory.context.lastTargetTemp = service.getCharacteristic(Characteristic.CurrentTemperature).value - accessory.context.heatValue;
-        if (accessory.context.tempUnit == 'CELSIUS') {
+        accessory.context.lastTargetTemp = service.getCharacteristic(Characteristic.CurrentTemperature).value - accessory.context.coolValue;
+        if (accessory.context.tempUnitState == 0) {
           if (accessory.context.lastTargetTemp < 30) {
             accessory.context.lastTargetTemp = 30;
           }
@@ -1228,18 +1319,34 @@ class TADO {
             accessory.context.lastTargetTemp = 86;
           }
         }
-        let post_data = JSON.stringify({
-          'setting': {
-            'type': 'HOT_WATER',
-            'power': 'ON',
-            'temperature': {
-              'celsius': accessory.context.lastTargetTemp
+        let post_data = {};
+        if(accessory.context.tempUnitState == 0){
+          post_data = JSON.stringify({
+            'setting': {
+              'type': 'HOT_WATER',
+              'power': 'ON',
+              'temperature': {
+                'celsius': accessory.context.lastTargetTemp
+              }
+            },
+            'termination': {
+              'type': 'MANUAL'
             }
-          },
-          'termination': {
-            'type': 'MANUAL'
-          }
-        });
+          });
+        } else {
+          post_data = JSON.stringify({
+            'setting': {
+              'type': 'HOT_WATER',
+              'power': 'ON',
+              'temperature': {
+                'fahrenheit': accessory.context.lastTargetTemp
+              }
+            },
+            'termination': {
+              'type': 'MANUAL'
+            }
+          });
+        }
         let req = https.request(options, function(res) {
           self.log(accessory.displayName + ': Switched to COOL (' + res.statusCode + ')');
         });
@@ -1302,18 +1409,34 @@ class TADO {
           'Content-Type': 'application/json'
         }
       };
-      let post_data = JSON.stringify({
-        'setting': {
-          'type': 'HOT_WATER',
-          'power': 'ON',
-          'temperature': {
-            'celsius': accessory.context.lastTargetTemp
+      let post_data = {};
+      if(accessory.context.tempUnitState == 0){
+        post_data = JSON.stringify({
+          'setting': {
+            'type': 'HOT_WATER',
+            'power': 'ON',
+            'temperature': {
+              'celsius': accessory.context.lastTargetTemp
+            }
+          },
+          'termination': {
+            'type': 'MANUAL'
           }
-        },
-        'termination': {
-          'type': 'MANUAL'
-        }
-      });
+        });
+      } else {
+        post_data = JSON.stringify({
+          'setting': {
+            'type': 'HOT_WATER',
+            'power': 'ON',
+            'temperature': {
+              'fahrenheit': accessory.context.lastTargetTemp
+            }
+          },
+          'termination': {
+            'type': 'MANUAL'
+          }
+        });
+      }
       let req =  https.request(options, function(res) {
         self.log(accessory.displayName + ': ' + accessory.context.lastTargetTemp + '(' + res.statusCode + ')');
       });
