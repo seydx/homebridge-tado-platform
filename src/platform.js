@@ -575,9 +575,9 @@ TadoPlatform.prototype = {
         parameter['logging'] = true;
         parameter['loggingType'] = 'weather';
         parameter['loggingTimer'] = true;
-        parameter['key'] = self.config.extendedWeatherKey||undefined;
-        parameter['activate'] = self.config.extendedWeatherActive||false;
-        parameter['location'] = self.config.extendedWeatherLocation||undefined;
+        parameter['key'] = self.config.extendedWeatherKey;
+        parameter['activate'] = self.config.extendedWeatherActive;
+        parameter['location'] = self.config.extendedWeatherLocation;
         new Device(self, parameter, true);
       }
     } else {
