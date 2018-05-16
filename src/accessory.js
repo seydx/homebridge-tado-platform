@@ -315,7 +315,26 @@ class TADO {
       .setCharacteristic(Characteristic.FirmwareRevision, require('../package.json').version);
 
     accessory.on('identify', function (paired, callback) {
-      self.log(accessory.displayName + ': Identify!!!');
+      if(accessory.context.type == self.types.radiatorThermostat){
+        let options = {
+          host: 'my.tado.com',
+          path: '/api/v2/devices/' + accessory.context.shortSerialNo + '/identify?username=' + accessory.context.username + '&password=' + accessory.context.password,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        };
+        let req = https.request(options, function(res) {
+          self.log(accessory.displayName + ': Hi! (' + res.statusCode + ')');
+        });
+        req.on('error', function(err) {
+          self.log(accessory.displayName + ': An error occured by sending Hi!');
+          self.log(err);
+        });
+        req.end();
+      } else {
+        self.log(accessory.displayName + ': Hi!');
+      }
       callback();
     });
     
