@@ -18,6 +18,7 @@
      "externalSensor":false,
      "onePerRoom":false,
      "openWindow":false,
+     "extendedDelay":true,
      "extendedWeather":{
                "activate":false,
                "key": "abcdefghijklmno12345678",
