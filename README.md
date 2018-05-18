@@ -21,7 +21,8 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 - Battery state and notification
 - Built-in humidity sensor
 - Possibility to expose built-in temperature & humidity sensors as new accessories to HomeKit
-- Delay: Every thermostat has two options which are accessible over 3rd party apps like Elgato EVE etc - Delay Switch and Delay Timer. If delay timer > 0 and you turn on delay switch, the delay timer will begin to run and after the time is up, the switch will automatically turn off. (Thats helpfull for creating automations which needs a delay for turning on/off)
+- Extended Delay: Every thermostat has two options (if extendedDelay setted to true in config.json) which are accessible over 3rd party apps like Elgato EVE etc - Delay Switch and Delay Timer. If delay timer > 0 and you turn on delay switch, the delay timer will begin to run and after the time is up, the switch will automatically turn off. (Thats helpfull for creating automations which needs a delay for turning on/off)
+- Basic Delay: The thermostat has an additional option in the settings - delay timer (if extendedDelay setted to false in config.json). If delay timer setted to > 0, the delay will be automatically activated. It delays the thermostat to going back into auto mode again.
 - Elgato EVE history feature (Fakegato)
 
 **Boiler :**
@@ -107,6 +108,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
       "externalSensor":false,
       "onePerRoom":false,
       "openWindow":false,
+      "extendedDelay":true,
       "extendedWeather":{
                 "activate":false,
                 "key": "abcdefghijklmno12345678",
@@ -137,6 +139,7 @@ See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/mast
 | onePerRoom | No | Ignores all thermostats in config.json (except boiler) and exposes for each room ONE thermostat (Default: false) | 
 | openWindow | No | Exposes window contact sensors to HomeKit (if OpenWindowDetection activated in Tado settings! - Default: false) | 
 | extendedWeather | No | If "activate" under **extendedWeather** is setted to **true** and an **API key** and **location** is also given, this plugin will expose additional information to HomeKit like weather humidty, air pressure, sunrise, senset and weather state (default: false / see **example-config** for more info) | 
+| extendedDelay | No | Exposes an additional delay switch to the thermostat settings to create automations based on the delay timer and delay switch | 
 
 See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/master/example-config.json) for more details.
 
@@ -152,7 +155,7 @@ There are more settings available within the app to customize the plugin for you
 
 - **Delay Timer:** Delay (in seconds) for the delay switch to turning it off
 
-- **Delay Switch:** After switching it on, the delay timer will begin to run, and if the time is up, the switch will turn off (helpfull for automations that needs a delay) (new)
+- **Delay Switch:** After switching it on, the delay timer will begin to run, and if the time is up, the switch will turn off (helpfull for automations that needs a delay on if extendedDelay setted to true in config.json, not in gif)
 
 
 ## Supported clients
