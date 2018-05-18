@@ -176,7 +176,7 @@ This plugin has been verified to work with the following apps on iOS 11.3:
 - [x] New Option: 'onePerRoom' (exposes only one thermostet per room)
 - [x] New Accessory: Window Sensor (based on open window detection)
 - [x] More functions for weather accessory with OpenWeather API
-- [ ] DEBUG
+- [x] DEBUG
 
 
 ## Contributing
