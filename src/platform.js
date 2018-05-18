@@ -3,6 +3,7 @@
 const async = require('async');
 const Device = require('./accessory.js');
 const version = require('../package.json').version;
+const LogUtil = require('../lib/LogUtil.js');
 
 var HomebridgeAPI, FakeGatoHistoryService;
 
@@ -24,6 +25,7 @@ function TadoPlatform (log, config, api) {
   // HB
   const self = this;
   this.log = log;
+  this.logger = new LogUtil(null, log);
   this.accessories = [];
   this.HBpath = api.user.storagePath()+'/accessories';
   
@@ -94,6 +96,12 @@ function TadoPlatform (log, config, api) {
     if (api.version < 2.2) {
       throw new Error('Unexpected API version. Please update your homebridge!');
     }
+    self.logger.info('**************************************************************');
+    self.logger.info('                                  TadoPlatform v'+version+' by SeydX');
+    self.logger.info('     GitHub: https://github.com/SeydX/homebridge-tado-platform');
+    self.logger.info('                                      Email: seyd55@outlook.de');
+    self.logger.info('**************************************************************');
+    self.logger.info('start success...');
     this.api = api;
     this.api.on('didFinishLaunching', self.didFinishLaunching.bind(this));
   }
@@ -105,12 +113,12 @@ TadoPlatform.prototype = {
     const self = this;
     self.checkStorage(function (err, state) {
       if(err||!state){
-        if(err)self.log(err);
+        if(err)self.logger.error(err);
         setTimeout(function(){
           self.didFinishLaunching();
         }, 5000);
       } else {
-        self.log('Connecting to API and looking for new devices...');
+        self.logger.info('Connecting to API and looking for new devices...');
         self.checkingThermostats(state);
         self.initPlatform(state);
       }
@@ -120,12 +128,12 @@ TadoPlatform.prototype = {
   checkStorage: function (callback) {
     const self = this;
     if(!self.storage.getItem('Tado_API')){
-      self.log('Requesting information from Tado API...');
+      self.logger.info('Requesting information from Tado API...');
       const parameter = {};
       async.waterfall([
         function(next) {
           function fetchHomeID(next) {
-            self.log('Getting Home ID...');
+            self.logger.info('Getting Home ID...');
             self.getContent(self.config.url + 'me?username=' + self.config.username + '&password=' + self.config.password)
               .then((data) => {
                 const response = JSON.parse(data);
@@ -133,8 +141,8 @@ TadoPlatform.prototype = {
                 next(null, parameter);
               })
               .catch((err) => {
-                self.log('An error occured by getting Home ID, trying again...');
-                self.log(err);
+                self.logger.error('An error occured by getting Home ID, trying again...');
+                self.logger.error(err);
                 setTimeout(function(){
                   fetchHomeID(next);
                 }, self.config.polling);
@@ -143,7 +151,7 @@ TadoPlatform.prototype = {
         },
         function(parameter, next) {
           function fetchUnit(next){
-            self.log('Getting Temperature Unit...');
+            self.logger.info('Getting Temperature Unit...');
             self.getContent(self.config.url + 'homes/' + parameter.homeID + '?username=' + self.config.username + '&password=' + self.config.password)
               .then((data) => {
                 const response = JSON.parse(data);
@@ -151,8 +159,8 @@ TadoPlatform.prototype = {
                 next(null, parameter);
               })
               .catch((err) => {
-                self.log('An error occured by getting Temperature Unit, trying again...');
-                self.log(err);
+                self.logger.error('An error occured by getting Temperature Unit, trying again...');
+                self.logger.error(err);
                 setTimeout(function(){
                   fetchUnit(next);
                 }, 30000);
@@ -161,9 +169,9 @@ TadoPlatform.prototype = {
         }
       ], function (err, result) {
         if(err){
-          self.log(err);
+          self.logger.error(err);
         } else {
-          self.log('Storing Tado_API in cache...');
+          self.logger.info('Storing Tado_API in cache...');
           self.storage.setItem('Tado_API', result);
           callback(null, result);
         }
@@ -412,8 +420,8 @@ TadoPlatform.prototype = {
       .catch((err) => {
         if(self.error.thermostats > 5){
           self.error.thermostats = 0;
-          self.log('An error occured by getting devices, trying again...');
-          self.log(err);
+          self.logger.error('An error occured by getting devices, trying again...');
+          self.logger.error(err);
           setTimeout(function(){
             self.checkingThermostats(parameter);
           }, 60000);
@@ -504,8 +512,8 @@ TadoPlatform.prototype = {
       .catch((err) => {
         if(self.error.occupancy > 5){
           self.error.occupancy = 0;
-          self.log('An error occured by getting user, trying again...');
-          self.log(err);
+          self.logger.error('An error occured by getting user, trying again...');
+          self.logger.error(err);
           setTimeout(function(){
             self.checkingUser(parameter);
           }, 60000);
@@ -548,7 +556,7 @@ TadoPlatform.prototype = {
     }
     
     if (this.config.occupancy) {
-      self.log('Connecting to API and looking for new user...');
+      self.logger.info('Connecting to API and looking for new user...');
       self.checkingUser(parameter);
     } else {
       for (const i in this.accessories) {
