@@ -3,6 +3,7 @@
 const HomeKitTypes = require('./types.js');
 const moment = require('moment');
 const https = require('https');
+const LogUtil = require('../lib/LogUtil.js');
 
 var Accessory, Service, Characteristic, UUIDGen, PlatformAccessory, FakeGatoHistoryService;
 
@@ -24,6 +25,9 @@ class TADO {
 
     this.platform = platform;
     this.log = platform.log;
+    this.logger = new LogUtil(null, platform.log);
+    this.debug = platform.log.debug;
+    this.info = platform.log.info;
     this.api = platform.api;
     this.config = platform.config;
     this.accessories = platform.accessories;
@@ -136,7 +140,7 @@ class TADO {
         break;
     }
 
-    this.log('Publishing new accessory: ' + name);
+    this.logger.info('Publishing new accessory: ' + name);
 
     accessory = this.accessories[name];
     const uuid = UUIDGen.generate(name);
@@ -325,20 +329,21 @@ class TADO {
           }
         };
         let req = https.request(options, function(res) {
-          self.log(accessory.displayName + ': Hi! (' + res.statusCode + ')');
+          self.logger.info(accessory.displayName + ': Hi! (' + res.statusCode + ')');
         });
         req.on('error', function(err) {
-          self.log(accessory.displayName + ': An error occured by sending Hi!');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by sending Hi!');
+          self.logger.error(err);
         });
         req.end();
       } else {
-        self.log(accessory.displayName + ': Hi!');
+        self.logger.info(accessory.displayName + ': Hi!');
       }
       callback();
     });
     
-    var service, battery;
+    let service;
+    let battery;
 
     switch (type) {
       case 1: { // thermostats
@@ -649,90 +654,6 @@ class TADO {
   
   /********************************************************************************************************************************************************/
   /********************************************************************************************************************************************************/
-  /************************************************************************* HISTORY **********************************************************************/
-  /********************************************************************************************************************************************************/
-  /********************************************************************************************************************************************************/
-  
-  /*getHistory(accessory, service, type){
-    const self = this;
-    if(accessory.context.logging){
-      var historyTimer;
-      const totallength = accessory.context.loggingService.history.length - 1;    
-      const latestTime = accessory.context.loggingService.history[totallength].time;
-      const timeDif = moment().unix()-latestTime;
-      switch(type){
-        case 1:{ //THERMOSTAT
-          historyTimer = 60 * 1000; //1min
-          if(accessory.context.lastCurrentTemp != accessory.context.loggingService.history[totallength].temp || timeDif > 900){
-            if(accessory.context.lastCurrentTemp != accessory.context.loggingService.history[totallength].temp) self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastCurrentTemp);
-            accessory.context.loggingService.addEntry({
-              time: moment().unix(),
-              temp: accessory.context.lastCurrentTemp,
-              pressure: 0,
-              humidity: accessory.context.lastHumidity
-            });
-          }
-          break;
-        }
-        case 3:{ //OCCUPANCY
-          historyTimer = 1000; //1sec
-          var newState = accessory.context.atHome ? 1:0;
-          if(accessory.displayName == self.config.name + ' Anyone'){
-            if(newState != accessory.context.lastState){
-              //if(newState == 0) self.log('Nobody at home!');
-              accessory.context.lastState = newState;
-              accessory.context.loggingService.addEntry({
-                time: moment().unix(),
-                status: accessory.context.lastState
-              });
-            }
-          } else {
-            if(newState != accessory.context.lastState){
-              newState == 1 ? self.log('Welcome at home ' + accessory.displayName) : self.log('Bye Bye ' + accessory.displayName);
-              accessory.context.lastState = newState;
-              accessory.context.loggingService.addEntry({
-                time: moment().unix(),
-                status: accessory.context.lastState
-              });
-            }   
-          }
-          break;
-        }
-        case 4:{ //WEATHER
-          historyTimer = 60 * 1000; //1min
-          if(accessory.context.lastWeatherTemperature != accessory.context.loggingService.history[totallength].temp || timeDif > 900){
-            if(accessory.context.lastWeatherTemperature != accessory.context.loggingService.history[totallength].temp)self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastWeatherTemperature);
-            accessory.context.loggingService.addEntry({
-              time: moment().unix(),
-              temp: accessory.context.lastWeatherTemperature,
-              pressure: accessory.context.lastWeatherPressure,
-              humidity: accessory.context.lastWeatherHumidity
-            });
-          }
-          break;
-        }
-        case 7:{ //RoomTempSensor
-          historyTimer = 60 * 1000; //1min
-          if(accessory.context.lastRoomTemperature != accessory.context.loggingService.history[totallength].temp || timeDif > 900){
-            if(accessory.context.lastRoomTemperature != accessory.context.loggingService.history[totallength].temp)self.log(accessory.displayName + ': Temperature changed to ' + accessory.context.lastRoomTemperature);
-            accessory.context.loggingService.addEntry({
-              time: moment().unix(),
-              temp: accessory.context.lastRoomTemperature,
-              pressure: 0,
-              humidity: accessory.context.lastRoomHumidity
-            });
-          }
-          break;
-        }
-      }
-      setTimeout(function(){
-        self.getHistory(accessory, service, type);
-      }, historyTimer);
-    }
-  }*/
-  
-  /********************************************************************************************************************************************************/
-  /********************************************************************************************************************************************************/
   /********************************************************************* THERMOSTATS **********************************************************************/
   /********************************************************************************************************************************************************/
   /********************************************************************************************************************************************************/
@@ -741,20 +662,20 @@ class TADO {
     const self = this;
     if(service.getCharacteristic(Characteristic.HeatValue).value != accessory.context.heatValue){
       accessory.context.heatValue = service.getCharacteristic(Characteristic.HeatValue).value;
-      self.log(accessory.displayName + ': Heat Value changed to ' + accessory.context.heatValue);
+      self.logger.info(accessory.displayName + ': Heat Value changed to ' + accessory.context.heatValue);
     }
     if(service.getCharacteristic(Characteristic.CoolValue).value != accessory.context.coolValue){
       accessory.context.coolValue = service.getCharacteristic(Characteristic.CoolValue).value;
-      self.log(accessory.displayName + ': Cool Value changed to ' + accessory.context.coolValue);
+      self.logger.info(accessory.displayName + ': Cool Value changed to ' + accessory.context.coolValue);
     }
     if(service.getCharacteristic(Characteristic.DelayTimer).value != accessory.context.delayTimer){
       accessory.context.delayTimer = service.getCharacteristic(Characteristic.DelayTimer).value;
-      self.log(accessory.displayName + ': Delay Timer changed to ' + accessory.context.delayTimer + ' seconds');
+      self.logger.info(accessory.displayName + ': Delay Timer changed to ' + accessory.context.delayTimer + ' seconds');
     }
     battery.getCharacteristic(Characteristic.BatteryLevel).updateValue(accessory.context.batteryLevel);
     battery.getCharacteristic(Characteristic.StatusLowBattery).updateValue(accessory.context.batteryStatus);
     if(accessory.context.room != accessory.context.oldRoom){
-      if(accessory.context.oldRoom != undefined)self.log(accessory.displayName + ': Room changed to ' + accessory.context.room);
+      if(accessory.context.oldRoom != undefined)self.logger.warn(accessory.displayName + ': Room changed to ' + accessory.context.room);
       accessory.context.oldRoom = accessory.context.room;
     }
     setTimeout(function(){
@@ -827,8 +748,8 @@ class TADO {
             if(self.accessories[i].displayName==accessory.displayName){
               if(self.error.thermostats > 5){
                 self.error.thermostats = 0;
-                self.log(accessory.displayName + ': An error occured by getting thermostat state, trying again...');
-                self.log(err);
+                self.logger.error(accessory.displayName + ': An error occured by getting thermostat state, trying again...');
+                self.logger.error(err);
                 setTimeout(function(){
                   self.getThermoStates(accessory, service, battery);
                 }, 30000);
@@ -854,12 +775,12 @@ class TADO {
     const timer = service.getCharacteristic(Characteristic.DelayTimer).value;
     if(timer>0){
       if(state){
-        self.log('Activating delay (' + timer + 's) for ' + accessory.displayName);
+        self.logger.info('Activating delay (' + timer + 's) for ' + accessory.displayName);
         self.sleep(accessory.context.delayTimer*1000).then(() => {
           service.getCharacteristic(Characteristic.DelaySwitch).setValue(false);
         });
       } else {
-        self.log('Turning off delay for ' + accessory.displayName);
+        self.logger.info('Turning off delay for ' + accessory.displayName);
       }
       accessory.context.delayState = state;
       accessory.context.delayTimer = timer;
@@ -878,10 +799,10 @@ class TADO {
   setTempUnit(accessory, service, unitState, callback){
     const self = this;
     if(unitState == 0){
-      self.log(accessory.displayName + ': Temperature Unit: Celsius');
+      self.logger.info(accessory.displayName + ': Temperature Unit: Celsius');
       accessory.context.tempUnitState = 0;
     } else {
-      self.log(accessory.displayName + ': Temperature Unit: Fahrenheit');
+      self.logger.info(accessory.displayName + ': Temperature Unit: Fahrenheit');
       accessory.context.tempUnitState = 1;
     }
     callback(null, unitState);
@@ -909,11 +830,11 @@ class TADO {
           }
         });
         let req = https.request(options, function(res) {
-          self.log(accessory.displayName + ': Switched to OFF (' + res.statusCode + ')');
+          self.logger.info(accessory.displayName + ': Switched to OFF (' + res.statusCode + ')');
         });
         req.on('error', function(err) {
-          self.log(accessory.displayName + ': An error occured by setting OFF state!');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by setting OFF state!');
+          self.logger.error(err);
         });
         req.write(post_data);
         req.end();
@@ -972,11 +893,11 @@ class TADO {
           });
         }
         let req = https.request(options, function(res) {
-          self.log(accessory.displayName + ': Switched to HEAT (' + res.statusCode + ')');
+          self.logger.info(accessory.displayName + ': Switched to HEAT (' + res.statusCode + ')');
         });
         req.on('error', function(err) {
-          self.log(accessory.displayName + ': An error occured by setting HEAT state!');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by setting HEAT state!');
+          self.logger.error(err);
         });
         req.write(post_data);
         req.end();
@@ -1034,11 +955,11 @@ class TADO {
           });
         }
         let req = https.request(options, function(res) {
-          self.log(accessory.displayName + ': Switched to COOL (' + res.statusCode + ')');
+          self.logger.info(accessory.displayName + ': Switched to COOL (' + res.statusCode + ')');
         });
         req.on('error', function(err) {
-          self.log(accessory.displayName + ': An error occured by setting COOL state!');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by setting COOL state!');
+          self.logger.error(err);
         });
         req.write(post_data);
         req.end();
@@ -1058,14 +979,14 @@ class TADO {
           }
         };
         if (accessory.context.delayTimer > 0 && !self.config.extendedDelay) {
-          self.log(accessory.displayName + ': Switching to automatic mode in ' + accessory.context.delayTimer + ' seconds...');
+          self.logger.info(accessory.displayName + ': Switching to automatic mode in ' + accessory.context.delayTimer + ' seconds...');
           self.sleep(accessory.context.delayTimer*1000).then(() => {
             let req = https.request(options, function(res) {
-              self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
+              self.logger.info(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
             });
             req.on('error', function(err) {
-              self.log(accessory.displayName + ': An error occured by setting AUTO state!');
-              self.log(err);
+              self.logger.error(accessory.displayName + ': An error occured by setting AUTO state!');
+              self.logger.error(err);
             });
             req.end();
             accessory.context.lastCurrentState = 0;
@@ -1077,11 +998,11 @@ class TADO {
           });
         } else {
           let req = https.request(options, function(res) {
-            self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
+            self.logger.info(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
           });
           req.on('error', function(err) {
-            self.log(accessory.displayName + ': An error occured by setting new temperature!');
-            self.log(err);
+            self.logger.error(accessory.displayName + ': An error occured by setting new temperature!');
+            self.logger.error(err);
           });
           req.end();
           accessory.context.lastCurrentState = 0;
@@ -1101,7 +1022,7 @@ class TADO {
     const self = this;
     if(service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value == 0 || service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value == 3){
       if(value != accessory.context.targetAutoTemp){
-        self.log(accessory.displayName + ': Cant set new temperature, thermostat is not in MANUAL mode!');
+        self.logger.warn(accessory.displayName + ': Cant set new temperature, thermostat is not in MANUAL mode!');
         accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
         setTimeout(function(){service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);},300);
       }
@@ -1144,11 +1065,11 @@ class TADO {
         });
       }
       let req =  https.request(options, function(res) {
-        self.log(accessory.displayName + ': ' + accessory.context.lastTargetTemp + '(' + res.statusCode + ')');
+        self.logger.info(accessory.displayName + ': ' + accessory.context.lastTargetTemp + '(' + res.statusCode + ')');
       });
       req.on('error', function(err) {
-        self.log(accessory.displayName + ': An error occured by setting new temperature!');
-        self.log(err);
+        self.logger.error(accessory.displayName + ': An error occured by setting new temperature!');
+        self.logger.error(err);
       });
       req.write(post_data);
       req.end();
@@ -1177,16 +1098,16 @@ class TADO {
     const self = this;
     if(service.getCharacteristic(Characteristic.HeatValue).value != accessory.context.heatValue){
       accessory.context.heatValue = service.getCharacteristic(Characteristic.HeatValue).value;
-      self.log(accessory.displayName + ': Heat Value changed to ' + accessory.context.heatValue);
+      self.logger.info(accessory.displayName + ': Heat Value changed to ' + accessory.context.heatValue);
     }
     if(service.getCharacteristic(Characteristic.CoolValue).value != accessory.context.coolValue){
       accessory.context.coolValue = service.getCharacteristic(Characteristic.CoolValue).value;
-      self.log(accessory.displayName + ': Cool Value changed to ' + accessory.context.coolValue);
+      self.logger.info(accessory.displayName + ': Cool Value changed to ' + accessory.context.coolValue);
     }
     battery.getCharacteristic(Characteristic.BatteryLevel).updateValue(accessory.context.batteryLevel);
     battery.getCharacteristic(Characteristic.StatusLowBattery).updateValue(accessory.context.batteryStatus);
     if(accessory.context.room != accessory.context.oldRoom){
-      if(accessory.context.oldRoom != undefined)self.log(accessory.displayName + ': Room changed to ' + accessory.context.room);
+      if(accessory.context.oldRoom != undefined)self.logger.warn(accessory.displayName + ': Room changed to ' + accessory.context.room);
       accessory.context.oldRoom = accessory.context.room;
     }
     setTimeout(function(){
@@ -1255,8 +1176,8 @@ class TADO {
             if(self.accessories[i].displayName == accessory.displayName){
               if(self.error.boiler > 5){
                 self.error.boiler = 0;
-                self.log(accessory.displayName + ': An error occured by getting boiler state, trying again...');
-                self.log(err);
+                self.logger.error(accessory.displayName + ': An error occured by getting boiler state, trying again...');
+                self.logger.error(err);
                 setTimeout(function(){
                   self.getBoilerStates(accessory, service, battery);
                 }, 30000);
@@ -1298,11 +1219,11 @@ class TADO {
           }
         });
         let req = https.request(options, function(res) {
-          self.log(accessory.displayName + ': Switched to OFF (' + res.statusCode + ')');
+          self.logger.info(accessory.displayName + ': Switched to OFF (' + res.statusCode + ')');
         });
         req.on('error', function(err) {
-          self.log(accessory.displayName + ': An error occured by setting OFF state!');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by setting OFF state!');
+          self.logger.error(err);
         });
         req.write(post_data);
         req.end();
@@ -1361,11 +1282,11 @@ class TADO {
           });
         }
         let req = https.request(options, function(res) {
-          self.log(accessory.displayName + ': Switched to HEAT (' + res.statusCode + ')');
+          self.logger.info(accessory.displayName + ': Switched to HEAT (' + res.statusCode + ')');
         });
         req.on('error', function(err) {
-          self.log(accessory.displayName + ': An error occured by setting HEAT state!');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by setting HEAT state!');
+          self.logger.error(err);
         });
         req.write(post_data);
         req.end();
@@ -1423,11 +1344,11 @@ class TADO {
           });
         }
         let req = https.request(options, function(res) {
-          self.log(accessory.displayName + ': Switched to COOL (' + res.statusCode + ')');
+          self.logger.info(accessory.displayName + ': Switched to COOL (' + res.statusCode + ')');
         });
         req.on('error', function(err) {
-          self.log(accessory.displayName + ': An error occured by setting COOL state!');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by setting COOL state!');
+          self.logger.error(err);
         });
         req.write(post_data);
         req.end();
@@ -1447,11 +1368,11 @@ class TADO {
           }
         };
         let req = https.request(options, function(res) {
-          self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
+          self.logger.info(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
         });
         req.on('error', function(err) {
-          self.log(accessory.displayName + ': An error occured by setting new temperature!');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by setting new temperature!');
+          self.logger.error(err);
         });
         req.end();
         accessory.context.lastCurrentState = 0;
@@ -1470,7 +1391,7 @@ class TADO {
     const self = this;
     if(service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value == 0 || service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value == 3){
       if(value != accessory.context.targetAutoTemp){
-        self.log(accessory.displayName + ': Cant set new temperature, boiler is not in MANUAL mode!');
+        self.logger.warn(accessory.displayName + ': Cant set new temperature, boiler is not in MANUAL mode!');
         accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
         setTimeout(function(){service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);},300);
       }
@@ -1513,11 +1434,11 @@ class TADO {
         });
       }
       let req =  https.request(options, function(res) {
-        self.log(accessory.displayName + ': ' + accessory.context.lastTargetTemp + '(' + res.statusCode + ')');
+        self.logger.info(accessory.displayName + ': ' + accessory.context.lastTargetTemp + '(' + res.statusCode + ')');
       });
       req.on('error', function(err) {
-        self.log(accessory.displayName + ': An error occured by setting new temperature!');
-        self.log(err);
+        self.logger.error(accessory.displayName + ': An error occured by setting new temperature!');
+        self.logger.error(err);
       });
       req.write(post_data);
       req.end();
@@ -1569,7 +1490,7 @@ class TADO {
     }
     if(service.getCharacteristic(Characteristic.DummySwitch).value != accessory.context.lastDummyState){
       accessory.context.lastDummyState = service.getCharacteristic(Characteristic.DummySwitch).value;
-      accessory.context.lastDummyState ? self.log('Window Switch: ON') : self.log('Window Switch: OFF');
+      accessory.context.lastDummyState ? self.logger.info('Window Switch: ON') : self.logger.info('Window Switch: OFF');
     }
     service.getCharacteristic(Characteristic.On).updateValue(accessory.context.lastMainState);
     service.getCharacteristic(Characteristic.AutoThermostats)
@@ -1689,8 +1610,8 @@ class TADO {
       .catch((err) => {
         if(self.error.weather > 5){
           self.error.weather = 0;
-          self.log(accessory.displayName + ': An error occured by getting weather data, trying again...');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by getting weather data, trying again...');
+          self.logger.error(err);
           setTimeout(function(){
             self.getWeather(accessory, service);
           }, 30000);
@@ -1727,8 +1648,8 @@ class TADO {
       .catch((err) => {
         if(self.error.openweather > 5){
           self.error.openweather = 0;
-          self.log(accessory.displayName + ': An error occured by getting openweather data, trying again...');
-          self.log(err);
+          self.logger.error(accessory.displayName + ': An error occured by getting openweather data, trying again...');
+          self.logger.error(err);
           setTimeout(function(){
             self.getOpenWeather(accessory, service);
           }, 30000);
@@ -1779,8 +1700,8 @@ class TADO {
             if(self.accessories[i].displayName == accessory.displayName){
               if(self.error.externalSensor > 5){
                 self.error.externalSensor = 0;
-                self.log(accessory.displayName + ': An error occured by getting room temperature, trying again...');
-                self.log(err);
+                self.logger.error(accessory.displayName + ': An error occured by getting room temperature, trying again...');
+                self.logger.error(err);
                 setTimeout(function(){
                   self.getRoomTemperature(accessory, service);
                 }, 30000);
@@ -1820,12 +1741,12 @@ class TADO {
         if(accessory.context.windowState!=accessory.context.oldState){
           if(accessory.context.oldState != undefined){
             accessory.context.windowState == 1 ? 
-              self.log('Open window detected! Turning off thermostat in ' + accessory.context.room + ' for ' + accessory.context.windowDuration/60 + ' minutes!') : 
-              self.log('Window closed! Turning on thermostat in ' + accessory.context.room);
+              self.logger.warn('Open window detected! Turning off thermostat in ' + accessory.context.room + ' for ' + accessory.context.windowDuration/60 + ' minutes!') : 
+              self.logger.info('Window closed! Turning on thermostat in ' + accessory.context.room);
           }
           accessory.context.oldState = accessory.context.windowState;
         }
-        if(accessory.context.windowState!=accessory.context.oldState&&accessory.context.oldState != undefined)self.log(accessory.displayName + ': Room changed to ' + accessory.context.room);
+        if(accessory.context.windowState!=accessory.context.oldState&&accessory.context.oldState != undefined)self.logger.warn(accessory.displayName + ': Room changed to ' + accessory.context.room);
         service.getCharacteristic(Characteristic.ContactSensorState).updateValue(accessory.context.windowState);
         self.error.windowSensor = 0;
         setTimeout(function(){
@@ -1838,8 +1759,8 @@ class TADO {
             if(self.accessories[i].displayName == accessory.displayName){
               if(self.error.windowSensor > 5){
                 self.error.windowSensor = 0;
-                self.log(accessory.displayName + ': An error occured by getting room temperature, trying again...');
-                self.log(err);
+                self.logger.error(accessory.displayName + ': An error occured by getting room temperature, trying again...');
+                self.logger.error(err);
                 setTimeout(function(){
                   self.getWindowState(accessory, service);
                 }, 30000);
@@ -1884,9 +1805,9 @@ class TADO {
       }
       case 3:{ //occupancy
         if(accessory.displayName == self.config.name + ' Anyone'){
-          if(!value.newValue)self.log('Nobody at home!');
+          if(!value.newValue)self.logger.info('Nobody at home!');
         } else {
-          value.newValue ? self.log('Bye bye ' + accessory.displayName) : self.log('Welcome at home ' + accessory.displayName);
+          value.newValue ? self.logger.info('Bye bye ' + accessory.displayName) : self.logger.info('Welcome at home ' + accessory.displayName);
         }  
         accessory.context.loggingService.addEntry({
           time: moment().unix(),
@@ -1941,7 +1862,7 @@ class TADO {
         break;
       }
     }
-    if(subtype != 'motion')self.log(accessory.displayName + ' (' + value.context + ')' + ': Changed from ' + value.oldValue + unit + ' to ' + value.newValue + unit);
+    if(subtype != 'motion')self.logger.debug(accessory.displayName + ' (' + value.context + ')' + ': Changed from ' + value.oldValue + unit + ' to ' + value.newValue + unit);
   }
   
 }
