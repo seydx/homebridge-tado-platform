@@ -44,7 +44,8 @@ function TadoPlatform (log, config, api) {
     openWindow: config.openWindow||false,
     extendedWeatherActive: config.extendedWeather.activate||false,
     extendedWeatherKey: config.extendedWeather.key||undefined,
-    extendedWeatherLocation: config.extendedWeather.location||undefined
+    extendedWeatherLocation: config.extendedWeather.location||undefined,
+    extendedDelay: config.extendedDelay||false
   };
   
   this.config.polling < 10000 ? this.config.polling = 10000 : this.config.polling;
