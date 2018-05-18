@@ -372,12 +372,16 @@ class TADO {
             minStep: 1
           })
           .updateValue(accessory.context.delayTimer);
-          
-        if (!service.testCharacteristic(Characteristic.DelaySwitch))service.addCharacteristic(Characteristic.DelaySwitch);
-        service.getCharacteristic(Characteristic.DelaySwitch)
-          .on('set', self.setDelay.bind(this, accessory, service))
-          .updateValue(accessory.context.delayState);
-
+        
+        if(self.config.extendedDelay){
+          if (!service.testCharacteristic(Characteristic.DelaySwitch))service.addCharacteristic(Characteristic.DelaySwitch);
+          service.getCharacteristic(Characteristic.DelaySwitch)
+            .on('set', self.setDelay.bind(this, accessory, service))
+            .updateValue(accessory.context.delayState);
+        } else {
+          if(service.testCharacteristic(Characteristic.DelaySwitch))service.removeCharacteristic(service.getCharacteristic(Characteristic.DelaySwitch));  
+        }
+        
         service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)
           .updateValue(accessory.context.lastCurrentState);
             
@@ -392,7 +396,8 @@ class TADO {
             minStep: 0.01,
             unit: accessory.context.propsUnit
           })
-          .updateValue(accessory.context.lastCurrentTemp);
+          .updateValue(accessory.context.lastCurrentTemp)
+          .on('change', self.changeValue.bind(this, accessory, service, type, 'temperature'));
             
         service.getCharacteristic(Characteristic.TargetTemperature)
           .setProps({
@@ -409,7 +414,8 @@ class TADO {
           .updateValue(accessory.context.tempUnitState); // 0 = C ; 1 = F
             
         service.getCharacteristic(Characteristic.CurrentRelativeHumidity)
-          .updateValue(accessory.context.lastHumidity);
+          .updateValue(accessory.context.lastHumidity)
+          .on('change', self.changeValue.bind(this, accessory, service, type, 'humidity'));
             
         battery.getCharacteristic(Characteristic.ChargingState)
           .updateValue(2); //Not chargable
@@ -469,14 +475,15 @@ class TADO {
         service = accessory.getService(Service.MotionSensor);
         
         service.getCharacteristic(Characteristic.MotionDetected)
-          .updateValue(accessory.context.atHome);
+          .updateValue(accessory.context.atHome)
+          .on('change', self.changeValue.bind(this, accessory, service, type, 'motion'));
           
         if (!service.testCharacteristic(Characteristic.EveMotionLastActivation))service.addCharacteristic(Characteristic.EveMotionLastActivation);
         service.getCharacteristic(Characteristic.EveMotionLastActivation)
           .updateValue(accessory.context.lastActivation); 
         
         self.getMotionLastActivation(accessory, service);
-        self.getMotionDetected(accessory, service);        
+        setTimeout(function(){self.getMotionDetected(accessory, service);},1000);      
         break;
       }
       case 4: { //weather
@@ -489,7 +496,8 @@ class TADO {
             minStep: 0.01,
             unit: accessory.context.propsUnit
           })
-          .updateValue(accessory.context.lastWeatherTemperature);
+          .updateValue(accessory.context.lastWeatherTemperature)
+          .on('change', self.changeValue.bind(this, accessory, service, type, 'temperature'));
           
         self.getWeather(accessory, service);
         
@@ -504,7 +512,8 @@ class TADO {
           
           if (!service.testCharacteristic(Characteristic.CurrentRelativeHumidity))service.addCharacteristic(Characteristic.CurrentRelativeHumidity);
           service.getCharacteristic(Characteristic.CurrentRelativeHumidity)
-            .updateValue(accessory.context.lastWeatherHumidity);
+            .updateValue(accessory.context.lastWeatherHumidity)
+            .on('change', self.changeValue.bind(this, accessory, service, type, 'humidity'));
                       
           if (!service.testCharacteristic(Characteristic.AirPressure))service.addCharacteristic(Characteristic.AirPressure);
           service.getCharacteristic(Characteristic.AirPressure)
@@ -569,7 +578,8 @@ class TADO {
             minStep: 0.01,
             unit: accessory.context.propsUnit
           })
-          .updateValue(accessory.context.lastCurrentTemp);
+          .updateValue(accessory.context.lastCurrentTemp)
+          .on('change', self.changeValue.bind(this, accessory, service, type, 'temperature'));
             
         service.getCharacteristic(Characteristic.TargetTemperature)
           .setProps({
@@ -609,7 +619,8 @@ class TADO {
             minStep: 0.01,
             unit: accessory.context.propsUnit
           })
-          .updateValue(accessory.context.lastRoomHumidity);
+          .updateValue(accessory.context.lastRoomHumidity)
+          .on('change', self.changeValue.bind(this, accessory, service, type, 'humidity'));
         
         service.getCharacteristic(Characteristic.CurrentTemperature)
           .setProps({
@@ -618,7 +629,8 @@ class TADO {
             minStep: 0.01,
             unit: accessory.context.propsUnit
           })
-          .updateValue(accessory.context.lastRoomTemperature);
+          .updateValue(accessory.context.lastRoomTemperature)
+          .on('change', self.changeValue.bind(this, accessory, service, type, 'temperature'));
           
         self.getRoomTemperature(accessory, service);      
         break;
@@ -632,7 +644,7 @@ class TADO {
         self.getWindowState(accessory, service);      
         break;
       }
-    } setTimeout(function(){self.getHistory(accessory, service, type);},5000); //Wait for FakeGato
+    } //setTimeout(function(){self.getHistory(accessory, service, type);},5000); //Wait for FakeGato
   }
   
   /********************************************************************************************************************************************************/
@@ -641,7 +653,7 @@ class TADO {
   /********************************************************************************************************************************************************/
   /********************************************************************************************************************************************************/
   
-  getHistory(accessory, service, type){
+  /*getHistory(accessory, service, type){
     const self = this;
     if(accessory.context.logging){
       var historyTimer;
@@ -717,7 +729,7 @@ class TADO {
         self.getHistory(accessory, service, type);
       }, historyTimer);
     }
-  }
+  }*/
   
   /********************************************************************************************************************************************************/
   /********************************************************************************************************************************************************/
@@ -1045,20 +1057,40 @@ class TADO {
             'Content-Type': 'application/json'
           }
         };
-        let req = https.request(options, function(res) {
-          self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
-        });
-        req.on('error', function(err) {
-          self.log(accessory.displayName + ': An error occured by setting new temperature!');
-          self.log(err);
-        });
-        req.end();
-        accessory.context.lastCurrentState = 0;
-        accessory.context.lastTargetState = 3;
-        accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
-        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
-        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
-        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        if (accessory.context.delayTimer > 0 && !self.config.extendedDelay) {
+          self.log(accessory.displayName + ': Switching to automatic mode in ' + accessory.context.delayTimer + ' seconds...');
+          self.sleep(accessory.context.delayTimer*1000).then(() => {
+            let req = https.request(options, function(res) {
+              self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
+            });
+            req.on('error', function(err) {
+              self.log(accessory.displayName + ': An error occured by setting AUTO state!');
+              self.log(err);
+            });
+            req.end();
+            accessory.context.lastCurrentState = 0;
+            accessory.context.lastTargetState = 3;
+            accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
+            service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+            service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+            service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+          });
+        } else {
+          let req = https.request(options, function(res) {
+            self.log(accessory.displayName + ': Switched to AUTO (' + res.statusCode + ')');
+          });
+          req.on('error', function(err) {
+            self.log(accessory.displayName + ': An error occured by setting new temperature!');
+            self.log(err);
+          });
+          req.end();
+          accessory.context.lastCurrentState = 0;
+          accessory.context.lastTargetState = 3;
+          accessory.context.lastTargetTemp = accessory.context.targetAutoTemp;
+          service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(accessory.context.lastCurrentState);
+          service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(accessory.context.lastTargetState);
+          service.getCharacteristic(Characteristic.TargetTemperature).updateValue(accessory.context.lastTargetTemp);
+        }
         callback();
         break;
       }
@@ -1594,15 +1626,13 @@ class TADO {
   
   getMotionDetected(accessory, service){
     const self = this;
-    if(accessory.displayName != self.config.name + ' Anyone'){
-      service.getCharacteristic(Characteristic.MotionDetected).updateValue(accessory.context.atHome);
-    } else {
+    if(accessory.displayName == self.config.name + ' Anyone'){
       const allAccessories = self.accessories;  
-      var motion = 0;  
+      let motion = 0;  
       for(const i in allAccessories){
         if(allAccessories[i].context.type == self.types.occupancy && allAccessories[i].displayName != self.config.name + ' Anyone'){
           const state = allAccessories[i].getService(Service.MotionSensor).getCharacteristic(Characteristic.MotionDetected).value;
-          if(state > 0){
+          if(state){
             motion += 1;
           }
         }
@@ -1612,8 +1642,8 @@ class TADO {
       } else {
         accessory.context.atHome = false;
       }
-      service.getCharacteristic(Characteristic.MotionDetected).updateValue(accessory.context.atHome);
     }
+    service.getCharacteristic(Characteristic.MotionDetected).updateValue(accessory.context.atHome);
     setTimeout(function(){
       self.getMotionDetected(accessory, service); 
     }, 1000);   
@@ -1825,6 +1855,93 @@ class TADO {
           }
         }
       });
+  }
+  
+  changeValue(accessory, service, type, subtype, value){
+    const self = this;
+    value.context = subtype;
+    let temp;
+    let humidity;
+    let unit = '';
+    switch (type) {
+      case 1:{ //radiator and remote thermostat
+        if(subtype == 'humidity'){
+          unit = '%';
+          humidity = value.newValue;
+          temp = service.getCharacteristic(Characteristic.CurrentTemperature).value;
+        } else if(subtype == 'temperature'){
+          unit = '°C';
+          temp = value.newValue;
+          humidity = service.getCharacteristic(Characteristic.CurrentRelativeHumidity).value;
+        }
+        accessory.context.loggingService.addEntry({
+          time: moment().unix(),
+          temp: temp,
+          pressure: 0,
+          humidity: humidity
+        });
+        break;
+      }
+      case 3:{ //occupancy
+        if(accessory.displayName == self.config.name + ' Anyone'){
+          if(!value.newValue)self.log('Nobody at home!');
+        } else {
+          value.newValue ? self.log('Bye bye ' + accessory.displayName) : self.log('Welcome at home ' + accessory.displayName);
+        }  
+        accessory.context.loggingService.addEntry({
+          time: moment().unix(),
+          status: value.newValue ? 1:0
+        });
+        break;
+      }
+      case 4:{ //weather
+        if(subtype == 'humidity'){
+          unit = '%';
+          humidity = value.newValue;
+          temp = service.getCharacteristic(Characteristic.CurrentTemperature).value;
+        } else if(subtype == 'temperature'){
+          unit = '°C';
+          temp = value.newValue;
+          humidity = service.getCharacteristic(Characteristic.CurrentRelativeHumidity).value;
+        }
+        accessory.context.loggingService.addEntry({
+          time: moment().unix(),
+          temp: temp,
+          pressure: 0,
+          humidity: humidity
+        });
+        break;
+      }
+      case 5:{ //boiler
+        unit = '°C';
+        accessory.context.loggingService.addEntry({
+          time: moment().unix(),
+          temp: temp,
+          pressure: 0,
+          humidity: 0
+        });
+        break;
+      }
+      case 7:{ //external sensor
+        if(subtype == 'humidity'){
+          unit = '%';
+          humidity = value.newValue;
+          temp = service.getCharacteristic(Characteristic.CurrentTemperature).value;
+        } else if(subtype == 'temperature'){
+          unit = '°C';
+          temp = value.newValue;
+          humidity = service.getCharacteristic(Characteristic.CurrentRelativeHumidity).value;
+        }
+        accessory.context.loggingService.addEntry({
+          time: moment().unix(),
+          temp: temp,
+          pressure: 0,
+          humidity: humidity
+        });
+        break;
+      }
+    }
+    if(subtype != 'motion')self.log(accessory.displayName + ' (' + value.context + ')' + ': Changed from ' + value.oldValue + unit + ' to ' + value.newValue + unit);
   }
   
 }
