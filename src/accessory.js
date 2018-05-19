@@ -48,7 +48,8 @@ class TADO {
       remoteThermostat: 6,
       externalSensor: 7,
       onePerRoom: 8,
-      windowSensor: 9
+      windowSensor: 9,
+      solar: 10
     };
 
     // Error count
@@ -60,7 +61,8 @@ class TADO {
       openweather: 0,
       externalSensor: 0,
       windowSensor: 0,
-      boiler: 0
+      boiler: 0,
+      solar: 0
     };
     
     //Sleep function
@@ -137,6 +139,11 @@ class TADO {
         name = parameter.name;
         deviceType = Accessory.Categories.SENSOR;
         accessoryType = Service.ContactSensor;
+        break;
+      case 10:
+        name = parameter.name;
+        deviceType = Accessory.Categories.LIGHTBULB;
+        accessoryType = Service.Lightbulb;
         break;
     }
 
@@ -269,6 +276,10 @@ class TADO {
         accessory.context.windowDuration = 0;
         accessory.context.oldState = undefined;
         accessory.context.room = parameter.room;
+        break;
+      case 10:
+        accessory.context.lastSolarState = 0;
+        accessory.context.lastState = false;
         break;
     }
     
@@ -647,6 +658,35 @@ class TADO {
           .updateValue(accessory.context.windowState);
           
         self.getWindowState(accessory, service);      
+        break;
+      }
+      case 10: { //Solar
+        service = accessory.getService(Service.Lightbulb);
+        
+        service.getCharacteristic(Characteristic.On)
+          .updateValue(accessory.context.lastState)
+          .on('set', function(state, callback) {
+            self.logger.warn('Cant set lightbulb on. Not supported!');
+            callback(null, accessory.context.lastState);
+          });
+          
+        if (!service.testCharacteristic(Characteristic.Brightness)) {
+          service.addCharacteristic(Characteristic.Brightness);
+        }
+        
+        service.getCharacteristic(Characteristic.Brightness)
+          .setProps({
+            maxValue: 100,
+            minValue: 0,
+            minStep: 1
+          })
+          .updateValue(accessory.context.lastSolarState)
+          .on('set', function(value, callback) {
+            self.logger.warn('Cant change lightbulb brightness. Not supported!');
+            callback(null, accessory.context.lastSolarState);
+          });
+          
+        self.getSolarIntensity(accessory, service);      
         break;
       }
     } //setTimeout(function(){self.getHistory(accessory, service, type);},5000); //Wait for FakeGato
@@ -1777,6 +1817,50 @@ class TADO {
         }
       });
   }
+  
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  /********************************************************************* SOLAR ****************************************************************************/
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  
+  getSolarIntensity(accessory, service){
+    const self = this;
+    const a = accessory.context;
+    self.getContent(a.url + 'homes/' + a.homeID + '/weather?username=' + a.username + '&password=' + a.password)
+      .then((data) => {
+        const response = JSON.parse(data);
+        accessory.context.lastSolarState = response.solarIntensity.percentage;
+        accessory.context.lastSolarState > 0 ? accessory.context.lastState = true : accessory.context.lastState = false;
+        service.getCharacteristic(Characteristic.On).updateValue(accessory.context.lastState);
+        service.getCharacteristic(Characteristic.Brightness).updateValue(accessory.context.lastSolarState);
+        self.error.solar = 0;
+        setTimeout(function(){
+          self.getSolarIntensity(accessory, service);
+        }, self.config.polling);
+      })
+      .catch((err) => {
+        if(self.error.solar > 5){
+          self.error.solar = 0;
+          self.logger.error(accessory.displayName + ': An error occured by getting solar intensity, trying again...');
+          self.logger.error(err);
+          setTimeout(function(){
+            self.getSolarIntensity(accessory, service);
+          }, 30000);
+        } else {
+          self.error.solar += 1;
+          setTimeout(function(){
+            self.getSolarIntensity(accessory, service);
+          }, 15000);
+        }
+      });
+  }
+  
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
+  /********************************************************************* FAKEGATO *************************************************************************/
+  /********************************************************************************************************************************************************/
+  /********************************************************************************************************************************************************/
   
   changeValue(accessory, service, type, subtype, value){
     const self = this;
