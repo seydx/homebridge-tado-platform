@@ -666,7 +666,7 @@ class TADO {
         service.getCharacteristic(Characteristic.On)
           .updateValue(accessory.context.lastState)
           .on('set', function(state, callback) {
-            self.logger.warn('Cant set lightbulb on. Not supported!');
+            self.logger.warn('Can not change lightbulb state. Not supported!');
             callback(null, accessory.context.lastState);
           });
           
@@ -678,11 +678,11 @@ class TADO {
           .setProps({
             maxValue: 100,
             minValue: 0,
-            minStep: 1
+            minStep: 0.01
           })
           .updateValue(accessory.context.lastSolarState)
           .on('set', function(value, callback) {
-            self.logger.warn('Cant change lightbulb brightness. Not supported!');
+            self.logger.warn('Can not change lightbulb brightness. Not supported!');
             callback(null, accessory.context.lastSolarState);
           });
           
@@ -1831,7 +1831,12 @@ class TADO {
       .then((data) => {
         const response = JSON.parse(data);
         accessory.context.lastSolarState = response.solarIntensity.percentage;
-        accessory.context.lastSolarState > 0 ? accessory.context.lastState = true : accessory.context.lastState = false;
+        if(accessory.context.lastSolarState > 0){
+          accessory.context.lastState = true;
+          if(accessory.context.lastSolarState < 1)accessory.context.lastSolarState = 1;
+        } else {
+          accessory.context.lastState = false; 
+        }
         service.getCharacteristic(Characteristic.On).updateValue(accessory.context.lastState);
         service.getCharacteristic(Characteristic.Brightness).updateValue(accessory.context.lastSolarState);
         self.error.solar = 0;
