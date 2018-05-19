@@ -45,6 +45,11 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 - Elgato EVE history feature (Fakegato)
 - OpenWeather Support: If API and Location setted in config, the Weather accessory will also show the current humidity state and Elgato EVE or other 3rd party apps will also show the airpressure, sunrise, sunset and weather state with FakeGato support! Note: You can get an API-Key from [openweathermap.org](https://openweathermap.org) - After sign up, you can create an API Key in the profile section
 
+**Solar Intensity:**
+- If enabled in config.json, this plugin will create a lightbulb for the solar intensity.
+- Lightbulb accessory that will show you the relative(%) brightness of the sun in your home area. will go off when it's dark.
+- Example automations: When solar intensity is off, turn on the lights in your home or when solar intensity is lower than 20% turn on the garden lights etc.
+
 **Window sensors:**
 - If enabled in config.json (openWindow) **AND** under the setting in the tado app (open window detection), this plugin creates window sensors for each room. So if the Tado open window detection detects an open window, the sensor will go on, and if the open window goes off, the sensor will also goes off
 
@@ -108,6 +113,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
       "externalSensor":false,
       "onePerRoom":false,
       "openWindow":false,
+      "solarIntensity":false,
       "extendedDelay":true,
       "extendedWeather":{
                 "activate":false,
@@ -138,6 +144,7 @@ See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/mast
 | externalSensor | No | Exposes built-in temperature and humidty sensors as new accessories for each room | 
 | onePerRoom | No | Ignores all thermostats in config.json (except boiler) and exposes for each room ONE thermostat (Default: false) | 
 | openWindow | No | Exposes window contact sensors to HomeKit (if OpenWindowDetection activated in Tado settings! - Default: false) | 
+| solarIntensity | No | Exposes a new lightbulb accessory to HomeKit which represents the solar intensity based on your home location (Default: false) | 
 | extendedWeather | No | If "activate" under **extendedWeather** is setted to **true** and an **API key** and **location** is also given, this plugin will expose additional information to HomeKit like weather humidty, air pressure, sunrise, senset and weather state (default: false / see **example-config** for more info) | 
 | extendedDelay | No | Exposes an additional delay switch to the thermostat settings to create automations based on the delay timer and delay switch | 
 
@@ -176,6 +183,7 @@ This plugin has been verified to work with the following apps on iOS 11.3:
 - [x] New Option: 'onePerRoom' (exposes only one thermostet per room)
 - [x] New Accessory: Window Sensor (based on open window detection)
 - [x] More functions for weather accessory with OpenWeather API
+- [x] Lightbulb for Solar Intensity
 - [x] DEBUG
 
 
