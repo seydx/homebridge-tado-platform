@@ -600,7 +600,7 @@ TadoPlatform.prototype = {
 
   configureAccessory: function (accessory) {
     const self = this;
-    self.log.info('Configuring accessory from cache: ' + accessory.displayName);
+    self.logger.info('Configuring accessory from cache: ' + accessory.displayName);
     accessory.reachable = true;  
     if(accessory.context.logging){
       accessory.context.loggingService = new FakeGatoHistoryService(accessory.context.loggingType,accessory,accessory.context.loggingOptions);
