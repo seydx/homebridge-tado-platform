@@ -18,6 +18,7 @@
      "externalSensor":false,
      "onePerRoom":false,
      "openWindow":false,
+     "solarIntensity":false,
      "extendedDelay":true,
      "extendedWeather":{
                "activate":false,
