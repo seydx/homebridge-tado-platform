@@ -47,7 +47,8 @@ function TadoPlatform (log, config, api) {
     extendedWeatherActive: config.extendedWeather.activate||false,
     extendedWeatherKey: config.extendedWeather.key||undefined,
     extendedWeatherLocation: config.extendedWeather.location||undefined,
-    extendedDelay: config.extendedDelay||false
+    extendedDelay: config.extendedDelay||false,
+    solarIntensity: config.solarIntensity||false
   };
   
   this.config.polling < 10000 ? this.config.polling = 10000 : this.config.polling;
@@ -67,7 +68,8 @@ function TadoPlatform (log, config, api) {
     remoteThermostat: 6,
     externalSensor: 7,
     onePerRoom: 8,
-    windowSensor: 9
+    windowSensor: 9,
+    solar: 10
   };
   
   this.error = {
@@ -592,6 +594,32 @@ TadoPlatform.prototype = {
     } else {
       for (const i in this.accessories) {
         if (this.accessories[i].context.type == this.types.weather) {
+          this.removeAccessory(this.accessories[i]);
+        }
+      }
+    }
+    
+    if (this.config.solarIntensity) {
+      let skip = false;
+      for (const i in this.accessories) {
+        if (this.accessories[i].context.type == this.types.solar) {
+          skip = true;
+        }
+      }
+      if (!skip) {
+        parameter['name'] = this.config.name + ' Solar Intensity';
+        parameter['shortSerialNo'] = parameter.homeID + '-' + this.types.solar;
+        parameter['type'] = this.types.solar;
+        parameter['model'] = 'Solar Intensity';
+        parameter['username'] = this.config.username;
+        parameter['password'] = this.config.password;
+        parameter['url'] = this.config.url;
+        parameter['logging'] = false;
+        new Device(self, parameter, true);
+      }
+    } else {
+      for (const i in this.accessories) {
+        if (this.accessories[i].context.type == this.types.solar) {
           this.removeAccessory(this.accessories[i]);
         }
       }
