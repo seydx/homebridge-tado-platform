@@ -485,7 +485,7 @@ class TADO {
           
         if (!service.testCharacteristic(Characteristic.EveMotionLastActivation))service.addCharacteristic(Characteristic.EveMotionLastActivation);
         service.getCharacteristic(Characteristic.EveMotionLastActivation)
-          .updateValue(accessory.context.lastActivation); 
+          .updateValue(accessory.context.lastActivation);
         
         self.getMotionLastActivation(accessory, service);
         setTimeout(function(){self.getMotionDetected(accessory, service);},1000);      
@@ -1807,7 +1807,7 @@ class TADO {
         if(accessory.displayName == self.config.name + ' Anyone'){
           if(!value.newValue)self.logger.info('Nobody at home!');
         } else {
-          value.newValue ? self.logger.info('Bye bye ' + accessory.displayName) : self.logger.info('Welcome at home ' + accessory.displayName);
+          !value.newValue ? self.logger.info('Bye bye ' + accessory.displayName) : self.logger.info('Welcome at home ' + accessory.displayName);
         }  
         accessory.context.loggingService.addEntry({
           time: moment().unix(),
