@@ -534,7 +534,8 @@ class TADO {
                       
           if (!service.testCharacteristic(Characteristic.AirPressure))service.addCharacteristic(Characteristic.AirPressure);
           service.getCharacteristic(Characteristic.AirPressure)
-            .updateValue(accessory.context.lastWeatherPressure); 
+            .updateValue(accessory.context.lastWeatherPressure)
+            .on('change', self.changeValue.bind(this, accessory, service, type, 'pressure'));
           
           if (!service.testCharacteristic(Characteristic.WeatherState))service.addCharacteristic(Characteristic.WeatherState);
           service.getCharacteristic(Characteristic.WeatherState)
@@ -1884,6 +1885,7 @@ class TADO {
     value.context = subtype;
     let temp;
     let humidity;
+    let pressure;
     let unit = '';
     switch (type) {
       case 1:{ //radiator and remote thermostat
@@ -1916,20 +1918,27 @@ class TADO {
         });
         break;
       }
-      case 4:{ //weather
+      case 4:{ //weather 
         if(subtype == 'humidity'){
           unit = '%';
           humidity = value.newValue;
           temp = service.getCharacteristic(Characteristic.CurrentTemperature).value;
+          pressure = service.getCharacteristic(Characteristic.AirPressure).value;
         } else if(subtype == 'temperature'){
           unit = '°C';
           temp = value.newValue;
+          humidity = service.testCharacteristic(Characteristic.CurrentRelativeHumidity) ? service.getCharacteristic(Characteristic.CurrentRelativeHumidity).value : 0;
+          pressure = service.testCharacteristic(Characteristic.AirPressure) ? service.getCharacteristic(Characteristic.AirPressure).value : 0;
+        } else if(subtype == 'pressure'){
+          unit = 'hPa';
+          pressure = value.newValue;
+          temp = service.getCharacteristic(Characteristic.CurrentTemperature).value;
           humidity = service.getCharacteristic(Characteristic.CurrentRelativeHumidity).value;
         }
         accessory.context.loggingService.addEntry({
           time: moment().unix(),
           temp: temp,
-          pressure: 0,
+          pressure: pressure,
           humidity: humidity
         });
         break;
