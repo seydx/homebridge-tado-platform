@@ -256,6 +256,7 @@ class TADO {
           accessory.context.batteryLevel = 100;
           accessory.context.batteryStatus = 0;
         } else {
+          accessory.context.oldBatteryLevel = undefined;
           accessory.context.batteryLevel = 10;
           accessory.context.batteryStatus = 1;
         }
@@ -714,6 +715,10 @@ class TADO {
     }
     battery.getCharacteristic(Characteristic.BatteryLevel).updateValue(accessory.context.batteryLevel);
     battery.getCharacteristic(Characteristic.StatusLowBattery).updateValue(accessory.context.batteryStatus);
+    if(accessory.context.batteryLevel != accessory.context.oldBatteryLevel){
+      if(accessory.context.batteryLevel == 10)self.logger.warn(accessory.displayName + ': Battery LOW!');
+      accessory.context.oldBatteryLevel = accessory.context.batteryLevel;
+    }
     if(accessory.context.room != accessory.context.oldRoom){
       if(accessory.context.oldRoom != undefined)self.logger.warn(accessory.displayName + ': Room changed to ' + accessory.context.room);
       accessory.context.oldRoom = accessory.context.room;
@@ -751,6 +756,7 @@ class TADO {
           } else {
             accessory.context.lastTargetState = 3;
             accessory.context.targetAutoTemp = response.setting.temperature.celsius; //new context
+            accessory.context.lastCurrentState = 0;
           }
         }
         if(accessory.context.tempUnitState == 0){
@@ -1565,14 +1571,20 @@ class TADO {
     for(const i in allAccessories){
       if(allAccessories[i].context.type==self.types.radiatorThermostat||allAccessories[i].context.type==self.types.boilerThermostat){
         if(state){
-          allAccessories[i].context.lastTargetState = 3;
-          allAccessories[i].context.lastCurrentState = 0;
+          if(allAccessories[i].context.lastTargetState != 3 && allAccessories[i].context.lastCurrentState == 0){
+            allAccessories[i].context.lastTargetState = 3;
+            allAccessories[i].context.lastCurrentState = 0;
+            allAccessories[i].getService(Service.Thermostat).getCharacteristic(Characteristic.TargetHeatingCoolingState).setValue(allAccessories[i].context.lastTargetState);
+            allAccessories[i].getService(Service.Thermostat).getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(allAccessories[i].context.lastCurrentState);
+          }
         } else {
-          allAccessories[i].context.lastTargetState = 0;
-          allAccessories[i].context.lastCurrentState = 0;
+          if(allAccessories[i].context.lastTargetState != 0 && allAccessories[i].context.lastCurrentState == 0){
+            allAccessories[i].context.lastTargetState = 0;
+            allAccessories[i].context.lastCurrentState = 0;
+            allAccessories[i].getService(Service.Thermostat).getCharacteristic(Characteristic.TargetHeatingCoolingState).setValue(allAccessories[i].context.lastTargetState);
+            allAccessories[i].getService(Service.Thermostat).getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(allAccessories[i].context.lastCurrentState);
+          }
         }
-        allAccessories[i].getService(Service.Thermostat).getCharacteristic(Characteristic.TargetHeatingCoolingState).setValue(allAccessories[i].context.lastTargetState);
-        allAccessories[i].getService(Service.Thermostat).getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(allAccessories[i].context.lastCurrentState);
       }
     }
     accessory.context.lastMainState = state;
