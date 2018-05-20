@@ -44,9 +44,7 @@ function TadoPlatform (log, config, api) {
     onePerRoom: config.onePerRoom||false,
     externalSensor: config.externalSensor||false,
     openWindow: config.openWindow||false,
-    extendedWeatherActive: config.extendedWeather.activate||false,
-    extendedWeatherKey: config.extendedWeather.key||undefined,
-    extendedWeatherLocation: config.extendedWeather.location||undefined,
+    extendedWeather: config.extendedWeather||{},
     extendedDelay: config.extendedDelay||false,
     solarIntensity: config.solarIntensity||false
   };
@@ -586,9 +584,9 @@ TadoPlatform.prototype = {
         parameter['logging'] = true;
         parameter['loggingType'] = 'weather';
         parameter['loggingTimer'] = true;
-        parameter['key'] = self.config.extendedWeatherKey;
-        parameter['activate'] = self.config.extendedWeatherActive;
-        parameter['location'] = self.config.extendedWeatherLocation;
+        parameter['key'] = self.config.extendedWeather.key||undefined;
+        parameter['activate'] = self.config.extendedWeather.activate||false;
+        parameter['location'] = self.config.extendedWeather.location||undefined;
         new Device(self, parameter, true);
       }
     } else {
