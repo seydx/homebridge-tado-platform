@@ -518,11 +518,11 @@ class TADO {
           
         self.getWeather(accessory, service);
         
-        if(self.config.extendedWeatherActive&&self.config.extendedWeatherKey&&self.config.extendedWeatherLocation){	        
+        if(self.config.extendedWeather.activate&&self.config.extendedWeather.key&&self.config.extendedWeather.location){	        
           //Refresh context
-          accessory.context.activate = self.config.extendedWeatherActive;
-          accessory.context.key = self.config.extendedWeatherKey;
-          accessory.context.location = self.config.extendedWeatherLocation;
+          accessory.context.activate = self.config.extendedWeather.activate;
+          accessory.context.key = self.config.extendedWeather.key;
+          accessory.context.location = self.config.extendedWeather.location;
           accessory.context.tempUnitState == 0 ? 
             accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=metric' :
             accessory.context.weatherUrl = 'http://api.openweathermap.org/data/2.5/weather?q=' + accessory.context.location + '&appid=' + accessory.context.key + '&units=imperial';
@@ -1883,9 +1883,9 @@ class TADO {
   changeValue(accessory, service, type, subtype, value){
     const self = this;
     value.context = subtype;
-    let temp;
-    let humidity;
-    let pressure;
+    let temp = 0;
+    let humidity = 0;
+    let pressure = 0;
     let unit = '';
     switch (type) {
       case 1:{ //radiator and remote thermostat
@@ -1927,8 +1927,8 @@ class TADO {
         } else if(subtype == 'temperature'){
           unit = '°C';
           temp = value.newValue;
-          humidity = service.testCharacteristic(Characteristic.CurrentRelativeHumidity) ? service.getCharacteristic(Characteristic.CurrentRelativeHumidity).value : 0;
-          pressure = service.testCharacteristic(Characteristic.AirPressure) ? service.getCharacteristic(Characteristic.AirPressure).value : 0;
+          humidity = service.getCharacteristic(Characteristic.CurrentRelativeHumidity).value ? service.getCharacteristic(Characteristic.CurrentRelativeHumidity).value : 0;
+          pressure = service.getCharacteristic(Characteristic.AirPressure).value ? service.getCharacteristic(Characteristic.AirPressure).value : 0;
         } else if(subtype == 'pressure'){
           unit = 'hPa';
           pressure = value.newValue;
