@@ -196,6 +196,11 @@ TadoPlatform.prototype = {
             deviceType: 'VA01',
             thermoType: self.types.radiatorThermostat
           });
+          configArray.push({
+            type: 'HEATING',
+            deviceType: 'VA02',
+            thermoType: self.types.radiatorThermostat
+          });
         }
         if(self.config.boilerThermostat){ 
           configArray.push({
@@ -208,6 +213,11 @@ TadoPlatform.prototype = {
           configArray.push({
             type: 'HEATING',
             deviceType: 'RU01',
+            thermoType: self.types.radiatorThermostat
+          });
+          configArray.push({
+            type: 'HEATING',
+            deviceType: 'RU02',
             thermoType: self.types.radiatorThermostat
           });
         }
