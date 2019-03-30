@@ -10,5 +10,5 @@
 process.env.UV_THREADPOOL_SIZE = 128;
 module.exports = function (homebridge) {
   let TadoPlatform = require('./src/platform.js')(homebridge);
-  homebridge.registerPlatform('homebridge-tado', 'TadoPlatform', TadoPlatform, true);
+  homebridge.registerPlatform('homebridge-tado-platform', 'TadoPlatform', TadoPlatform, true);
 };
