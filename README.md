@@ -1,10 +1,18 @@
-## Tado!Platform v5
+## Tado!Platform (dynamic)
 
 [![npm](https://img.shields.io/npm/v/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![npm](https://img.shields.io/npm/dt/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![GitHub last commit](https://img.shields.io/github/last-commit/SeydX/homebridge-tado-platform.svg?style=flat-square)](https://github.com/SeydX/homebridge-tado-platform)
 
-**Tado!Platform Dynamic**
+## Version 5 (in progress)
+- Completely rewritten
+- New features
+- Many improvements
+- Bugfixes
+
+and more, stay tuned!
+
+**What means 'dynamic'?**
 
 Every thermostat, user (occupancy sensor) or open window detection (window sensor) are affected by the settings in the Tado app. That means, the plugin knows when you turning on/off the open window detection for a thermostat, adding/removing an user or adding/removing a thermostat or just changing the room of a thermostat, the plugin will expose these or remove them dynamically from HomeKit. You dont need to add it manually or even restart homebridge. Just install the plugin, configure the config.json and lean back!
 
@@ -12,6 +20,7 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 
 **Thermostats:**
 - Additional modes: Heat, Cool, Auto and Off
+- Secure temperature setting (temperature setting only possible in MANUAL mode (heat/cool))
 - Auto heat/cool to a certain value (configurable within 3rd party app)
 - Battery state and notification
 - Built-in humidity sensor
@@ -32,11 +41,13 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 
 **Occupancy sensors:**
 - If enabled in config.json this plugin will create occupancy/motion sensors for all registered persons (configurable in the tado app).
-- In addition to this, it will create an "Anyone" sensor too, to create automations based on "Anyone at home / not at home" (configurable via config.json)
+- In addition to this, it will create an "Anyone" sensor too, to create automations based on "Anyone at home / not at home"
+- Elgato EVE history feature (Fakegato)
 
 **Weather sensors:**
 - If enabled in config.json, this plugin will create a weather sensor for your location based on tado.
 - Elgato EVE history feature (Fakegato)
+- OpenWeather Support: If API and Location setted in config, the Weather accessory will also show the current humidity state and Elgato EVE or other 3rd party apps will also show the airpressure, sunrise, sunset and weather state with FakeGato support! Note: You can get an API-Key from [openweathermap.org](https://openweathermap.org) - After sign up, you can create an API Key in the profile section
 
 **Solar Intensity:**
 - If enabled in config.json, this plugin will create a lightbulb for the solar intensity.
@@ -45,7 +56,6 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 
 **Window sensors:**
 - If enabled in config.json (openWindow) **AND** under the setting in the tado app (open window detection), this plugin creates window sensors for each room. So if the Tado open window detection detects an open window, the sensor will go on, and if the open window goes off, the sensor will also goes off
-- Elgato EVE history feature (Fakegato)
 
 **Central Switch:**
 - If enabled in config.json this plugin creates a central switch to turning off/on all thermostats together with just one click!
@@ -68,7 +78,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
  
  ## Example config.json:
 
-```
+ ```
 {
   "bridge": {
       ...
@@ -76,14 +86,73 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
   "platforms": [
     {
     "platform":"TadoPlatform",
+    "name":"Tado",
     "username":"TadoUserName",
     "password":"TadoPassword"
     }
   ]
 }
 ```
+
+ ## Advanced config.json:
+
+ ```
+{
+  "bridge": {
+      ...
+  },
+  "platforms": [
+    {
+      "platform": "TadoPlatform",
+      "name": "Tado",
+      "username": "TadoUsername",
+      "password": "TadoPassword",
+      "polling": 10,
+      "centralSwitch":true,
+      "occupancy":true,
+      "weather": true,
+      "radiatorThermostat":true,
+      "boilerThermostat":true,
+      "remoteThermostat":true,
+      "externalSensor":false,
+      "onePerRoom":false,
+      "openWindow":false,
+      "solarIntensity":false,
+      "extendedDelay":true,
+      "extendedWeather":{
+                "activate":false,
+                "key": "abcdefghijklmno12345678",
+                "location":"Berlin"
+      }
+    }
+  ]
+}
+```
 See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/master/example-config.json) for more details.
 
+
+## Options
+
+| Attributes | Required | Usage |
+|------------|----------|-------|
+| name | no | Name for the Thermostat. Will be used as part of the accessory name.  |
+| username | **Yes** | Tado Login Username |
+| password | **Yes** | Tado Login Password |
+| polling | No | Interval for polling state of accessories (Default: 10s) |
+| weather | No | Exposes temperature sensors for your location based on tado (Default: false) | |
+| occupancy | No | Exposes occupancy/motion sensors for all registred persons (Default: false) | 
+| centralSwitch | No | Exposes a switch to turning on/off all thermostats with just one click! (Default: true) |
+| radiatorThermostat | No | Exposes new thermostat accessory for radiator thermostat (Default: true) | 
+| boilerThermostat | No | Exposes new thermostat accessory for boiler thermostat (Default: false) | 
+| remoteThermostat | No | Exposes new thermostat accessory for remote thermostat (Default: false) |
+| externalSensor | No | Exposes built-in temperature and humidty sensors as new accessories for each room | 
+| onePerRoom | No | Ignores all thermostats in config.json (except boiler) and exposes for each room ONE thermostat (Default: false) | 
+| openWindow | No | Exposes window contact sensors to HomeKit (if OpenWindowDetection activated in Tado settings! - Default: false) | 
+| solarIntensity | No | Exposes a new lightbulb accessory to HomeKit which represents the solar intensity based on your home location (Default: false) | 
+| extendedWeather | No | If "activate" under **extendedWeather** is setted to **true** and an **API key** and **location** is also given, this plugin will expose additional information to HomeKit like weather humidty, air pressure, sunrise, senset and weather state (default: false / see **example-config** for more info) | 
+| extendedDelay | No | Exposes an additional delay switch to the thermostat settings to create automations based on the delay timer and delay switch | 
+
+See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/master/example-config.json) for more details.
 
 ## In App settings
 
@@ -106,6 +175,20 @@ This plugin has been verified to work with the following apps on iOS 11.3:
 
 * Apple Home _(partial)_
 * All 3rd party apps like Elgato Eve etc. _(recommended)_
+
+
+## Known issues / TODO
+
+### Issues:
+///
+
+### TODO:
+- [x] Support more types: Boiler(BU01) and remote thermostat(RU01)
+- [x] New Option: 'onePerRoom' (exposes only one thermostet per room)
+- [x] New Accessory: Window Sensor (based on open window detection)
+- [x] More functions for weather accessory with OpenWeather API
+- [x] Lightbulb for Solar Intensity
+- [x] DEBUG
 
 
 ## Contributing
