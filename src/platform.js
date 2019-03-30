@@ -16,7 +16,7 @@ const occupancy_Accessory = require('./accessories/occupancy.js');
 const thermostat_Accessory = require('./accessories/thermostat.js');
 const switch_Accessory = require('./accessories/switch.js');
 
-const pluginName = 'homebridge-tado';
+const pluginName = 'homebridge-tado-platform';
 const platformName = 'TadoPlatform';
 
 var Accessory, Service, Characteristic, UUIDGen;
