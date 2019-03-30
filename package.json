@@ -1,7 +1,7 @@
 {
-  "name": "homebridge-tado-platform",
-  "version": "4.5.4",
-  "description": "homebridge-tado-platform",
+  "name": "homebridge-tado",
+  "version": "5.0.0",
+  "description": "homebridge-tado",
   "main": "index.js",
   "devDependencies": {},
   "scripts": {
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SeydX/homebridge-tado-platform.git"
+    "url": "git+https://github.com/SeydX/homebridge-tado.git"
   },
-  "author": "SeydX (https://github.com/SeydX/homebridge-tado-platform)",
+  "author": "SeydX (https://github.com/SeydX/homebridge-tado)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/SeydX/homebridge-tado-platform/issues"
+    "url": "https://github.com/SeydX/homebridge-tado/issues"
   },
-  "homepage": "https://github.com/SeydX/homebridge-tado-platform#readme",
+  "homepage": "https://github.com/SeydX/homebridge-tado#readme",
   "keywords": [
     "tado",
     "thermostat",
@@ -26,13 +26,15 @@
     "boiler"
   ],
   "engines": {
-    "node": "^8.9.1",
-    "homebridge": "^0.4.42"
+    "node": "^10.15.3",
+    "homebridge": "^0.4.46"
   },
   "dependencies": {
-    "node-persist": "0.0.8",
-    "async": "2.6.0",
-    "fakegato-history": "^0.5.1",
-    "moment": "^2.22.1"
+    "axios": "^0.18.0",
+    "simple-oauth2": "^2.2.0",
+    "debug": "^4.1.1",
+    "json-fs-store": "^1.0.1",
+    "fakegato-history": "^0.5.3",
+    "moment": "^2.24.0"
   }
 }
