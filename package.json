@@ -1,7 +1,7 @@
 {
-  "name": "homebridge-tado",
+  "name": "homebridge-tado-platform",
   "version": "5.0.0",
-  "description": "homebridge-tado",
+  "description": "homebridge-tado-platform",
   "main": "index.js",
   "devDependencies": {},
   "scripts": {
@@ -9,14 +9,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/SeydX/homebridge-tado.git"
+    "url": "git+https://github.com/SeydX/homebridge-tado-platform.git"
   },
-  "author": "SeydX (https://github.com/SeydX/homebridge-tado)",
+  "author": "SeydX (https://github.com/SeydX/homebridge-tado-platform)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/SeydX/homebridge-tado/issues"
+    "url": "https://github.com/SeydX/homebridge-tado-platform/issues"
   },
-  "homepage": "https://github.com/SeydX/homebridge-tado#readme",
+  "homepage": "https://github.com/SeydX/homebridge-tado-platform#readme",
   "keywords": [
     "tado",
     "thermostat",
