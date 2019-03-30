@@ -1,12 +1,16 @@
-# homebridge-tado-platform v4.5
+## Tado!Platform (dynamic)
 
 [![npm](https://img.shields.io/npm/v/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![npm](https://img.shields.io/npm/dt/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![GitHub last commit](https://img.shields.io/github/last-commit/SeydX/homebridge-tado-platform.svg?style=flat-square)](https://github.com/SeydX/homebridge-tado-platform)
 
-**Dynamic Platform plugin for Tado**
+## Version 5 (in progress)
+- Completely rewritten
+- New features
+- Many improvements
+- Bugfixes
 
->_Note: If you are looking for the non dynamic version, install the old version! [homebridge-tado-thermostat v3](https://github.com/SeydX/homebridge-tado-thermostat)_ 
+and more, stay tuned!
 
 **What means 'dynamic'?**
 
