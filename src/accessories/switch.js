@@ -53,7 +53,15 @@ class switch_Accessory {
       
     if (!service.testCharacteristic(Characteristic.OfflineThermostats))
       service.addCharacteristic(Characteristic.OfflineThermostats);
-
+      
+    if (!service.testCharacteristic(Characteristic.DummySwitch))
+      service.addCharacteristic(Characteristic.DummySwitch);
+      service.getCharacteristic(Characteristic.DummySwitch)
+        .on('set', function(state, callback){
+          accessory.context.windowState = state;
+          callback(null, state);
+        });
+        
     this.getState(accessory, service);
 
   }
@@ -66,6 +74,8 @@ class switch_Accessory {
     let off = 0;
   
     try {
+    
+      service.getCharacteristic(Characteristic.DummySwitch).updateValue(accessory.context.windowState);
     
       states = await this.accessories.map( device => {
       
