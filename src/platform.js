@@ -166,7 +166,8 @@ TadoPlatform.prototype = {
               this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{};              
               this.config.deviceOptions[dev.serial].active = ( this.config.deviceOptions[dev.serial].active === undefined ) ? true : this.config.deviceOptions[dev.serial].active;
               this.config.deviceOptions[dev.serial].heatValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].heatValue)) ? this.config.deviceOptions[dev.serial].heatValue : 5;              
-              this.config.deviceOptions[dev.serial].coolValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].coolValue)) ? this.config.deviceOptions[dev.serial].coolValue : 5;              
+              this.config.deviceOptions[dev.serial].coolValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].coolValue)) ? this.config.deviceOptions[dev.serial].coolValue : 5;       
+              this.config.deviceOptions[dev.serial].maxDelay = !isNaN(parseInt(this.config.deviceOptions[dev.serial].maxDelay)) ? this.config.deviceOptions[dev.serial].maxDelay : 10;
               this.config.deviceOptions[dev.serial].roomName = dev.zoneName;
                 
               if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) this.config.exclude.push(dev.serial);
@@ -179,6 +180,7 @@ TadoPlatform.prototype = {
             this.config.deviceOptions[dev.serial].active = ( this.config.deviceOptions[dev.serial].active === undefined ) ? true : this.config.deviceOptions[dev.serial].active;
             this.config.deviceOptions[dev.serial].heatValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].heatValue)) ? this.config.deviceOptions[dev.serial].heatValue : 5;
             this.config.deviceOptions[dev.serial].coolValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].coolValue)) ? this.config.deviceOptions[dev.serial].coolValue : 5;
+            this.config.deviceOptions[dev.serial].maxDelay = !isNaN(parseInt(this.config.deviceOptions[dev.serial].maxDelay)) ? this.config.deviceOptions[dev.serial].maxDelay : 10;
             this.config.deviceOptions[dev.serial].roomName = dev.zoneName;
 
             if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) this.config.exclude.push(dev.serial);
@@ -395,6 +397,7 @@ TadoPlatform.prototype = {
       if(i===accessory.context.serial){
         accessory.context.heatValue = this.config.deviceOptions[i].heatValue;
         accessory.context.coolValue = this.config.deviceOptions[i].coolValue;
+        accessory.context.maxDelay = this.config.deviceOptions[i].maxDelay * 60 * 1000;
       }
     }
 
