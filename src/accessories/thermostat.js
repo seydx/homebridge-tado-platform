@@ -122,7 +122,7 @@ class thermostat_Accessory {
       service.getCharacteristic(Characteristic.DelayTimer)
         .setProps({
           minValue: 0,
-          maxValue: 600,
+          maxValue: accessory.context.maxDelay,
           minStep: 1
         })
         .on('set', function(value, callback){
