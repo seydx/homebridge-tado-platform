@@ -4,6 +4,8 @@ const HomeKitTypes = require('../types/types.js');
 const EveTypes = require('../types/eve.js');
 const moment = require('moment');
 
+const timeout = ms => new Promise(res => setTimeout(res, ms));
+
 var Service, Characteristic, FakeGatoHistoryService;
 
 class thermostat_Accessory {
@@ -182,6 +184,11 @@ class thermostat_Accessory {
   async getState (accessory, service, battery){
   
     try {
+        
+      if(this.settedState){
+        await timeout(5000);
+        this.settedState = false;
+      }
     
       let zone = await this.tadoHandler.getZone(accessory.context.zoneID);
       
@@ -315,6 +322,10 @@ class thermostat_Accessory {
     const self = this;
   
     try {
+    
+      this.settedState = true;
+    
+      // from setTemp
       
       if(context && !isNaN(parseInt(context.newState))){
     
