@@ -55,17 +55,8 @@ class occupancy_Accessory {
       
       } else {
       
-        let status = await this.accessories.map( user => {
-        
-          if(user.context.type === 'occupancy' && user.displayName !== 'Anyone'){
-            
-            return user.getService(Service.OccupancySensor).getCharacteristic(Characteristic.OccupancyDetected).value;
-            
-          }
-        
-        });
-        
-        state = (status.includes(1)) ? 1 : 0;
+        let device = await this.tadoHandler.getDevice(accessory.context.serial);
+        state = (device.atHome.includes(true)) ? 1 : 0;
       
       }
       
