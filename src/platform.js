@@ -447,7 +447,7 @@ TadoPlatform.prototype = {
         if(add)
           accessory.addService(Service.OccupancySensor, object.name);
         
-        if(this.config.occupancy){
+        if(this.config.occupancy||this.config.anyone){
           if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
           new occupancy_Accessory(this, accessory);
         }
