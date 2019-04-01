@@ -484,12 +484,13 @@ class thermostat_Accessory {
     if(timer>0){
       if(state){
         this.logger.info(accessory.displayName + ': Activating delay (' + timer + 's)');
-        
-        setTimeout(function(){
-          service.getCharacteristic(Characteristic.DelaySwitch).setValue(false);
+        this.delayTimeOut = setTimeout(function(){
+          if(service.getCharacteristic(Characteristic.DelaySwitch).value)
+            service.getCharacteristic(Characteristic.DelaySwitch).setValue(false);
         }, accessory.context.delay*1000);
         
       } else {
+        clearTimeout(this.delayTimeOut);
         this.logger.info(accessory.displayName + ': Turning off delay');
         service.getCharacteristic(Characteristic.DelaySwitch).updateValue(false);
       }
@@ -501,6 +502,9 @@ class thermostat_Accessory {
     } else {
       accessory.context.delayState = false;
       accessory.context.delay = 0;
+      
+      if(this.delayTimeOut)
+        clearTimeout(this.delayTimeOut);
       
       setTimeout(function(){
         service.getCharacteristic(Characteristic.DelayTimer).updateValue(accessory.context.delay);
