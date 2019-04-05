@@ -8,13 +8,20 @@
 [![npm](https://img.shields.io/npm/v/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![npm](https://img.shields.io/npm/dt/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![GitHub last commit](https://img.shields.io/github/last-commit/SeydX/homebridge-tado-platform.svg?style=flat-square)](https://github.com/SeydX/homebridge-tado-platform)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=flat-square&maxAge=2592000)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NP4T3KASWQLD8)
+
+
+**Creating and maintaining Homebridge plugins consume a lot of time and effort, if you would like to share your appreciation, feel free to "Star" or donate.**
+
+[Click here](https://github.com/SeydX) to review more of my plugins.
+
+
+**<u>NOTE:</u>** Updating from **v4.x** to **v5.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/example-config.json) !
 
 
 ### Dynamic:
 
 Every thermostat, user (occupancy sensor) or open window detection (window sensor) are affected by the settings in the Tado app. That means, the plugin knows when you turning on/off the open window detection for a thermostat, adding/removing an user or adding/removing a thermostat or just changing the room of a thermostat, the plugin will expose these or remove them dynamically from HomeKit. You dont need to add it manually or even restart homebridge. Just install the plugin, configure the config.json and lean back!
-
-**<u>NOTE:</u>** Updating from **v4.x** to **v5.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/example-config.json) !
 
 
 This homebridge plugin exposes Tado thermostats, occupancy sensors and weather sensor to Apple's HomeKit. It provides following features:
