@@ -1,10 +1,16 @@
-## Tado!Platform v5
+<p align="center">
+    <img src="https://i.imgur.com/xcqkKKy.png" height="200">
+</p>
+
+
+## Tado!Platform v5 (dynamic)
 
 [![npm](https://img.shields.io/npm/v/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![npm](https://img.shields.io/npm/dt/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![GitHub last commit](https://img.shields.io/github/last-commit/SeydX/homebridge-tado-platform.svg?style=flat-square)](https://github.com/SeydX/homebridge-tado-platform)
 
-**Tado!Platform Dynamic**
+
+### Dynamic:
 
 Every thermostat, user (occupancy sensor) or open window detection (window sensor) are affected by the settings in the Tado app. That means, the plugin knows when you turning on/off the open window detection for a thermostat, adding/removing an user or adding/removing a thermostat or just changing the room of a thermostat, the plugin will expose these or remove them dynamically from HomeKit. You dont need to add it manually or even restart homebridge. Just install the plugin, configure the config.json and lean back!
 
@@ -16,8 +22,7 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 - Battery state and notification
 - Built-in humidity sensor
 - Possibility to expose built-in temperature & humidity sensors as new accessories to HomeKit
-- Extended Delay: Every thermostat has two options (if extendedDelay setted to true in config.json) which are accessible over 3rd party apps like Elgato EVE etc - Delay Switch and Delay Timer. If delay timer > 0 and you turn on delay switch, the delay timer will begin to run and after the time is up, the switch will automatically turn off. (Thats helpfull for creating automations which needs a delay for turning on/off)
-- Basic Delay: The thermostat has an additional option in the settings - delay timer (if extendedDelay setted to false in config.json). If delay timer setted to > 0, the delay will be automatically activated. It delays the thermostat to going back into auto mode again.
+- Delay: Every thermostat has two options (if extendedDelay setted to true in config.json) which are accessible over 3rd party apps like Elgato EVE etc - Delay Switch and Delay Timer. If delay timer > 0 and you turn on delay switch, the delay timer will begin to run and after the time is up, the switch will automatically turn off. (Thats helpfull for creating automations which needs a delay for turning on/off)
 - Elgato EVE history feature (Fakegato)
 
 **Boiler :**
@@ -32,7 +37,7 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 
 **Occupancy sensors:**
 - If enabled in config.json this plugin will create occupancy/motion sensors for all registered persons (configurable in the tado app).
-- In addition to this, it will create an "Anyone" sensor too, to create automations based on "Anyone at home / not at home" (configurable via config.json)
+- Optional: It is also pissible to create an "Anyone" sensor too, to create automations based on "Anyone at home / not at home" (configurable via config.json)
 
 **Weather sensors:**
 - If enabled in config.json, this plugin will create a weather sensor for your location based on tado.
@@ -56,6 +61,11 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 - Additional Characteristics to see how much thermostats are in auto/manual/off mode
 - Stateful Dummy Switch Characteristic for creating automations with extra conditions basend on the dummy switch
 
+**Auto config generator:**
+
+You only need 3 lines in your config.json to start the plugin. After init start, the plugin will check you Tado Account and will expose alls Thermostats etc to HomeKit. It will also auto create an full config.json! After the first start, you are able to change parameter in your config.json to enable/disable extras/thermostats etc.
+
+
 See [Images](https://github.com/SeydX/homebridge-tado-platform/tree/master/images/) for more details.
 
 
@@ -63,7 +73,7 @@ See [Images](https://github.com/SeydX/homebridge-tado-platform/tree/master/image
 
 After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 
- ```sudo npm install -g homebridge-tado-platform```
+ ```sudo npm install -g homebridge-tado-platform@latest```
  
  
  ## Example config.json:
@@ -82,7 +92,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
   ]
 }
 ```
-See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/master/example-config.json) for more details.
+See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/beta/example-config.json) for more details.
 
 
 ## In App settings
@@ -118,3 +128,11 @@ You can contribute to this homebridge plugin in following ways:
 - Contribute changes to extend the capabilities
 
 Pull requests are accepted.
+
+
+
+## Troubleshooting
+
+If you have any issues with the plugin or TV services then you can run homebridge in debug mode, which will provide some additional information. This might be useful for debugging issues.
+
+***HomeBridge with debug mode:*** ```DEBUG=TadoPlatform,TadoPlatformApi``` and ```homebridge -D ```
