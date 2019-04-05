@@ -8,66 +8,6 @@ module.exports = {
     //const Service = hap.Service;
 
     /// /////////////////////////////////////////////////////////////////////////
-    // AirPressure Characteristic
-    /// ///////////////////////////////////////////////////////////////////////// 
-    Characteristic.AirPressure = function() {
-      Characteristic.call(this, 'Air Pressure', 'E863F10F-079E-48FF-8F27-9C2605A29F52');
-      this.setProps({
-        format: Characteristic.Formats.UINT16,
-        unit: 'hPa',
-        maxValue: 1100,
-        minValue: 700,
-        minStep: 1,
-        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-      });
-      this.value = this.getDefaultValue();
-    };
-    inherits(Characteristic.AirPressure, Characteristic);
-    Characteristic.AirPressure.UUID = 'E863F10F-079E-48FF-8F27-9C2605A29F52';
-
-    /// /////////////////////////////////////////////////////////////////////////
-    // WeatherState Characteristic
-    /// /////////////////////////////////////////////////////////////////////////
-    Characteristic.WeatherState = function() {
-      Characteristic.call(this, 'Weather', '896f41ad-ef68-4d74-ae34-bd2c6266129f');
-      this.setProps({
-        format: Characteristic.Formats.STRING,
-        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-      });
-      this.value = this.getDefaultValue();
-    };
-    inherits(Characteristic.WeatherState, Characteristic);
-    Characteristic.WeatherState.UUID = '896f41ad-ef68-4d74-ae34-bd2c6266129f';
-
-    /// /////////////////////////////////////////////////////////////////////////
-    // Sunrise Characteristic
-    /// /////////////////////////////////////////////////////////////////////////
-    Characteristic.Sunrise = function() {
-      Characteristic.call(this, 'Sunrise', '2a3f45d4-8191-4fc7-a102-359237c8a834');
-      this.setProps({
-        format: Characteristic.Formats.STRING,
-        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-      });
-      this.value = this.getDefaultValue();
-    };
-    inherits(Characteristic.Sunrise, Characteristic);
-    Characteristic.Sunrise.UUID = '2a3f45d4-8191-4fc7-a102-359237c8a834';
-
-    /// /////////////////////////////////////////////////////////////////////////
-    // Sunset Characteristic
-    /// /////////////////////////////////////////////////////////////////////////
-    Characteristic.Sunset = function() {
-      Characteristic.call(this, 'Sunset', 'f1dfeacb-2519-47d5-8608-cf453c2d7a74');
-      this.setProps({
-        format: Characteristic.Formats.STRING,
-        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-      });
-      this.value = this.getDefaultValue();
-    };
-    inherits(Characteristic.Sunset, Characteristic);
-    Characteristic.Sunset.UUID = 'f1dfeacb-2519-47d5-8608-cf453c2d7a74';
-
-    /// /////////////////////////////////////////////////////////////////////////
     // AutoThermostats Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.AutoThermostats = function() {
@@ -117,35 +57,6 @@ module.exports = {
     };
     inherits(Characteristic.OfflineThermostats, Characteristic);
     Characteristic.OfflineThermostats.UUID = '93131984-615c-401b-84ac-54e22db492c6';
-    
-    /// /////////////////////////////////////////////////////////////////////////
-    // DummSwitch Characteristic
-    /// /////////////////////////////////////////////////////////////////////////
-    Characteristic.DummySwitch = function() {
-      Characteristic.call(this, 'Window Switch', 'a33a7443-ec88-4760-a48e-cff68f78e6d3');
-      this.setProps({
-        format: Characteristic.Formats.BOOL,
-        perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
-      });
-      this.value = this.getDefaultValue();
-    };
-    inherits(Characteristic.DummySwitch, Characteristic);
-    Characteristic.DummySwitch.UUID = 'a33a7443-ec88-4760-a48e-cff68f78e6d3';
-    
-    /// /////////////////////////////////////////////////////////////////////////
-    // EveMotionLastActivation Characteristic
-    /// /////////////////////////////////////////////////////////////////////////
-    Characteristic.EveMotionLastActivation = function() {
-      Characteristic.call(this, 'Last Activation', 'E863F11A-079E-48FF-8F27-9C2605A29F52');
-      this.setProps({
-        format: Characteristic.Formats.UINT32,
-        unit: Characteristic.Units.SECONDS,
-        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-      });
-      this.value = this.getDefaultValue();
-    };
-    inherits(Characteristic.EveMotionLastActivation, Characteristic);
-    Characteristic.EveMotionLastActivation.UUID = 'E863F11A-079E-48FF-8F27-9C2605A29F52';
     
     /// /////////////////////////////////////////////////////////////////////////
     // DelayTimer Characteristic
@@ -214,6 +125,39 @@ module.exports = {
     };
     inherits(Characteristic.CoolValue, Characteristic);
     Characteristic.CoolValue.UUID = 'b61ddf1e-64ae-49d4-ad36-8d89a976f1d9';
+    
+    /// /////////////////////////////////////////////////////////////////////////
+    // HeatingPower Characteristic
+    /// /////////////////////////////////////////////////////////////////////////
+    Characteristic.HeatingPower = function () {
+      Characteristic.call(this, 'Heating Power', 'd453df0b-8510-4665-90d4-09357c4b74b9');
+      this.setProps({
+        format: Characteristic.Formats.FLOAT,
+        unit: Characteristic.Units.PERCENTAGE,
+        maxValue: 100,
+        minValue: 0,
+        minStep: 0.01,
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+      });
+      this.value = this.getDefaultValue();
+    };
+    inherits(Characteristic.HeatingPower, Characteristic);
+    Characteristic.HeatingPower.UUID = 'd453df0b-8510-4665-90d4-09357c4b74b9';
+    
+    /// /////////////////////////////////////////////////////////////////////////
+    // DummSwitch Characteristic
+    /// /////////////////////////////////////////////////////////////////////////
+    Characteristic.DummySwitch = function() {
+      Characteristic.call(this, 'Window Switch', 'a33a7443-ec88-4760-a48e-cff68f78e6d3');
+      this.setProps({
+        format: Characteristic.Formats.BOOL,
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+      });
+      this.value = this.getDefaultValue();
+    };
+    inherits(Characteristic.DummySwitch, Characteristic);
+    Characteristic.DummySwitch.UUID = 'a33a7443-ec88-4760-a48e-cff68f78e6d3';
+    
     
   }
 };
