@@ -53,8 +53,25 @@ class thermostat_Accessory {
     
     let service = accessory.getService(Service.Thermostat);
     let battery = accessory.getService(Service.BatteryService);
+    
+    service.getCharacteristic(Characteristic.CurrentHeatingCoolingState)
+      .setProps({
+        format: Characteristic.Formats.UINT8,
+        maxValue: 2,
+        minValue: 0,
+        validValues: [0,1,2],
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+      })
+      .on('set', self.setState.bind(this, accessory, service));
 
     service.getCharacteristic(Characteristic.TargetHeatingCoolingState)
+      .setProps({
+        format: Characteristic.Formats.UINT8,
+        maxValue: 3,
+        minValue: 0,
+        validValues: [0,1,2,3],
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.WRITE, Characteristic.Perms.NOTIFY]
+      })
       .on('set', self.setState.bind(this, accessory, service));
         
     service.getCharacteristic(Characteristic.CurrentTemperature)
