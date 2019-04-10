@@ -16,8 +16,7 @@
 [Click here](https://github.com/SeydX) to review more of my plugins.
 
 
-**<u>NOTE:</u>** Updating from **v4.x** to **v5.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/example-config.json) !
-
+**<u>NOTE:</u>** Updating from **v4.x** to **v5.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/example-config.json) or [extended-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/extended-config.json)
 
 ### Dynamic:
 
@@ -102,8 +101,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
   ]
 }
 ```
-See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/beta/example-config.json) for more details.
-
+See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/beta/example-config.json) for more details or [extended-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/extended-config.json)
 
 ## In App settings
 
