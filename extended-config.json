@@ -1,0 +1,54 @@
+{
+  "bridge": {
+    ...
+  },
+  "accessories": [],
+  "platforms": [
+    {
+      "platform": "TadoPlatform",
+      "username": "USERNAME",
+      "password": "PASSWORD",
+      "homeID": 123456,
+      "unit": "celsius",
+      "polling": 10,
+      "exclude": [],
+      "occupancy": false,
+      "anyone": false,
+      "weather": true,
+      "openWindow": true,
+      "solarIntensity": true,
+      "centralSwitch": true,
+      "externalSensor": false,
+      "deviceOptions": {
+        "VA1986856960": {
+          "active": true,
+          "heatValue": 5,
+          "coolValue": 5,
+          "roomName": "Schlafzimmer",
+          "maxDelay": 10
+        },
+        "VA1919748096": {
+          "active": true,
+          "heatValue": 5,
+          "coolValue": 5,
+          "roomName": "Wohnzimmer",
+          "maxDelay": 10
+        },
+        "VA1200621824": {
+          "active": true,
+          "heatValue": 5,
+          "coolValue": 5,
+          "roomName": "Arbeitszimmer",
+          "maxDelay": 10
+        },
+        "VA1988823040": {
+          "active": true,
+          "heatValue": 5,
+          "coolValue": 5,
+          "roomName": "Badezimmer",
+          "maxDelay": 10
+        }
+      }
+    }
+  ]
+}
