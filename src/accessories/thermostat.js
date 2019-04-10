@@ -61,8 +61,7 @@ class thermostat_Accessory {
         minValue: 0,
         validValues: [0,1,2],
         perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
-      })
-      .on('set', self.setState.bind(this, accessory, service));
+      });
 
     service.getCharacteristic(Characteristic.TargetHeatingCoolingState)
       .setProps({
