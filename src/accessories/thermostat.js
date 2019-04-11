@@ -32,6 +32,9 @@ class thermostat_Accessory {
     this.tadoHandler = platform.tadoHandler;
     this._refreshConfig = platform._refreshConfig;
     
+    this.settedState = 0;
+    this.ruleSetState = 0;
+    
     this.getService(accessory);
 
   }
@@ -197,14 +200,39 @@ class thermostat_Accessory {
   
   }
   
+  async getSetStatus(){
+  
+    if(this.settedState){
+    
+      this.oldState = this.settedState; 
+    
+      await timeout(5000);
+    
+      if(this.settedState === this.oldState){
+    
+        this.settedState = 0;
+        return true;
+    
+      } else {
+    
+        return false;
+    
+      }
+    
+    } else {
+    
+      return true;
+    
+    }
+  
+  }
+  
   async getState (accessory, service, battery){
   
+  
     try {
-        
-      if(this.settedState){
-        await timeout(5000);
-        this.settedState = false;
-      }
+    
+      let getSet = await this.getSetStatus();
     
       let zone = await this.tadoHandler.getZone(accessory.context.zoneID);
       
@@ -307,7 +335,9 @@ class thermostat_Accessory {
       statusLowBattery = device.batteryState === 'NORMAL' ? 0 : 1;
       
       service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(currentState);
-      service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(targetState);
+      
+      if(getSet)
+        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(targetState);
       
       service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.currentTemp);
       service.getCharacteristic(Characteristic.TargetTemperature).updateValue(targetTemp);
@@ -336,24 +366,56 @@ class thermostat_Accessory {
   async setState(accessory,service,state,callback,context){
   
     const self = this;
+    
+    this.ruleSetState++;
   
     try {
     
-      this.settedState = true;
+      this.settedState++;
     
       // from setTemp
       
-      if(context && !isNaN(parseInt(context.newState))){
+      if((context && !isNaN(parseInt(context.newState))) || this.settedTemp){
+      
+        if(this.settedTemp){
+          callback();
+          return;
+        }
+        
+        let mode, state, temp;
+        
+        if(context.newState === 1){
+          mode = 'Heat Mode *';
+          state = 1;
+          temp = context.temp;
+        } else if(context.newState === 2){
+          mode = 'Cool Mode *';
+          state = 2;
+          temp = context.temp;
+        } else if(context.newState === 3) {
+          mode = 'Auto Mode *';
+          state = 0;
+          temp = accessory.context.autoTempValue;
+        } else {
+          mode = 'Off Mode *';
+          state = 0;
+          temp = accessory.context.currentTemp;
+        }
     
-        this.logger.info(accessory.displayName + ': ' + (context.newState === 1 ? 'Heat Mode' : 'Cool Mode'));
-    
-        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue((context.newState === 3 ? 0 : context.newState));   
+        this.logger.info(accessory.displayName + ': ' + mode);
+        
+        setTimeout(function(){
+          service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(state);
+          service.getCharacteristic(Characteristic.TargetTemperature).updateValue(temp);   
+        }, 100);
       
         this.settedTemp = true;
       
-        setTimeout(function(){self.settedTemp = false;},1000);
+        setTimeout(function(){self.settedTemp = false;},500);
+        
+        callback();
       
-        state = context.newState;
+        return;
       
       } else {
     
@@ -390,8 +452,8 @@ class thermostat_Accessory {
                 temp = (temp > 25) ? 25 : temp;            
               }            
             }
-          
-            service.getCharacteristic(Characteristic.TargetTemperature).setValue(temp,undefined,{newState:1});    
+            
+            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',temp,'manual',accessory.context.zoneType);
         
             break;
           
@@ -414,8 +476,8 @@ class thermostat_Accessory {
                 temp = (temp < 5) ? 5 : temp;            
               }            
             }
-          
-            service.getCharacteristic(Characteristic.TargetTemperature).setValue(temp,undefined,{newState:2});
+            
+            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',temp,'manual',accessory.context.zoneType);
         
             break;
           
@@ -430,12 +492,13 @@ class thermostat_Accessory {
             break;
       
         }
-  
+        
         setTimeout(function(){
           service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue((state === 3 ? 0 : state));
-          service.getCharacteristic(Characteristic.TargetHeatingCoolingState).updateValue(state);
           service.getCharacteristic(Characteristic.TargetTemperature).updateValue(temp);
-        }, 500);
+        }, 100);
+
+        callback();
         
       }
     
@@ -443,11 +506,9 @@ class thermostat_Accessory {
     
       this.logger.error(accessory.displayName + ': An error occured while setting new state!'); 
       this.debug(err);
+      
+      callback();
     
-    } finally {
-      
-      callback(null, state);
-      
     }
     
     
@@ -455,40 +516,56 @@ class thermostat_Accessory {
   }
   
   async setTemp(accessory,service,value,callback,context){
+
+    await timeout(500);
+    let targetService = service.getCharacteristic(Characteristic.TargetHeatingCoolingState).value;
+
+    if(!this.ruleSetState){
   
-    try {
+      try {
 
-      let currState, tarState;
+        let tarState;
 
-      this.logger.info(accessory.displayName + ': Setting new temperature: ' + value);
+        this.logger.info(accessory.displayName + ': Setting new temperature: ' + value);
 
-      await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',value,'manual',accessory.context.zoneType);
+        await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',value,'manual',accessory.context.zoneType);
   
-      if(value < service.getCharacteristic(Characteristic.CurrentTemperature).value){
-        currState = 2;
-        tarState = 2;
-      } else {
-        currState = 1;
-        tarState = 1;
-      }
+        if(value < service.getCharacteristic(Characteristic.CurrentTemperature).value){
+          tarState = 2;
+        } else {
+          tarState = 1;
+        }
       
-      setTimeout(function(){
-        service.getCharacteristic(Characteristic.CurrentHeatingCoolingState).updateValue(currState);
-        service.getCharacteristic(Characteristic.TargetTemperature).updateValue(value);  
-      },500);
-      
-      if(context && !context.newState)
-        service.getCharacteristic(Characteristic.TargetHeatingCoolingState).setValue(tarState, undefined, {newState:tarState});
+        if(context !== 'rule')  
+          service.getCharacteristic(Characteristic.TargetHeatingCoolingState).setValue(tarState, undefined, {newState:tarState, temp: value});
 
-    } catch (err){
+      } catch (err){
 
-      this.logger.error(accessory.displayName + ': An error occured while setting new temp!'); 
-      this.debug(err);
+        this.logger.error(accessory.displayName + ': An error occured while setting new temp!'); 
+        this.debug(err);
 
-    } finally {
+      } finally {
     
-      callback(null, value);
+        callback(null, value);
       
+      }
+    
+    } else {
+    
+      this.ruleSetState = false; 
+    
+      if(targetService === 1 || targetService === 2){
+  
+        service.getCharacteristic(Characteristic.TargetTemperature).setValue(value, undefined, 'rule'); 
+  
+      } else {
+  
+        this.logger.warn(accessory.displayName + ': Ignoring temperature adjustment due to rule or scene!'); 
+  
+      }
+    
+      callback();
+    
     }
     
   }
