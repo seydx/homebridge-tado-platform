@@ -94,6 +94,7 @@ TadoPlatform.prototype = {
     try {
 
       this.config.polling = this.config.polling||10;
+      this.config.overrideMode = this.config.overrideMode||'manual';
       this.config.exclude = [];
       
       this.config.deviceOptions = this.config.deviceOptions||{};
@@ -168,6 +169,7 @@ TadoPlatform.prototype = {
               this.config.deviceOptions[dev.serial].heatValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].heatValue)) ? this.config.deviceOptions[dev.serial].heatValue : 5;              
               this.config.deviceOptions[dev.serial].coolValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].coolValue)) ? this.config.deviceOptions[dev.serial].coolValue : 5;       
               this.config.deviceOptions[dev.serial].maxDelay = !isNaN(parseInt(this.config.deviceOptions[dev.serial].maxDelay)) ? this.config.deviceOptions[dev.serial].maxDelay : 10;
+              this.config.deviceOptions[dev.serial].overrideMode = ( this.config.deviceOptions[dev.serial].overrideMode === undefined ) ? 'manual' : this.config.deviceOptions[dev.serial].overrideMode;
               this.config.deviceOptions[dev.serial].roomName = dev.zoneName;
                 
               if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) this.config.exclude.push(dev.serial);
@@ -181,6 +183,7 @@ TadoPlatform.prototype = {
             this.config.deviceOptions[dev.serial].heatValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].heatValue)) ? this.config.deviceOptions[dev.serial].heatValue : 5;
             this.config.deviceOptions[dev.serial].coolValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].coolValue)) ? this.config.deviceOptions[dev.serial].coolValue : 5;
             this.config.deviceOptions[dev.serial].maxDelay = !isNaN(parseInt(this.config.deviceOptions[dev.serial].maxDelay)) ? this.config.deviceOptions[dev.serial].maxDelay : 10;
+            this.config.deviceOptions[dev.serial].overrideMode = ( this.config.deviceOptions[dev.serial].overrideMode === undefined ) ? 'manual' : this.config.deviceOptions[dev.serial].overrideMode;
             this.config.deviceOptions[dev.serial].roomName = dev.zoneName;
 
             if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) this.config.exclude.push(dev.serial);
@@ -291,7 +294,7 @@ TadoPlatform.prototype = {
               
               self.debug(name + ': Config.json refreshed!');
               
-              resolve(self.config);
+              resolve(obj.platforms[0]);
             });
         
           } else {
@@ -398,6 +401,7 @@ TadoPlatform.prototype = {
         accessory.context.heatValue = this.config.deviceOptions[i].heatValue;
         accessory.context.coolValue = this.config.deviceOptions[i].coolValue;
         accessory.context.maxDelay = this.config.deviceOptions[i].maxDelay * 60 * 1000;
+        accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
       }
     }
 
