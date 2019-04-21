@@ -284,10 +284,6 @@ class thermostat_Accessory {
       } else { //accessory.context.zoneType === 'HOT_WATER'
     
         // Current Temperature = Target Temperature , no temperature measurement
-        
-        console.log('###################### DEBUG ZONE START ######################');
-        console.log(zone);
-        console.log('###################### DEBUG ZONE END ######################');
      
         accessory.context.currentTemp = accessory.context.currentTemp ? accessory.context.currentTemp : 0;
         accessory.context.tarTemp = accessory.context.tarTemp ? accessory.context.tarTemp : 0;
@@ -334,10 +330,6 @@ class thermostat_Accessory {
         
         targetTemp = accessory.context.tarTemp;
         
-        console.log('###################### DEBUG ACCESSORY START ######################');
-        console.log(accessory.context);
-        console.log('###################### DEBUG ACCESSORY END ######################');
-        
       }
       
       device = await this.tadoHandler.getDevice(accessory.context.serial);
@@ -361,11 +353,21 @@ class thermostat_Accessory {
       battery.getCharacteristic(Characteristic.BatteryLevel).updateValue(batteryLevel);
       battery.getCharacteristic(Characteristic.StatusLowBattery).updateValue(statusLowBattery);
       
-      if(accessory.context.zoneType === 'HOT_WATER') {
+      if(accessory.displayName.includes('Hot Water') || accessory.displayName.includes('BU')){
+      
+        console.log('###################### DEBUG ZONE START ######################');
+        console.log(zone);
+        console.log('###################### DEBUG ZONE END ######################');
+      
+        console.log('###################### DEBUG ACCESSORY START ######################');
+        console.log(accessory.context);
+        console.log('###################### DEBUG ACCESSORY END ######################');
+      
         console.log('###################### DEBUG SERVICE/BATTERY START ######################');
         console.log(service);
         console.log(battery);
         console.log('###################### DEBUG SERVICE/BATTERY END ######################');
+        
       }
     
     } catch(err) {
