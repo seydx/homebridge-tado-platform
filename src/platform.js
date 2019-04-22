@@ -154,45 +154,28 @@ TadoPlatform.prototype = {
 
       }
       
-      let deviceArray = await this.tadoHandler.getData();
+      this.deviceArray = await this.tadoHandler.getData();
       
-      deviceArray.map( dev => {
+      for(const dev of this.deviceArray){
       
         if(dev.type === 'thermostat') {
-      
-          if(Object.keys(this.config.deviceOptions).length){
-    
-            for(const i in this.config.deviceOptions){
   
-              this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{};              
-              this.config.deviceOptions[dev.serial].active = ( this.config.deviceOptions[dev.serial].active === undefined ) ? true : this.config.deviceOptions[dev.serial].active;
-              this.config.deviceOptions[dev.serial].heatValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].heatValue)) ? this.config.deviceOptions[dev.serial].heatValue : 5;              
-              this.config.deviceOptions[dev.serial].coolValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].coolValue)) ? this.config.deviceOptions[dev.serial].coolValue : 5;       
-              this.config.deviceOptions[dev.serial].maxDelay = !isNaN(parseInt(this.config.deviceOptions[dev.serial].maxDelay)) ? this.config.deviceOptions[dev.serial].maxDelay : 10;
-              this.config.deviceOptions[dev.serial].overrideMode = ( this.config.deviceOptions[dev.serial].overrideMode === undefined ) ? 'manual' : this.config.deviceOptions[dev.serial].overrideMode;
-              this.config.deviceOptions[dev.serial].roomName = dev.zoneName;
+          this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{};              
+          this.config.deviceOptions[dev.serial].active = ( this.config.deviceOptions[dev.serial].active === undefined ) ? true : this.config.deviceOptions[dev.serial].active;
+          this.config.deviceOptions[dev.serial].heatValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].heatValue)) ? this.config.deviceOptions[dev.serial].heatValue : 5;              
+          this.config.deviceOptions[dev.serial].coolValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].coolValue)) ? this.config.deviceOptions[dev.serial].coolValue : 5;       
+          this.config.deviceOptions[dev.serial].maxDelay = !isNaN(parseInt(this.config.deviceOptions[dev.serial].maxDelay)) ? this.config.deviceOptions[dev.serial].maxDelay : 10;
+          this.config.deviceOptions[dev.serial].overrideMode = ( this.config.deviceOptions[dev.serial].overrideMode === undefined ) ? 'manual' : this.config.deviceOptions[dev.serial].overrideMode;
+          this.config.deviceOptions[dev.serial].zoneName = dev.zoneName;
+          this.config.deviceOptions[dev.serial].zoneType = dev.zoneType;
+          this.config.deviceOptions[dev.serial].ID = dev.zoneID;
+          this.config.deviceOptions[dev.serial].deviceType = dev.deviceType;
                 
-              if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) this.config.exclude.push(dev.serial);
-  
-            }
-    
-          } else {
- 
-            this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{};
-            this.config.deviceOptions[dev.serial].active = ( this.config.deviceOptions[dev.serial].active === undefined ) ? true : this.config.deviceOptions[dev.serial].active;
-            this.config.deviceOptions[dev.serial].heatValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].heatValue)) ? this.config.deviceOptions[dev.serial].heatValue : 5;
-            this.config.deviceOptions[dev.serial].coolValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].coolValue)) ? this.config.deviceOptions[dev.serial].coolValue : 5;
-            this.config.deviceOptions[dev.serial].maxDelay = !isNaN(parseInt(this.config.deviceOptions[dev.serial].maxDelay)) ? this.config.deviceOptions[dev.serial].maxDelay : 10;
-            this.config.deviceOptions[dev.serial].overrideMode = ( this.config.deviceOptions[dev.serial].overrideMode === undefined ) ? 'manual' : this.config.deviceOptions[dev.serial].overrideMode;
-            this.config.deviceOptions[dev.serial].roomName = dev.zoneName;
-
-            if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) this.config.exclude.push(dev.serial);
-    
-          }
-    
+          if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) this.config.exclude.push(dev.serial);
+              
         }
-  
-      });
+      
+      }
   
       let config = {
         homeID: this.config.homeID,
@@ -318,9 +301,9 @@ TadoPlatform.prototype = {
     
     try {
   
-      let deviceArray = await this.tadoHandler.getData();
-      deviceArray.map( dev => this._devices.set(dev.serial, dev));
-      deviceArray.map( dev => this._addOrRemoveDevice(dev, dev.serial, dev.type, (dev.type === 'occupancy' ? dev.gps : dev.enabled) ));
+      //let deviceArray = await this.tadoHandler.getData();
+      this.deviceArray.map( dev => this._devices.set(dev.serial, dev));
+      this.deviceArray.map( dev => this._addOrRemoveDevice(dev, dev.serial, dev.type, (dev.type === 'occupancy' ? dev.gps : dev.enabled) ));
     
     } catch(err) {
     
@@ -398,10 +381,14 @@ TadoPlatform.prototype = {
     
     for(const i in this.config.deviceOptions){
       if(i===accessory.context.serial){
+        accessory.context.active = this.config.deviceOptions[i].active;
         accessory.context.heatValue = this.config.deviceOptions[i].heatValue;
         accessory.context.coolValue = this.config.deviceOptions[i].coolValue;
         accessory.context.maxDelay = this.config.deviceOptions[i].maxDelay * 60 * 1000;
         accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
+        accessory.context.zoneType = this.config.deviceOptions[i].zoneType;
+        accessory.context.deviceType = this.config.deviceOptions[i].deviceType.replace(/[0-9]/g, '');
+        accessory.context.zoneName = this.config.deviceOptions[i].roomName;
       }
     }
 
