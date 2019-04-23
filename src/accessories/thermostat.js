@@ -125,7 +125,7 @@ class thermostat_Accessory {
       });
     
     if(accessory.context.zoneType === 'HEATING'){ 
-	     
+     
       if (!service.testCharacteristic(Characteristic.HeatingPower))
         service.addCharacteristic(Characteristic.HeatingPower);
       
