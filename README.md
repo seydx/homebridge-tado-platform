@@ -140,6 +140,14 @@ Pull requests are accepted.
 
 ## Troubleshooting
 
-If you have any issues with the plugin or TV services then you can run homebridge in debug mode, which will provide some additional information. This might be useful for debugging issues.
+If you have any issues with the plugin then you can run homebridge in debug mode, which will provide some additional information. This might be useful for debugging issues.
 
 ***HomeBridge with debug mode:*** ```DEBUG=TadoPlatform,TadoPlatformApi``` and ```homebridge -D ```
+
+You can also reset the devices
+
+- add **"reConfig":true** into config.json [(see example-config.json)](https://github.com/SeydX/homebridge-tado-platform/blob/c5f1d08525ec015fe0da376770683025281ab257/extended-config.json#L15)
+- Restart homebridge (these will remove your thermostats from HomeKit and rewrite your config.json)
+- After restart, open config.json and change **"reConfig":true** to **"reConfig":false**
+- Activate the thermostats you want in HomeKit in your config.json under **"deviceOptions"** [(see example-config.json)](https://github.com/SeydX/homebridge-tado-platform/blob/c5f1d08525ec015fe0da376770683025281ab257/extended-config.json#L25)
+- Restart Homebridge
