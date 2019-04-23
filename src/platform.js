@@ -94,11 +94,15 @@ TadoPlatform.prototype = {
     try {
 
       this.config.polling = this.config.polling||10;
-      this.config.overrideMode = this.config.overrideMode||'manual';
       this.config.exclude = [];
+      this.config.reConfig = this.config.reConfig || false;
       
-      this.config.deviceOptions = this.config.deviceOptions||{};
-
+      if(!this.config.reConfig){
+        this.config.deviceOptions = this.config.deviceOptions||{};
+      } else {
+        this.config.deviceOptions = {};
+      }
+      
       if(!this.config.unit) {
 
         let response = await this.tado.getMe();
@@ -159,9 +163,9 @@ TadoPlatform.prototype = {
       for(const dev of this.deviceArray){
       
         if(dev.type === 'thermostat') {
-        
-          this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{}
-  
+          
+          this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{};
+          
           this.config.deviceOptions[dev.serial] = {
             active: this.config.deviceOptions[dev.serial].active || false,
             heatValue: this.config.deviceOptions[dev.serial].heatValue || 5,
@@ -171,11 +175,21 @@ TadoPlatform.prototype = {
             ID: dev.zoneID,
             zoneName: dev.zoneName,
             zoneType: dev.zoneType,
-            deviceType: dev.deviceType
+            deviceType: dev.deviceType,
+            serial: dev.serial.split('-')[0]
           };
 
           if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) 
             this.config.exclude.push(dev.serial);
+            
+          if(this.config.deviceOptions[dev.serial].active && this.config.exclude.includes(dev.serial)){
+          
+            let index = this.config.exclude.indexOf(dev.serial);
+            if (index > -1) {
+              this.config.exclude.splice(index, 1);
+            }
+          
+          }
               
         }
       
@@ -186,6 +200,7 @@ TadoPlatform.prototype = {
         unit: this.config.unit,
         polling: this.config.polling,
         exclude: this.config.exclude,
+        reConfig: this.config.reConfig,
         occupancy: this.config.occupancy||false,
         anyone: this.config.anyone||false,
         weather: this.config.weather||false,
@@ -390,21 +405,23 @@ TadoPlatform.prototype = {
       if(object.zoneID) accessory.context.zoneID = object.zoneID;
       if(object.zoneName) accessory.context.zoneName = object.zoneName;
       if(object.zoneType) accessory.context.zoneType = object.zoneType;
-      if(object.deviceType) accessory.context.deviceType = object.deviceType.replace(/[0-9]/g, '');      
+      if(object.deviceType) accessory.context.deviceType = object.deviceType;      
     }
     
     for(const i in this.config.deviceOptions){
-      if(i===accessory.context.serial){
+
+      if(i === accessory.context.serial){
         accessory.context.active = this.config.deviceOptions[i].active;
         accessory.context.heatValue = this.config.deviceOptions[i].heatValue;
         accessory.context.coolValue = this.config.deviceOptions[i].coolValue;
         accessory.context.maxDelay = this.config.deviceOptions[i].maxDelay * 60 * 1000;
         accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
         accessory.context.zoneType = this.config.deviceOptions[i].zoneType;
-        accessory.context.deviceType = this.config.deviceOptions[i].deviceType.replace(/[0-9]/g, '');
+        accessory.context.deviceType = this.config.deviceOptions[i].deviceType;
         accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
         accessory.context.zoneID = this.config.deviceOptions[i].ID;
       }
+    
     }
     
     if(accessory.context.unit === 1){
