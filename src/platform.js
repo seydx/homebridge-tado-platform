@@ -159,19 +159,23 @@ TadoPlatform.prototype = {
       for(const dev of this.deviceArray){
       
         if(dev.type === 'thermostat') {
+        
+          this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{}
   
-          this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{};              
-          this.config.deviceOptions[dev.serial].active = ( this.config.deviceOptions[dev.serial].active === undefined ) ? true : this.config.deviceOptions[dev.serial].active;
-          this.config.deviceOptions[dev.serial].heatValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].heatValue)) ? this.config.deviceOptions[dev.serial].heatValue : 5;              
-          this.config.deviceOptions[dev.serial].coolValue = !isNaN(parseInt(this.config.deviceOptions[dev.serial].coolValue)) ? this.config.deviceOptions[dev.serial].coolValue : 5;       
-          this.config.deviceOptions[dev.serial].maxDelay = !isNaN(parseInt(this.config.deviceOptions[dev.serial].maxDelay)) ? this.config.deviceOptions[dev.serial].maxDelay : 10;
-          this.config.deviceOptions[dev.serial].overrideMode = ( this.config.deviceOptions[dev.serial].overrideMode === undefined ) ? 'manual' : this.config.deviceOptions[dev.serial].overrideMode;
-          this.config.deviceOptions[dev.serial].zoneName = dev.zoneName;
-          this.config.deviceOptions[dev.serial].zoneType = dev.zoneType;
-          this.config.deviceOptions[dev.serial].ID = dev.zoneID;
-          this.config.deviceOptions[dev.serial].deviceType = dev.deviceType;
-                
-          if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) this.config.exclude.push(dev.serial);
+          this.config.deviceOptions[dev.serial] = {
+            active: this.config.deviceOptions[dev.serial].active || false,
+            heatValue: this.config.deviceOptions[dev.serial].heatValue || 5,
+            coolValue: this.config.deviceOptions[dev.serial].coolValue || 5,
+            maxDelay: this.config.deviceOptions[dev.serial].maxDelay || 10,
+            overrideMode: this.config.deviceOptions[dev.serial].overrideMode || 'manual',
+            ID: dev.zoneID,
+            zoneName: dev.zoneName,
+            zoneType: dev.zoneType,
+            deviceType: dev.deviceType
+          };
+
+          if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) 
+            this.config.exclude.push(dev.serial);
               
         }
       
