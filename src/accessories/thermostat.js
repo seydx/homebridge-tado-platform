@@ -360,23 +360,6 @@ class thermostat_Accessory {
       
       battery.getCharacteristic(Characteristic.BatteryLevel).updateValue(batteryLevel);
       battery.getCharacteristic(Characteristic.StatusLowBattery).updateValue(statusLowBattery);
-      
-      if(accessory.displayName.includes('Hot Water') || accessory.displayName.includes('BU')){
-      
-        console.log('###################### DEBUG ZONE START ######################');
-        console.log(zone);
-        console.log('###################### DEBUG ZONE END ######################');
-      
-        console.log('###################### DEBUG ACCESSORY START ######################');
-        console.log(accessory.context);
-        console.log('###################### DEBUG ACCESSORY END ######################');
-      
-        console.log('###################### DEBUG SERVICE/BATTERY START ######################');
-        console.log(service);
-        console.log(battery);
-        console.log('###################### DEBUG SERVICE/BATTERY END ######################');
-        
-      }
     
     } catch(err) {
     
@@ -457,7 +440,7 @@ class thermostat_Accessory {
             
             temp = accessory.context.currentTemp;
         
-            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'off',null,'manual',accessory.context.zoneType);
+            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'off',null,'manual',accessory.context.zoneType,accessory.context.unit);
         
             break;
           
@@ -481,7 +464,7 @@ class thermostat_Accessory {
               }            
             }
             
-            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',temp,accessory.context.overrideMode,accessory.context.zoneType);
+            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',temp,accessory.context.overrideMode,accessory.context.zoneType,accessory.context.unit);
         
             break;
           
@@ -505,7 +488,7 @@ class thermostat_Accessory {
               }            
             }
             
-            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',temp,accessory.context.overrideMode,accessory.context.zoneType);
+            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',temp,accessory.context.overrideMode,accessory.context.zoneType,accessory.context.unit);
         
             break;
           
@@ -515,7 +498,7 @@ class thermostat_Accessory {
             
             temp = accessory.context.autoTempValue;
         
-            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',null,'auto',accessory.context.zoneType,'delete');
+            await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',null,'auto',accessory.context.zoneType,accessory.context.unit,'delete');
         
             break;
       
@@ -556,7 +539,7 @@ class thermostat_Accessory {
 
         this.logger.info(accessory.displayName + ': Setting new temperature: ' + value);
 
-        await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',value,accessory.context.overrideMode,accessory.context.zoneType);
+        await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'on',value,accessory.context.overrideMode,accessory.context.zoneType,accessory.context.unit);
   
         if(value < service.getCharacteristic(Characteristic.CurrentTemperature).value){
           tarState = 2;
