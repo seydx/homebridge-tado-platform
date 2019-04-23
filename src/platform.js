@@ -378,6 +378,16 @@ TadoPlatform.prototype = {
     accessory.context.homeID = this.config.homeID;
     accessory.context.unit = this.config.unit === 'fahrenheit' ? 1 : 0;
     accessory.context.polling = this.config.polling * 1000;
+
+    if(add){
+      accessory.context.serial = object.serial;
+      accessory.context.type = object.type;
+      if(object.id) accessory.context.id = object.id;
+      if(object.zoneID) accessory.context.zoneID = object.zoneID;
+      if(object.zoneName) accessory.context.zoneName = object.zoneName;
+      if(object.zoneType) accessory.context.zoneType = object.zoneType;
+      if(object.deviceType) accessory.context.deviceType = object.deviceType.replace(/[0-9]/g, '');      
+    }
     
     for(const i in this.config.deviceOptions){
       if(i===accessory.context.serial){
@@ -388,18 +398,9 @@ TadoPlatform.prototype = {
         accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
         accessory.context.zoneType = this.config.deviceOptions[i].zoneType;
         accessory.context.deviceType = this.config.deviceOptions[i].deviceType.replace(/[0-9]/g, '');
-        accessory.context.zoneName = this.config.deviceOptions[i].roomName;
+        accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
+        accessory.context.zoneID = this.config.deviceOptions[i].ID;
       }
-    }
-
-    if(add){
-      accessory.context.serial = object.serial;
-      accessory.context.type = object.type;
-      if(object.id) accessory.context.id = object.id;
-      if(object.zoneID) accessory.context.zoneID = object.zoneID;
-      if(object.zoneName) accessory.context.zoneName = object.zoneName;
-      if(object.zoneType) accessory.context.zoneType = object.zoneType;
-      if(object.deviceType) accessory.context.deviceType = object.deviceType.replace(/[0-9]/g, '');      
     }
     
     if(accessory.context.unit === 1){

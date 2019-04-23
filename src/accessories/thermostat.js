@@ -124,8 +124,11 @@ class thermostat_Accessory {
         callback(null, accessory.context.coolValue);
       });
     
-    if(accessory.context.zoneType === 'HEATING'){  
-      if (!service.testCharacteristic(Characteristic.HeatingPower))service.addCharacteristic(Characteristic.HeatingPower);
+    if(accessory.context.zoneType === 'HEATING'){ 
+	     
+      if (!service.testCharacteristic(Characteristic.HeatingPower))
+        service.addCharacteristic(Characteristic.HeatingPower);
+      
       service.getCharacteristic(Characteristic.HeatingPower)
         .on('change', function(value){
           self.logger.info(accessory.displayName + ': Heating power changed to ' + value.newValue + '%');
@@ -137,7 +140,9 @@ class thermostat_Accessory {
           self.debug(accessory.displayName + ': New entry: ' + accessory.context.currentTemp + ' for temperature and ' + value.newValue + ' for humidity');
         });
 
-      if (!service.testCharacteristic(Characteristic.DelayTimer))service.addCharacteristic(Characteristic.DelayTimer);
+      if (!service.testCharacteristic(Characteristic.DelayTimer))
+        service.addCharacteristic(Characteristic.DelayTimer);
+      
       service.getCharacteristic(Characteristic.DelayTimer)
         .setProps({
           minValue: 0,
@@ -154,12 +159,15 @@ class thermostat_Accessory {
         });
         
         
-      if (!service.testCharacteristic(Characteristic.DelaySwitch))service.addCharacteristic(Characteristic.DelaySwitch);
+      if (!service.testCharacteristic(Characteristic.DelaySwitch))
+        service.addCharacteristic(Characteristic.DelaySwitch);
+      
       service.getCharacteristic(Characteristic.DelaySwitch)
         .on('set', self.setDelay.bind(this, accessory, service))
         .on('get', function(callback){
           callback(null, accessory.context.delayState);
         });
+        
     }
         
     battery.getCharacteristic(Characteristic.ChargingState)
