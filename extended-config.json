@@ -6,12 +6,13 @@
   "platforms": [
     {
       "platform": "TadoPlatform",
-      "username": "USERNAME",
-      "password": "PASSWORD",
+      "username": "test@user.com",
+      "password": "mysecretpw123",
       "homeID": 123456,
       "unit": "celsius",
       "polling": 10,
       "exclude": [],
+      "reConfig": false,
       "occupancy": false,
       "anyone": false,
       "weather": true,
@@ -20,33 +21,53 @@
       "centralSwitch": true,
       "externalSensor": false,
       "deviceOptions": {
-        "VA1986856960": {
+        "VA1986856960-26": {
           "active": true,
           "heatValue": 5,
           "coolValue": 5,
-          "roomName": "Schlafzimmer",
-          "maxDelay": 10
+          "maxDelay": 10,
+          "overrideMode": "manual",
+          "ID": 26,
+          "zoneName": "Schlafzimmer",
+          "zoneType": "HEATING",
+          "deviceType": "VA",
+          "serial": "VA1986856960"
         },
-        "VA1919748096": {
+        "VA1919748096-31": {
           "active": true,
           "heatValue": 5,
           "coolValue": 5,
-          "roomName": "Wohnzimmer",
-          "maxDelay": 10
+          "maxDelay": 10,
+          "overrideMode": "manual",
+          "ID": 31,
+          "zoneName": "Wohnzimmer",
+          "zoneType": "HEATING",
+          "deviceType": "VA",
+          "serial": "VA1919748096"
         },
-        "VA1200621824": {
+        "VA1200621824-32": {
           "active": true,
           "heatValue": 5,
           "coolValue": 5,
-          "roomName": "Arbeitszimmer",
-          "maxDelay": 10
+          "maxDelay": 10,
+          "overrideMode": "manual",
+          "ID": 32,
+          "zoneName": "Arbeitszimmer",
+          "zoneType": "HEATING",
+          "deviceType": "VA",
+          "serial": "VA1200621824"
         },
-        "VA1988823040": {
+        "VA1988823040-48": {
           "active": true,
           "heatValue": 5,
           "coolValue": 5,
-          "roomName": "Badezimmer",
-          "maxDelay": 10
+          "maxDelay": 10,
+          "overrideMode": "manual",
+          "ID": 48,
+          "zoneName": "Badezimmer",
+          "zoneType": "HEATING",
+          "deviceType": "VA",
+          "serial": "VA1988823040"
         }
       }
     }
