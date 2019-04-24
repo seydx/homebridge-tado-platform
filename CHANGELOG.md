@@ -1,6 +1,12 @@
 # Changelog
 
 
+## 5.1.2 -2019-04-22
+- [NEW] Added Valve (Faucet Type) for Hotwater without temp adjustment possibility
+- Bugfixes
+- Code Cleanup
+
+
 ## 5.0.5 - 2019-04-22
 - Code cleanup
 - Bugfixes
