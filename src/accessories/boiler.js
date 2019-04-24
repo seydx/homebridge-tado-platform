@@ -1,5 +1,7 @@
 'use strict';
 
+const timeout = ms => new Promise(res => setTimeout(res, ms));
+
 var Service, Characteristic;
 
 class thermostat_Accessory {
@@ -20,6 +22,8 @@ class thermostat_Accessory {
     
     this.tado = platform.tado;
     this.tadoHandler = platform.tadoHandler;
+    
+    this.settedState = 0;
     
     this.getService(accessory);
   
@@ -53,18 +57,24 @@ class thermostat_Accessory {
   
     try {
     
+      let getSet = await this.getSetStatus();
+    
       let zone = await this.tadoHandler.getZone(accessory.context.zoneID);
       
       if(zone.setting.power === 'OFF') {
-       
-        service.getCharacteristic(Characteristic.InUse).updateValue(0);
-        service.getCharacteristic(Characteristic.Active).updateValue(0);  
-       
+        
+        if(getSet){
+          service.getCharacteristic(Characteristic.InUse).updateValue(0);
+          service.getCharacteristic(Characteristic.Active).updateValue(0);  
+        }
+     
       } else {
        
-        service.getCharacteristic(Characteristic.Active).updateValue(1);
-        service.getCharacteristic(Characteristic.InUse).updateValue(1);  
-       
+        if(getSet){
+          service.getCharacteristic(Characteristic.Active).updateValue(1);
+          service.getCharacteristic(Characteristic.InUse).updateValue(1);  
+        }
+        
       }
     
     } catch(err) {
@@ -82,49 +92,73 @@ class thermostat_Accessory {
   
   async setState(accessory,service,state,callback){
   
+    let failed;
+  
     try {
+    
+      this.settedState++;
     
       this.logger.info(accessory.displayName + ': ' + (state ? 'On' : 'Off'));
       
       let termination = state ? accessory.context.overrideMode : 'manual';
         
       await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'off',null,termination,accessory.context.zoneType);
-      
-      if(state){
-      
-        service.getCharacteristic(Characteristic.Active).updateValue(1);
-        service.getCharacteristic(Characteristic.InUse).updateValue(1);  
-      
-      } else {
-      
-        service.getCharacteristic(Characteristic.InUse).updateValue(0);
-        service.getCharacteristic(Characteristic.Active).updateValue(0);  
-      
-      }
-    
+
     } catch(err) {
     
       this.logger.error(accessory.displayName + ': An error occured while setting new state!'); 
       this.debug(err);
       
+      failed = err;
+    
+    } finally {
+    
+      if(failed)
+        state = state ? false : true;
+      
       if(state){
-      
-        service.getCharacteristic(Characteristic.InUse).updateValue(0);
-        service.getCharacteristic(Characteristic.Active).updateValue(0);  
-      
-      } else {
       
         service.getCharacteristic(Characteristic.Active).updateValue(1);
         service.getCharacteristic(Characteristic.InUse).updateValue(1);  
       
+      } else {
+      
+        service.getCharacteristic(Characteristic.InUse).updateValue(0);
+        service.getCharacteristic(Characteristic.Active).updateValue(0);  
+      
       }
-    
-    } finally {
-    
+      
       callback();
     
     }
     
+  }
+  
+  async getSetStatus(){
+  
+    if(this.settedState){
+    
+      this.oldState = this.settedState; 
+    
+      await timeout(5000);
+    
+      if(this.settedState === this.oldState){
+    
+        this.settedState = 0;
+        return true;
+    
+      } else {
+    
+        return false;
+    
+      }
+    
+    } else {
+    
+      return true;
+    
+    }
+  
   }
 
 }
