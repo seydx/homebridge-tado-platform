@@ -14,6 +14,7 @@ const sensor_Accessory = require('./accessories/sensor.js');
 const window_Accessory = require('./accessories/window.js');
 const occupancy_Accessory = require('./accessories/occupancy.js');
 const thermostat_Accessory = require('./accessories/thermostat.js');
+const boiler_Accessory = require('./accessories/boiler.js');
 const switch_Accessory = require('./accessories/switch.js');
 
 const pluginName = 'homebridge-tado-platform';
@@ -176,7 +177,8 @@ TadoPlatform.prototype = {
             zoneName: dev.zoneName,
             zoneType: dev.zoneType,
             deviceType: dev.deviceType,
-            serial: dev.serial.split('-')[0]
+            serial: dev.serial.split('-')[0],
+            type: dev.type
           };
 
           if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) 
@@ -191,6 +193,33 @@ TadoPlatform.prototype = {
           
           }
               
+        } else if(dev.type === 'boiler'){
+        
+          this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{};
+          
+          this.config.deviceOptions[dev.serial] = {
+            active: this.config.deviceOptions[dev.serial].active || false,
+            overrideMode: this.config.deviceOptions[dev.serial].overrideMode || 'manual',
+            ID: dev.zoneID,
+            zoneName: dev.zoneName,
+            zoneType: dev.zoneType,
+            deviceType: dev.deviceType,
+            serial: dev.serial.split('-')[0],
+            type: dev.type
+          };
+
+          if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) 
+            this.config.exclude.push(dev.serial);
+            
+          if(this.config.deviceOptions[dev.serial].active && this.config.exclude.includes(dev.serial)){
+          
+            let index = this.config.exclude.indexOf(dev.serial);
+            if (index > -1) {
+              this.config.exclude.splice(index, 1);
+            }
+          
+          }
+        
         }
       
       }
@@ -411,15 +440,30 @@ TadoPlatform.prototype = {
     for(const i in this.config.deviceOptions){
 
       if(i === accessory.context.serial){
-        accessory.context.active = this.config.deviceOptions[i].active;
-        accessory.context.heatValue = this.config.deviceOptions[i].heatValue;
-        accessory.context.coolValue = this.config.deviceOptions[i].coolValue;
-        accessory.context.maxDelay = this.config.deviceOptions[i].maxDelay * 60 * 1000;
-        accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
-        accessory.context.zoneType = this.config.deviceOptions[i].zoneType;
-        accessory.context.deviceType = this.config.deviceOptions[i].deviceType;
-        accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
-        accessory.context.zoneID = this.config.deviceOptions[i].ID;
+      
+        if(this.config.deviceOptions[i].type === 'thermostat'){
+      
+          accessory.context.active = this.config.deviceOptions[i].active;
+          accessory.context.heatValue = this.config.deviceOptions[i].heatValue;
+          accessory.context.coolValue = this.config.deviceOptions[i].coolValue;
+          accessory.context.maxDelay = this.config.deviceOptions[i].maxDelay * 60 * 1000;
+          accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
+          accessory.context.zoneType = this.config.deviceOptions[i].zoneType;
+          accessory.context.deviceType = this.config.deviceOptions[i].deviceType;
+          accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
+          accessory.context.zoneID = this.config.deviceOptions[i].ID;
+      
+        } else {
+      
+          accessory.context.active = this.config.deviceOptions[i].active;
+          accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
+          accessory.context.zoneType = this.config.deviceOptions[i].zoneType;
+          accessory.context.deviceType = this.config.deviceOptions[i].deviceType;
+          accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
+          accessory.context.zoneID = this.config.deviceOptions[i].ID;
+       
+        }
+      
       }
     
     }
@@ -451,6 +495,18 @@ TadoPlatform.prototype = {
         if(this.config.deviceOptions.hasOwnProperty(accessory.context.serial) && !this.config.exclude.includes(accessory.context.serial)){
           if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
           new thermostat_Accessory(this, accessory);
+        }
+
+        break;
+        
+      case 'boiler':
+
+        if(add)
+          accessory.addService(Service.Valve, object.name);
+
+        if(this.config.deviceOptions.hasOwnProperty(accessory.context.serial) && !this.config.exclude.includes(accessory.context.serial)){
+          if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
+          new boiler_Accessory(this, accessory);
         }
 
         break;
