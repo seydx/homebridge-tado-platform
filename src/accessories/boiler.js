@@ -168,7 +168,7 @@ class thermostat_Accessory {
       
       let termination = state ? this.accessory.context.overrideMode : 'manual';
       let onOff = state ? 'on' : 'off';
-      let temp = ( this.accessory.context.canSetTemperature && state ) ? this.valveService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value : null;
+      let temp = ( this.accessory.context.canSetTemperature && state ) ? this.mainService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value : null;
         
       await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,onOff,temp,termination,this.accessory.context.zoneType);
 
