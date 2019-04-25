@@ -37,6 +37,8 @@ class thermostat_Accessory {
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
   
   handleValve(){
+  
+    const self = this;
  
     if(!this.accessory.getServiceByUUIDAndSubType(Service.Valve, 'Hot Water Valve')){
    
@@ -62,12 +64,8 @@ class thermostat_Accessory {
     }
     
     this.valveService.getCharacteristic(Characteristic.Active)
-      .on('set', function(state, callback){
-        callback();
-      });
-      
-    this.valveService.getCharacteristic(Characteristic.InUse)
-      .on('set', function(state, callback){
+      .on('set', function(state, callback){      
+        self.valveService.getCharacteristic(Characteristic.InUse).updateValue(state);       
         callback();
       });
         
@@ -88,12 +86,13 @@ class thermostat_Accessory {
     if(this.accessory.context.canSetTemperature){
     
       this.accessory.context.cachedTemp = this.accessory.context.cachedTemp||this.accessory.context.minValue;
+        
+      if(!this.mainService.testCharacteristic(Characteristic.CurrentHeaterCoolerState))
+        this.mainService.addCharacteristic(Characteristic.CurrentHeaterCoolerState);
       
-      if(!this.mainService.testCharacteristic(Characteristic.CurrentTemperature))
-        this.mainService.addCharacteristic(Characteristic.CurrentTemperature);
-      
-      this.mainService.getCharacteristic(Characteristic.CurrentTemperature)
-        .setProps({ maxValue: this.accessory.context.maxValue, minValue: this.accessory.context.minValue, minStep: 1 });
+      this.mainService.getCharacteristic(Characteristic.TargetHeaterCoolerState)
+        .setProps({ maxValue: 2, minValue: 2, validValues: [2] })
+        .updateValue(2);
       
       if(!this.mainService.testCharacteristic(Characteristic.TargetHeaterCoolerState))
         this.mainService.addCharacteristic(Characteristic.TargetHeaterCoolerState);
@@ -107,8 +106,8 @@ class thermostat_Accessory {
       
       this.mainService.getCharacteristic(Characteristic.HeatingThresholdTemperature)
         .setProps({ maxValue: this.accessory.context.maxValue, minValue: this.accessory.context.minValue, minStep: 1 })
-        .on('set', this.setTemp.bind(this))
-        .updateValue(this.accessory.context.cachedTemp);
+        .updateValue(this.accessory.context.cachedTemp)
+        .on('set', this.setTemp.bind(this));
     
     }
     
@@ -168,9 +167,9 @@ class thermostat_Accessory {
       
       let termination = state ? this.accessory.context.overrideMode : 'manual';
       let onOff = state ? 'on' : 'off';
-      let temp = ( this.accessory.context.canSetTemperature && state ) ? this.mainService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value : null;
+      let temp = this.accessory.context.canSetTemperature ? this.mainService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value : null;
         
-      await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,onOff,temp,termination,this.accessory.context.zoneType);
+      await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,onOff,temp,termination,this.accessory.context.zoneType,this.accessory.context.unit);
 
     } catch(err) {
     
