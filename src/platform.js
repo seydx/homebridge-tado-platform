@@ -205,7 +205,8 @@ TadoPlatform.prototype = {
             zoneType: dev.zoneType,
             deviceType: dev.deviceType,
             serial: dev.serial.split('-')[0],
-            type: dev.type
+            type: dev.type,
+            canSetTemperature: dev.canSetTemperature
           };
 
           if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) 
@@ -453,7 +454,7 @@ TadoPlatform.prototype = {
           accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
           accessory.context.zoneID = this.config.deviceOptions[i].ID;
       
-        } else {
+        } else { //boiler
       
           accessory.context.active = this.config.deviceOptions[i].active;
           accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
@@ -461,6 +462,7 @@ TadoPlatform.prototype = {
           accessory.context.deviceType = this.config.deviceOptions[i].deviceType;
           accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
           accessory.context.zoneID = this.config.deviceOptions[i].ID;
+          accessory.context.canSetTemperature = this.config.deviceOptions[i].canSetTemperature;
        
         }
       
@@ -502,7 +504,7 @@ TadoPlatform.prototype = {
       case 'boiler':
 
         if(add)
-          accessory.addService(Service.Valve, object.name);
+          accessory.addService(Service.Faucet, object.name);
 
         if(this.config.deviceOptions.hasOwnProperty(accessory.context.serial) && !this.config.exclude.includes(accessory.context.serial)){
           if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
