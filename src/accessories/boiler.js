@@ -101,8 +101,9 @@ class thermostat_Accessory {
       this.logger.info(accessory.displayName + ': ' + (state ? 'On' : 'Off'));
       
       let termination = state ? accessory.context.overrideMode : 'manual';
+      let onOff = state ? 'on' : 'off';
         
-      await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,'off',null,termination,accessory.context.zoneType);
+      await this.tado.setZoneOverlay(accessory.context.homeID,accessory.context.zoneID,onOff,null,termination,accessory.context.zoneType);
 
     } catch(err) {
     
