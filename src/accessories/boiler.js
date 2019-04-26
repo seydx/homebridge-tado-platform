@@ -2,7 +2,7 @@
 
 var Service, Characteristic;
 
-class thermostat_Accessory {
+class boiler_Accessory {
   constructor (platform, accessory) {
   
     Service = platform.api.hap.Service;
@@ -231,4 +231,4 @@ class thermostat_Accessory {
 
 }
 
-module.exports = thermostat_Accessory;
+module.exports = boiler_Accessory;
