@@ -63,6 +63,16 @@ class boiler_Accessory {
     } else {
   
       this.valveService = this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Valve');  
+      
+      this.valveService.getCharacteristic(Characteristic.ServiceLabelIndex)
+        .updateValue(1);
+        
+      this.valveService.getCharacteristic(Characteristic.IsConfigured)
+        .updateValue(1);
+        
+      this.valveService.getCharacteristic(Characteristic.ValveType)
+        .updateValue(3);
+      
       this.mainService.addLinkedService(this.valveService);
         
     }
@@ -72,7 +82,7 @@ class boiler_Accessory {
         self.valveService.getCharacteristic(Characteristic.InUse).updateValue(state);       
         callback();
       });
-        
+
   }
 
   getService() {
@@ -94,16 +104,15 @@ class boiler_Accessory {
       if(!this.mainService.testCharacteristic(Characteristic.CurrentHeaterCoolerState))
         this.mainService.addCharacteristic(Characteristic.CurrentHeaterCoolerState);
       
-      this.mainService.getCharacteristic(Characteristic.TargetHeaterCoolerState)
-        .setProps({ maxValue: 2, minValue: 2, validValues: [2] })
-        .updateValue(2);
+      this.mainService.getCharacteristic(Characteristic.CurrentHeaterCoolerState)
+        .setProps({ maxValue: 2, minValue: 0, validValues: [0,1,2] });
       
       if(!this.mainService.testCharacteristic(Characteristic.TargetHeaterCoolerState))
         this.mainService.addCharacteristic(Characteristic.TargetHeaterCoolerState);
       
       this.mainService.getCharacteristic(Characteristic.TargetHeaterCoolerState)
-        .setProps({ maxValue: 1, minValue: 1, validValues: [1] })
-        .updateValue(1);
+        .setProps({ maxValue: 1, minValue: 0, validValues: [0,1] })
+        .on('set', this.setHeaterState.bind(this));
       
       if(!this.mainService.testCharacteristic(Characteristic.HeatingThresholdTemperature))
         this.mainService.addCharacteristic(Characteristic.HeatingThresholdTemperature);
@@ -130,6 +139,10 @@ class boiler_Accessory {
         this.valveService.getCharacteristic(Characteristic.InUse).updateValue(0);
         this.valveService.getCharacteristic(Characteristic.Active).updateValue(0); 
         this.mainService.getCharacteristic(Characteristic.Active).updateValue(0); 
+        
+        if(this.accessory.context.canSetTemperature)
+          this.mainService.getCharacteristic(Characteristic.CurrentHeaterCoolerState)
+            .updateValue(0); 
      
       } else {
 
@@ -143,6 +156,24 @@ class boiler_Accessory {
       
           this.mainService.getCharacteristic(Characteristic.HeatingThresholdTemperature)
             .updateValue(this.accessory.context.cachedTemp); 
+            
+          if(zone.overlayType || zone.overlay){
+
+            this.mainService.getCharacteristic(Characteristic.CurrentHeaterCoolerState)
+              .updateValue(2); 
+              
+            this.mainService.getCharacteristic(Characteristic.TargetHeaterCoolerState)
+              .updateValue(1); 
+          
+          } else {
+
+            this.mainService.getCharacteristic(Characteristic.CurrentHeaterCoolerState)
+              .updateValue(1); 
+              
+            this.mainService.getCharacteristic(Characteristic.TargetHeaterCoolerState)
+              .updateValue(0); 
+          
+          }
         
         }
         
@@ -180,6 +211,18 @@ class boiler_Accessory {
       this.debug(err);
     
     } finally {
+
+      if(state){
+
+        this.valveService.getCharacteristic(Characteristic.Active).updateValue(1);
+        this.valveService.getCharacteristic(Characteristic.InUse).updateValue(1); 
+
+      } else {
+
+        this.valveService.getCharacteristic(Characteristic.InUse).updateValue(0); 
+        this.mainService.getCharacteristic(Characteristic.Active).updateValue(0); 
+
+      }
       
       callback();
     
@@ -191,17 +234,57 @@ class boiler_Accessory {
     
     try {
     
-      if(this.mainService.getCharacteristic(Characteristic.Active).value){
-      
-        this.logger.info(this.accessory.displayName + ': Setting new temperature: ' + value);
+      this.logger.info(this.accessory.displayName + ': Setting new temperature: ' + value);
 
-        await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',value,this.accessory.context.overrideMode,this.accessory.context.zoneType,this.accessory.context.unit);
+      await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',value,this.accessory.context.overrideMode,this.accessory.context.zoneType,this.accessory.context.unit);
       
+      if(!this.mainService.getCharacteristic(Characteristic.Active).value){
+
+        this.mainService.getCharacteristic(Characteristic.Active).updateValue(1);
+        this.valveService.getCharacteristic(Characteristic.Active).updateValue(1);
+        this.valveService.getCharacteristic(Characteristic.InUse).updateValue(1); 
+
       }
 
     } catch(err) {
     
       this.logger.error(this.accessory.displayName + ': An error occured while setting new temp!'); 
+      this.debug(err);
+    
+    } finally {
+      
+      callback();
+    
+    }
+
+  }
+  
+  async setHeaterState(state, callback){
+
+    try {
+    
+      this.logger.info(this.accessory.displayName + ': ' + (state ? 'Manual' : 'Auto'));
+      
+      let termination = this.accessory.context.overrideMode;
+      let temp = this.mainService.getCharacteristic(Characteristic.HeatingThresholdTemperature).value;
+      
+      if(state){  
+        await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',temp,termination,this.accessory.context.zoneType,this.accessory.context.unit);
+      } else {
+        await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',null,'auto',this.accessory.context.zoneType,this.accessory.context.unit,'delete');
+      }
+
+      if(!this.mainService.getCharacteristic(Characteristic.Active).value){
+
+        this.mainService.getCharacteristic(Characteristic.Active).updateValue(1);
+        this.valveService.getCharacteristic(Characteristic.Active).updateValue(1);
+        this.valveService.getCharacteristic(Characteristic.InUse).updateValue(1); 
+
+      }
+    
+    } catch(err) {
+    
+      this.logger.error(this.accessory.displayName + ': An error occured while setting new state!'); 
       this.debug(err);
     
     } finally {
