@@ -164,8 +164,6 @@ class boiler_Accessory {
   
   async setState(state,callback){
   
-    let failed;
-  
     try {
     
       this.logger.info(this.accessory.displayName + ': ' + (state ? 'On' : 'Off'));
@@ -180,27 +178,8 @@ class boiler_Accessory {
     
       this.logger.error(this.accessory.displayName + ': An error occured while setting new state!'); 
       this.debug(err);
-      
-      failed = err;
     
     } finally {
-    
-      if(failed)
-        state = state ? false : true;
-      
-      if(state){
-      
-        this.valveService.getCharacteristic(Characteristic.InUse).updateValue(0);
-        this.valveService.getCharacteristic(Characteristic.Active).updateValue(0); 
-        this.mainService.getCharacteristic(Characteristic.Active).updateValue(0); 
-      
-      } else {
-      
-        this.mainService.getCharacteristic(Characteristic.Active).updateValue(1); 
-        this.valveService.getCharacteristic(Characteristic.Active).updateValue(1); 
-        this.valveService.getCharacteristic(Characteristic.InUse).updateValue(1);
-      
-      }
       
       callback();
     
