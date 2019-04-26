@@ -40,16 +40,16 @@ class thermostat_Accessory {
   
     const self = this;
  
-    if(!this.accessory.getServiceByUUIDAndSubType(Service.Valve, 'Hot Water Valve')){
+    if(!this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Valve')){
    
-      this.valveService = new Service.Valve('Hot Water', 'Hot Water Valve');
+      this.valveService = new Service.Valve( this.accessory.displayName + ' Valve', this.accessory.displayName + ' Sub');
       
       this.valveService.addCharacteristic(Characteristic.ConfiguredName);
   
       this.valveService
-        .setCharacteristic(Characteristic.Name, 'Hot Water')
+        .setCharacteristic(Characteristic.Name, this.accessory.displayName + ' Valve')
         .setCharacteristic(Characteristic.ServiceLabelIndex, 1)
-        .setCharacteristic(Characteristic.ConfiguredName, 'Hot Water')
+        .setCharacteristic(Characteristic.ConfiguredName, this.accessory.displayName + ' Valve')
         .setCharacteristic(Characteristic.IsConfigured, Characteristic.IsConfigured.CONFIGURED)
         .setCharacteristic(Characteristic.ValveType, Characteristic.ValveType.WATER_FAUCET);
         
@@ -58,7 +58,7 @@ class thermostat_Accessory {
             
     } else {
   
-      this.valveService = this.accessory.getServiceByUUIDAndSubType(Service.Valve, 'Hot Water Valve');  
+      this.valveService = this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Valve');  
       this.mainService.addLinkedService(this.valveService);
         
     }
@@ -151,7 +151,8 @@ class thermostat_Accessory {
     
     } finally {
   
-      if(!this.accessory.context.remove) setTimeout(this.getState.bind(this), this.accessory.context.polling);
+      if(!this.accessory.context.remove) 
+        setTimeout(this.getState.bind(this), this.accessory.context.polling);
       
     }
   
