@@ -1,5 +1,7 @@
 'use strict';
 
+const HomeKitTypes = require('../types/types.js');
+
 var Service, Characteristic;
 
 class boiler_Accessory {
@@ -7,6 +9,8 @@ class boiler_Accessory {
   
     Service = platform.api.hap.Service;
     Characteristic = platform.api.hap.Characteristic;
+    
+    HomeKitTypes.registerWith(platform.api.hap);
 
     this.platform = platform;
     this.log = platform.log;
