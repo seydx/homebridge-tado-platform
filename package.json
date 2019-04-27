@@ -1,6 +1,6 @@
 {
   "name": "homebridge-tado-platform",
-  "version": "5.1.6-dev.4",
+  "version": "5.1.6",
   "description": "homebridge-tado-platform",
   "main": "index.js",
   "devDependencies": {},
