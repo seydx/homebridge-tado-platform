@@ -235,8 +235,17 @@ class boiler_Accessory {
     try {
     
       this.logger.info(this.accessory.displayName + ': Setting new temperature: ' + value);
-
-      await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',value,this.accessory.context.overrideMode,this.accessory.context.zoneType,this.accessory.context.unit);
+      
+      if(value !== this.accessory.context.autoTemp){
+	 
+        await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',value,this.accessory.context.overrideMode,this.accessory.context.zoneType,this.accessory.context.unit); 
+     
+      } else {
+     
+        this.logger.info(this.accessory.displayName + ': Temperature setted to \'autoTemp\' - Turning on AUTO mode'); 
+        await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',null,'auto',this.accessory.context.zoneType,this.accessory.context.unit,'delete');  
+     
+      }
       
       if(!this.mainService.getCharacteristic(Characteristic.Active).value){
 
