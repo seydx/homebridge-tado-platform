@@ -97,6 +97,7 @@ TadoPlatform.prototype = {
       this.config.polling = this.config.polling||10;
       this.config.exclude = [];
       this.config.reConfig = this.config.reConfig || false;
+      this.config.unit = this.config.unit || false;
       
       if(!this.config.reConfig){
         this.config.deviceOptions = this.config.deviceOptions||{};
@@ -108,6 +109,8 @@ TadoPlatform.prototype = {
 
         let response = await this.tado.getMe();
         this.config.unit = response.locale === 'en' ? 'fahrenheit' : 'celsius';
+        
+        this.logger.info(this.accessory.displayName + ': Setting unit to ' + this.config.unit)
  
       }
       
