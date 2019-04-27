@@ -5,7 +5,7 @@ const inherits = require('util').inherits;
 module.exports = {
   registerWith: function (hap) {
     const Characteristic = hap.Characteristic;
-    //const Service = hap.Service;
+    const Service = hap.Service;
 
     /// /////////////////////////////////////////////////////////////////////////
     // AutoThermostats Characteristic
@@ -157,6 +157,26 @@ module.exports = {
     };
     inherits(Characteristic.DummySwitch, Characteristic);
     Characteristic.DummySwitch.UUID = 'a33a7443-ec88-4760-a48e-cff68f78e6d3';
+    
+    /// /////////////////////////////////////////////////////////////////////////
+    // Faucet Service
+    /// ///////////////////////////////////////////////////////////////////////// 
+    Service.Faucet = function(displayName, subtype) {
+      Service.call(this, displayName, '000000D7-0000-1000-8000-0026BB765291', subtype);
+      
+      // Required Characteristics
+      this.addCharacteristic(Characteristic.Active);
+
+      // Optional Characteristics
+      this.addOptionalCharacteristic(Characteristic.Name);
+      this.addOptionalCharacteristic(Characteristic.StatusFault);
+      this.addOptionalCharacteristic(Characteristic.CurrentHeaterCoolerState);
+      this.addOptionalCharacteristic(Characteristic.TargetHeaterCoolerState);
+      this.addOptionalCharacteristic(Characteristic.HeatingThresholdTemperature);
+    
+    };
+    inherits(Service.Faucet, Service);
+    Service.Faucet.UUID = '000000D7-0000-1000-8000-0026BB765291';
     
     
   }

@@ -123,52 +123,48 @@ class thermostat_Accessory {
       .on('get', function(callback){
         callback(null, accessory.context.coolValue);
       });
-    
-    if(accessory.context.zoneType === 'HEATING'){ 
      
-      if (!service.testCharacteristic(Characteristic.HeatingPower))
-        service.addCharacteristic(Characteristic.HeatingPower);
+    if (!service.testCharacteristic(Characteristic.HeatingPower))
+      service.addCharacteristic(Characteristic.HeatingPower);
       
-      service.getCharacteristic(Characteristic.HeatingPower)
-        .on('change', function(value){
-          self.logger.info(accessory.displayName + ': Heating power changed to ' + value.newValue + '%');
-        });
+    service.getCharacteristic(Characteristic.HeatingPower)
+      .on('change', function(value){
+        self.logger.info(accessory.displayName + ': Heating power changed to ' + value.newValue + '%');
+      });
     
-      service.getCharacteristic(Characteristic.CurrentRelativeHumidity)
-        .on('change', function(value){
-          self.historyService.addEntry({time: moment().unix(), temp:accessory.context.currentTemp, pressure:0, humidity:value.newValue});
-          self.debug(accessory.displayName + ': New entry: ' + accessory.context.currentTemp + ' for temperature and ' + value.newValue + ' for humidity');
-        });
+    service.getCharacteristic(Characteristic.CurrentRelativeHumidity)
+      .on('change', function(value){
+        self.historyService.addEntry({time: moment().unix(), temp:accessory.context.currentTemp, pressure:0, humidity:value.newValue});
+        self.debug(accessory.displayName + ': New entry: ' + accessory.context.currentTemp + ' for temperature and ' + value.newValue + ' for humidity');
+      });
 
-      if (!service.testCharacteristic(Characteristic.DelayTimer))
-        service.addCharacteristic(Characteristic.DelayTimer);
+    if (!service.testCharacteristic(Characteristic.DelayTimer))
+      service.addCharacteristic(Characteristic.DelayTimer);
       
-      service.getCharacteristic(Characteristic.DelayTimer)
-        .setProps({
-          minValue: 0,
-          maxValue: accessory.context.maxDelay,
-          minStep: 1
-        })
-        .on('set', function(value, callback){
-          self.logger.info(accessory.displayName + ': Setting delay to ' + value);
-          accessory.context.delay = value;
-          callback(null, value);
-        })
-        .on('get', function(callback){
-          callback(null, accessory.context.delay);
-        });
+    service.getCharacteristic(Characteristic.DelayTimer)
+      .setProps({
+        minValue: 0,
+        maxValue: accessory.context.maxDelay,
+        minStep: 1
+      })
+      .on('set', function(value, callback){
+        self.logger.info(accessory.displayName + ': Setting delay to ' + value);
+        accessory.context.delay = value;
+        callback(null, value);
+      })
+      .on('get', function(callback){
+        callback(null, accessory.context.delay);
+      });
         
         
-      if (!service.testCharacteristic(Characteristic.DelaySwitch))
-        service.addCharacteristic(Characteristic.DelaySwitch);
+    if (!service.testCharacteristic(Characteristic.DelaySwitch))
+      service.addCharacteristic(Characteristic.DelaySwitch);
       
-      service.getCharacteristic(Characteristic.DelaySwitch)
-        .on('set', self.setDelay.bind(this, accessory, service))
-        .on('get', function(callback){
-          callback(null, accessory.context.delayState);
-        });
-        
-    }
+    service.getCharacteristic(Characteristic.DelaySwitch)
+      .on('set', self.setDelay.bind(this, accessory, service))
+      .on('get', function(callback){
+        callback(null, accessory.context.delayState);
+      });
         
     battery.getCharacteristic(Characteristic.ChargingState)
       .updateValue(2); //Not chargable
@@ -246,98 +242,45 @@ class thermostat_Accessory {
       
       let targetTemp, currentState, targetState, batteryLevel, statusLowBattery, device;
       
-      if(accessory.context.zoneType === 'HEATING') {
-      
-        if(zone.activityDataPoints && Object.keys(zone.activityDataPoints).length)
-          service.getCharacteristic(Characteristic.HeatingPower).updateValue(zone.activityDataPoints.heatingPower.percentage);
+      if(zone.activityDataPoints && Object.keys(zone.activityDataPoints).length)
+        service.getCharacteristic(Characteristic.HeatingPower).updateValue(zone.activityDataPoints.heatingPower.percentage);
         
-        accessory.context.currentTemp = ( accessory.context.unit === 1 )? zone.sensorDataPoints.insideTemperature.fahrenheit : zone.sensorDataPoints.insideTemperature.celsius;
-        accessory.context.currentHumidity = zone.sensorDataPoints.humidity.percentage;
+      accessory.context.currentTemp = ( accessory.context.unit === 1 )? zone.sensorDataPoints.insideTemperature.fahrenheit : zone.sensorDataPoints.insideTemperature.celsius;
+      accessory.context.currentHumidity = zone.sensorDataPoints.humidity.percentage;
        
-        if(zone.setting.power === 'OFF') {
+      if(zone.setting.power === 'OFF') {
        
-          targetTemp = ( accessory.context.unit === 1 ) ? zone.sensorDataPoints.insideTemperature.fahrenheit : zone.sensorDataPoints.insideTemperature.celsius;
-          currentState = 0;
-          targetState = 0;
+        targetTemp = ( accessory.context.unit === 1 ) ? zone.sensorDataPoints.insideTemperature.fahrenheit : zone.sensorDataPoints.insideTemperature.celsius;
+        currentState = 0;
+        targetState = 0;
        
-        } else {
+      } else {
        
-          targetTemp = ( accessory.context.unit === 1 )? zone.setting.temperature.fahrenheit : zone.setting.temperature.celsius; 
+        targetTemp = ( accessory.context.unit === 1 )? zone.setting.temperature.fahrenheit : zone.setting.temperature.celsius; 
       
-          if(zone.overlayType === 'MANUAL'){
+        if(zone.overlayType === 'MANUAL'){
       
-            if(Math.round(accessory.context.currentTemp) < Math.round(targetTemp)){
+          if(Math.round(accessory.context.currentTemp) < Math.round(targetTemp)){
      
-              currentState = 1;
-              targetState = 1;
+            currentState = 1;
+            targetState = 1;
      
-            } else {
- 
-              currentState = 2;
-              targetState = 2;
- 
-            }
-      
           } else {
+ 
+            currentState = 2;
+            targetState = 2;
+ 
+          }
+      
+        } else {
               
-            accessory.context.autoTempValue = accessory.context.unit === 1 ? zone.setting.temperature.fahrenheit : zone.setting.temperature.celsius;
+          accessory.context.autoTempValue = accessory.context.unit === 1 ? zone.setting.temperature.fahrenheit : zone.setting.temperature.celsius;
       
-            targetState = 3;
-            currentState = 0;
-      
-          }
-       
-        }
-        
-      } else { //accessory.context.zoneType === 'HOT_WATER'
-    
-        // Current Temperature = Target Temperature , no temperature measurement
-     
-        accessory.context.currentTemp = accessory.context.currentTemp ? accessory.context.currentTemp : 0;
-        accessory.context.tarTemp = accessory.context.tarTemp ? accessory.context.tarTemp : 0;
-        accessory.context.cachedTemp = accessory.context.cachedTemp ? accessory.context.cachedTemp : 0;
-       
-        if(zone.setting.power === 'OFF') {
-       
+          targetState = 3;
           currentState = 0;
-          targetState = 0;
-       
-        } else {
-          
-          accessory.context.currentTemp = ( accessory.context.unit === 1 ) ? zone.setting.temperature.fahrenheit : zone.setting.temperature.celsius;
-          accessory.context.tarTemp = ( accessory.context.unit === 1 ) ? zone.setting.temperature.fahrenheit : zone.setting.temperature.celsius;
-          
-          if(zone.overlayType === 'MANUAL'){
       
-            if(Math.round(accessory.context.cachedTemp) < Math.round(accessory.context.tarTemp)){
-
-              accessory.context.cachedTemp = accessory.context.tarTemp;
-
-              currentState = 1;
-              targetState = 1;
-     
-            } else {
-
-              accessory.context.cachedTemp = accessory.context.tarTemp;
- 
-              currentState = 2;
-              targetState = 2;
- 
-            }
-      
-          } else {
-            
-            accessory.context.autoTempValue = accessory.context.unit === 1 ? zone.setting.temperature.fahrenheit : zone.setting.temperature.celsius;
-      
-            targetState = 3;
-            currentState = 0;
-      
-          }
-       
         }
-        
-        targetTemp = accessory.context.tarTemp;
-        
+       
       }
       
       device = await this.tadoHandler.getDevice(accessory.context.serial);
@@ -353,8 +296,7 @@ class thermostat_Accessory {
       service.getCharacteristic(Characteristic.CurrentTemperature).updateValue(accessory.context.currentTemp);
       service.getCharacteristic(Characteristic.TargetTemperature).updateValue(targetTemp);
       
-      if(accessory.context.zoneType === 'HEATING')
-        service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.currentHumidity);
+      service.getCharacteristic(Characteristic.CurrentRelativeHumidity).updateValue(accessory.context.currentHumidity);
       
       service.getCharacteristic(Characteristic.TemperatureDisplayUnits).updateValue(accessory.context.unit);      
       
@@ -568,10 +510,6 @@ class thermostat_Accessory {
       if(targetService === 1 || targetService === 2){
   
         service.getCharacteristic(Characteristic.TargetTemperature).setValue(value, undefined, 'rule'); 
-  
-      } else {
-  
-        this.logger.warn(accessory.displayName + ': Ignoring temperature adjustment due to rule or scene!'); 
   
       }
     
