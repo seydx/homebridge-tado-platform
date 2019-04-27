@@ -1,6 +1,14 @@
 # Changelog
 
 
+## 5.1.5 -2019-04-27
+- Refactored HOTWATER Accessory (*)
+- Bugfixes
+- Cleanup code
+
+(*) Added Faucet Accessory with temperature control for HOTWATER (only for devices with temperature adjustment capability). If you have HOTWATER devices with these capability, you need to remove this device from your Cache by setting "active":false into your config.json under the device before updating (IMPORTANT)!
+
+
 ## 5.1.4 - 2019-04-25
 - Bugfixes
 
