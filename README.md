@@ -20,10 +20,10 @@
 
 ### Dynamic:
 
-Every thermostat, user (occupancy sensor) or open window detection (window sensor) are affected by the settings in the Tado app. That means, the plugin knows when you turning on/off the open window detection for a thermostat, adding/removing an user or adding/removing a thermostat or just changing the room of a thermostat, the plugin will expose these or remove them dynamically from HomeKit. You dont need to add it manually or even restart homebridge. Just install the plugin, configure the config.json and lean back!
+Every thermostat, faucet for hot water, user (occupancy sensor) or open window detection (window sensor) are affected by the settings in the Tado app. That means, the plugin knows when you turning on/off the open window detection for a thermostat, adding/removing an user or adding/removing a thermostat or just changing the room of a thermostat, the plugin will expose these or remove them dynamically from HomeKit. You dont need to add it manually or even restart homebridge. Just install the plugin, configure the config.json and lean back!
 
 
-This homebridge plugin exposes Tado thermostats, occupancy sensors and weather sensor to Apple's HomeKit. It provides following features:
+This homebridge plugin exposes Tado thermostats, HOTWATER Faucets, occupancy sensors and weather sensor to Apple's HomeKit. It provides following features:
 
 **Thermostats:**
 - Additional modes: Heat, Cool, Auto and Off
@@ -36,8 +36,7 @@ This homebridge plugin exposes Tado thermostats, occupancy sensors and weather s
 
 **Boiler :**
 - Expose Tado Hot Water to Apple HomeKit!
-- Additional modes: Heat, Cool, Auto and Off
-- Auto heat/cool to a certain value (configurable within 3rd party app)
+- Additional modes: Heat, Auto and Off (For HOT WATER devices with temperature adjustment capability)
 
 **Temperature sensors:**
 - If enabled in config.json (externalSensor )this plugin will create temperature sensors for each room.
