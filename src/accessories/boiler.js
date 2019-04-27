@@ -236,9 +236,6 @@ class boiler_Accessory {
     
       this.logger.info(this.accessory.displayName + ': Setting new temperature: ' + value);
       
-      this.debug("Auto Temp: " + this.accessory.context.autoTemp)
-      this.debug("Set Temp: " + value)
-      
       if(value !== this.accessory.context.autoTemp){
 	 
         await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',value,this.accessory.context.overrideMode,this.accessory.context.zoneType,this.accessory.context.unit); 
