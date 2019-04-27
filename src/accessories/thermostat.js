@@ -511,10 +511,6 @@ class thermostat_Accessory {
   
         service.getCharacteristic(Characteristic.TargetTemperature).setValue(value, undefined, 'rule'); 
   
-      } else {
-  
-        this.debug(accessory.displayName + ': Ignoring temperature adjustment due to rule or scene!'); 
-  
       }
     
       callback();
