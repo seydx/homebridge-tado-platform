@@ -97,6 +97,7 @@ TadoPlatform.prototype = {
       this.config.polling = this.config.polling||10;
       this.config.exclude = [];
       this.config.reConfig = this.config.reConfig || false;
+      this.config.unit = this.config.unit || false;
       
       if(!this.config.reConfig){
         this.config.deviceOptions = this.config.deviceOptions||{};
@@ -104,12 +105,8 @@ TadoPlatform.prototype = {
         this.config.deviceOptions = {};
       }
       
-      if(!this.config.unit) {
-
-        let response = await this.tado.getMe();
-        this.config.unit = response.locale === 'en' ? 'fahrenheit' : 'celsius';
- 
-      }
+      if(!this.config.unit)
+        this.config.unit = 'celsius';
       
       // fetch homeID
 
@@ -200,6 +197,7 @@ TadoPlatform.prototype = {
           this.config.deviceOptions[dev.serial] = {
             active: this.config.deviceOptions[dev.serial].active || false,
             overrideMode: this.config.deviceOptions[dev.serial].overrideMode || 'manual',
+            autoTemp: this.config.deviceOptions[dev.serial].autoTemp||50,
             ID: dev.zoneID,
             zoneName: dev.zoneName,
             zoneType: dev.zoneType,
@@ -463,6 +461,7 @@ TadoPlatform.prototype = {
           accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
           accessory.context.zoneID = this.config.deviceOptions[i].ID;
           accessory.context.canSetTemperature = this.config.deviceOptions[i].canSetTemperature;
+          accessory.context.autoTemp = this.config.deviceOptions[i].autoTemp;
        
         }
       

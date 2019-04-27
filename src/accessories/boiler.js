@@ -31,8 +31,6 @@ class boiler_Accessory {
     this.mainService = this.accessory.getService(Service.Faucet, this.accessory.displayName);
     
     this.handleValve();
-    
-    this.getService();
   
   }
 
@@ -44,7 +42,7 @@ class boiler_Accessory {
   
     const self = this;
  
-    if(!this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Valve')){
+    if(!this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Sub')){
    
       this.valveService = new Service.Valve( this.accessory.displayName + ' Valve', this.accessory.displayName + ' Sub');
       
@@ -62,7 +60,7 @@ class boiler_Accessory {
             
     } else {
   
-      this.valveService = this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Valve');  
+      this.valveService = this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Sub');  
       
       this.valveService.getCharacteristic(Characteristic.ServiceLabelIndex)
         .updateValue(1);
@@ -78,10 +76,16 @@ class boiler_Accessory {
     }
     
     this.valveService.getCharacteristic(Characteristic.Active)
+      .updateValue(this.mainService.getCharacteristic(Characteristic.Active).value)
       .on('set', function(state, callback){      
         self.valveService.getCharacteristic(Characteristic.InUse).updateValue(state);       
         callback();
       });
+	  
+    this.valveService.getCharacteristic(Characteristic.InUse)
+      .updateValue(this.mainService.getCharacteristic(Characteristic.Active).value);
+	  
+    this.getService();
 
   }
 
@@ -235,8 +239,17 @@ class boiler_Accessory {
     try {
     
       this.logger.info(this.accessory.displayName + ': Setting new temperature: ' + value);
-
-      await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',value,this.accessory.context.overrideMode,this.accessory.context.zoneType,this.accessory.context.unit);
+      
+      if(value !== this.accessory.context.autoTemp){
+	 
+        await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',value,this.accessory.context.overrideMode,this.accessory.context.zoneType,this.accessory.context.unit); 
+     
+      } else {
+     
+        this.logger.info(this.accessory.displayName + ': Temperature setted to \'autoTemp\' - Turning on AUTO mode'); 
+        await this.tado.setZoneOverlay(this.accessory.context.homeID,this.accessory.context.zoneID,'on',null,'auto',this.accessory.context.zoneType,this.accessory.context.unit,'delete');  
+     
+      }
       
       if(!this.mainService.getCharacteristic(Characteristic.Active).value){
 
