@@ -200,6 +200,7 @@ TadoPlatform.prototype = {
           this.config.deviceOptions[dev.serial] = {
             active: this.config.deviceOptions[dev.serial].active || false,
             overrideMode: this.config.deviceOptions[dev.serial].overrideMode || 'manual',
+            autoTemp: this.config.deviceOptions[dev.serial].autoTemp || (this.config.unit === 'fahrenheit') ? 100 : 50,
             ID: dev.zoneID,
             zoneName: dev.zoneName,
             zoneType: dev.zoneType,
@@ -458,6 +459,7 @@ TadoPlatform.prototype = {
       
           accessory.context.active = this.config.deviceOptions[i].active;
           accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
+          accessory.context.autoTemp = this.config.deviceOptions[i].autoTemp;
           accessory.context.zoneType = this.config.deviceOptions[i].zoneType;
           accessory.context.deviceType = this.config.deviceOptions[i].deviceType;
           accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
