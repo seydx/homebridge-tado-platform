@@ -44,7 +44,7 @@ class boiler_Accessory {
   
     const self = this;
  
-    if(!this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Valve')){
+    if(!this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Sub')){
    
       this.valveService = new Service.Valve( this.accessory.displayName + ' Valve', this.accessory.displayName + ' Sub');
       
@@ -62,7 +62,7 @@ class boiler_Accessory {
             
     } else {
   
-      this.valveService = this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Valve');  
+      this.valveService = this.accessory.getServiceByUUIDAndSubType(Service.Valve, this.accessory.displayName + ' Sub');  
       
       this.valveService.getCharacteristic(Characteristic.ServiceLabelIndex)
         .updateValue(1);
