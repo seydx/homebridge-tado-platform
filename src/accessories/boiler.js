@@ -31,8 +31,6 @@ class boiler_Accessory {
     this.mainService = this.accessory.getService(Service.Faucet, this.accessory.displayName);
     
     this.handleValve();
-    
-    this.getService();
   
   }
 
@@ -78,10 +76,16 @@ class boiler_Accessory {
     }
     
     this.valveService.getCharacteristic(Characteristic.Active)
+      .updateValue(this.mainService.getCharacteristic(Characteristic.Active).value)
       .on('set', function(state, callback){      
         self.valveService.getCharacteristic(Characteristic.InUse).updateValue(state);       
         callback();
       });
+	  
+    this.valveService.getCharacteristic(Characteristic.InUse)
+      .updateValue(this.mainService.getCharacteristic(Characteristic.Active).value);
+	  
+    this.getService();
 
   }
 
