@@ -1,6 +1,6 @@
 {
   "name": "homebridge-tado-platform",
-  "version": "5.1.6",
+  "version": "5.1.7,
   "description": "homebridge-tado-platform",
   "main": "index.js",
   "devDependencies": {},
@@ -26,8 +26,8 @@
     "boiler"
   ],
   "engines": {
-    "node": "^10.15.3",
-    "homebridge": "^0.4.49"
+    "node": "^12.0.0",
+    "homebridge": "^1.0.0"
   },
   "dependencies": {
     "axios": "^0.18.0",
