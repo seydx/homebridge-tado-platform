@@ -45,7 +45,7 @@ This homebridge plugin exposes Tado thermostats, HOTWATER Faucets, occupancy sen
 
 **Occupancy sensors:**
 - If enabled in config.json this plugin will create occupancy/motion sensors for all registered persons (configurable in the tado app).
-- Optional: It is also pissible to create an "Anyone" sensor too, to create automations based on "Anyone at home / not at home" (configurable via config.json)
+- Optional: It is also possible to create an "Anyone" sensor too, to create automations based on "Anyone at home / not at home" (configurable via config.json)
 
 **Weather sensors:**
 - If enabled in config.json, this plugin will create a weather sensor for your location based on tado.
