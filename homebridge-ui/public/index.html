@@ -1,0 +1,99 @@
+<link rel="stylesheet" href="css/style.css">
+
+<!-- header -->
+<div id="header" style="display:none; height: 50px;" class="w-100 p-0 m-0">
+  <div class="row m-0">
+    <div class="col-2 pl-1">
+      <button type="submit" class="btn btn-elegant back float-left">
+        <i class="fa fa-arrow-left" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="col-10 pr-1">
+      <button id="refreshDevice" type="submit" class="btn btn-primary float-right">
+        <i class="fas fa-sync-alt"></i>
+      </button>
+      <button id="removeDevice" type="submit" class="btn btn-danger float-right">
+        <i class="fa fa-trash" aria-hidden="true"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="main" class="card card-body pb-5">
+  
+  <!-- isConfigured -->
+  <div id="isConfigured" style="display:none;">
+    <img src="images/tado_logo.png" alt="Tado meets Homebridge" width="150px" class="center-it tadoLogo">
+    <h3 class="text-center"><span style="font-size: 20px">Welcome to</span> <br> <b style="font-weight: 800;">TadoPlatform</b></h3>
+    <h6 class="text-center">Homebridge plugin for Tado devices</h6>
+    <div class="container mt-4" style="max-width: 360px;">
+      <div class="form-row">
+        <div class="col-10">
+          <select class="custom-select" id="deviceSelect"></select>
+        </div>
+        <div class="col-2">
+          <button id="editDevice" type="submit" class="btn btn-elegant m-0">
+            <i class="fas fa-edit"></i>
+          </button>
+        </div>
+      </div>
+      <div class="d-flex justify-content-center mt-4">
+        <a href="#" id="addDevice" class="d-flex justify-content-center align-items-center btn-primary addBtn text-decoration-none">
+          <i class="fas fa-plus"></i>
+        </a>
+        <a href="#" id="reSync" class="d-flex justify-content-center align-items-center btn-secondary addBtn text-decoration-none ml-3">
+          <i class="fas fa-sync text-white"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+ 
+  <!-- notConfigured -->
+  <div id="notConfigured" style="display:none;">
+    <img src="images/tado_logo.png" alt="Tado meets Homebridge" width="150px" class="center-it tadoLogo">
+    <h3 class="text-center">Welcome to <br> <b style="font-weight: 800;">TadoPlatform</b></h3>
+    <h6 class="text-center">Homebridge plugin for Tado devices</h6>
+    <button id="start" type="submit" class="btn btn-primary center-it mt-3">Start</button> 
+  </div>
+  
+  <!-- configureDevice -->
+  <div id="configureDevice" style="display:none;">
+    <button type="submit" class="btn btn-elegant back" style="position: absolute;">
+      <i class="fa fa-arrow-left" aria-hidden="true"></i>
+    </button>
+    <img src="images/tado_logo.png" alt="Tado meets Homebridge" width="150px" class="center-it mt-4 tadoLogo">
+    <h6 class="text-center">To start the process, we need some data from the home you want to add in homebridge. <br> Please fill out all marked fields.</h6>
+    <div class="container mt-5">
+      <div class="form-group">
+        <label for="homeUsername">Username <span class="text-danger">*</span> </label>
+        <input type="text" class="form-control" id="homeUsername">
+      </div>
+      <div class="form-group">
+        <label for="homePassword">Password <span class="text-danger">*</span> </label>
+        <input type="password" class="form-control" id="homePassword">
+      </div>
+      <button id="auth" type="submit" class="btn btn-primary float-right mt-3 mr-0">Next</button>
+    </div>
+  </div>
+  
+  <!-- fetchDevices -->
+  <div id="fetchDevices" style="display:none;">
+    <img src="images/tado_logo.png" alt="Tado meets Homebridge" width="150px" class="center-it mt-2 tadoLogo">
+    <h6 class="text-center">Devices are searched. <br> Please be patient for a moment.</h6>
+    <div id="fetchDevicesBar" class="mt-5"></div>
+  </div>
+
+</div>
+
+<!-- Modules -->
+<script type="text/javascript" src="js/modules/jquery.min.js"></script>
+<script type="text/javascript" src="js/modules/progressbar.min.js"></script>
+
+<!-- Custom Schema -->
+<script type="text/javascript" src="js/schema.js?v=0.0.136"></script>
+
+<!-- Progress Bars -->
+<script type="text/javascript" src="js/progressbars.js?v=0.0.136"></script>
+ 
+<!-- Main -->
+<script type="text/javascript" src="js/main.js?v=0.0.136"></script>

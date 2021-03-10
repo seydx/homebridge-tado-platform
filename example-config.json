@@ -1,12 +1,177 @@
 {
- "bridge": {
-     ...
- },
- "platforms": [
-   {
-     "platform": "TadoPlatform",
-     "username": "TadoUsername",
-     "password": "TadoPassword"
-   }
- ]
+    "bridge": {
+        ...
+    },
+    "accessories": [
+        ...
+    ],
+    "platforms": [
+        {
+            "name": "TadoPlatform",
+            "platform": "TadoPlatform",
+            "debug": false,
+            "homes": [
+                {
+                    "id": 123456,
+                    "name": "My Home",
+                    "username": "test@user.com",
+                    "password": "myPassWord!",
+                    "polling": 60,
+                    "temperatureUnit": "CELSIUS",
+                    "geolocation": {
+                        "longitude": "10.3251249",
+                        "latitude": "52.1611176"
+                    },
+                    "presence": {
+                        "anyone": true,
+                        "accTypeAnyone": "MOTION",
+                        "user": [
+                            {
+                                "active": true,
+                                "name": "Buddy 1",
+                                "accType": "MOTION"
+                            },
+                            {
+                                "active": true,
+                                "name": "Buddy 2",
+                                "accType": "OCCUPANCY"
+                            }
+                        ]
+                    },
+                    "weather": {
+                        "temperatureSensor": true,
+                        "solarIntensity": true,
+                        "airQuality": true
+                    },
+                    "extras": {
+                        "centralSwitch": true,
+                        "runningInformation": true,
+                        "presenceLock": true,
+                        "boostSwitch": true,
+                        "sheduleSwitch": true,
+                        "turnoffSwitch": true,
+                        "childLockSwitches": [
+                            {
+                                "active": true,
+                                "name": "Arbeitszimmer Heater",
+                                "serialNumber": "VA1234567890"
+                            },
+                            {
+                                "active": true,
+                                "name": "Badezimmer Heater",
+                                "serialNumber": "VA1234567890"
+                            },
+                            {
+                                "active": true,
+                                "name": "Badezimmer Towel",
+                                "serialNumber": "VA1234567890"
+                            },
+                            {
+                                "active": true,
+                                "name": "Wohnzimmer Heater",
+                                "serialNumber": "VA1234567890"
+                            },
+                            {
+                                "active": true,
+                                "name": "Schlafzimmer Heater",
+                                "serialNumber": "VA1234567890"
+                            }
+                        ]
+                    },
+                    "zones": [
+                        {
+                            "active": true,
+                            "id": 32,
+                            "name": "Arbeitszimmer",
+                            "type": "HEATING",
+                            "delaySwitch": true,
+                            "openWindowSensor": true,
+                            "openWindowSwitch": false,
+                            "separateTemperature": false,
+                            "separateHumidity": true,
+                            "mode": "MANUAL",
+                            "modeTimer": 30,
+                            "easyMode": false,
+                            "noBattery": false
+                        },
+                        {
+                            "active": true,
+                            "id": 48,
+                            "name": "Badezimmer Unten",
+                            "type": "HOT_WATER",
+                            "mode": "AUTO",
+                            "boilerTempSupport": false,
+                            "accTypeBoiler": "FAUCET"
+                        },
+                        {
+                            "active": true,
+                            "id": 1,
+                            "name": "Badezimmer Oben",
+                            "type": "HOT_WATER",
+                            "mode": "MANUAL",
+                            "modeTimer": 30,
+                            "boilerTempSupport": false,
+                            "accTypeBoiler": "SWITCH"
+                        },
+                        {
+                            "active": true,
+                            "id": 1,
+                            "name": "Badezimmer Keller",
+                            "type": "HOT_WATER",
+                            "separateTemperature": false,
+                            "mode": "AUTO",
+                            "boilerTempSupport": true
+                        },
+                        {
+                            "active": true,
+                            "id": 31,
+                            "name": "Wohnzimmer",
+                            "type": "HEATING",
+                            "delaySwitch": true,
+                            "openWindowSensor": true,
+                            "openWindowSwitch": false,
+                            "separateTemperature": true,
+                            "separateHumidity": true,
+                            "mode": "MANUAL",
+                            "modeTimer": 60,
+                            "easyMode": true,
+                            "noBattery": false
+                        },
+                        {
+                            "active": true,
+                            "id": 49,
+                            "name": "Schlafzimmer",
+                            "type": "HEATING",
+                            "delaySwitch": true,
+                            "openWindowSensor": true,
+                            "openWindowSwitch": true,
+                            "separateTemperature": true,
+                            "separateHumidity": true,
+                            "mode": "MANUAL",
+                            "modeTimer": 1,
+                            "easyMode": true,
+                            "noBattery": false
+                        }
+                    ],
+                    "telegram": {
+                        "active": true,
+                        "token": "136373846:HKAHEVbsuwxl0uCSIi8kdFJsheköjezz72525",
+                        "chatID": "-123456789",
+                        "messages": {
+                            "presence": {
+                                "user_in": "Welcome at home @",
+                                "user_out": "Bye Bye @",
+                                "anyone_in": "Anyone at h;me.",
+                                "anyone_out": "Nobody at home."
+                            },
+                            "openWindow": {
+                                "opened": "@: Window opened!",
+                                "closed": "@: Window closed!"
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ]
 }
