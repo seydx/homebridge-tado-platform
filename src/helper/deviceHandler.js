@@ -341,7 +341,8 @@ module.exports = (api, accessories, config, tado, telegram) => {
         
         }
         
-        case 'presence-motion': {
+        case 'presence-motion':
+        case 'presence-occupancy': {
         
           if(historyService){
        
