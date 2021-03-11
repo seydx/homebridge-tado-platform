@@ -99,20 +99,27 @@ class HeaterCoolerAccessory {
    
     }
     
-    if (!service.testCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)){
-      
+    if (!service.testCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature))
       service.addCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature);
-
-      service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)
-        .updateValue(1);
-   
-    } 
     
-    if (!service.testCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature) && this.accessory.context.config.type === 'HEATING'){
-      
+    if (!service.testCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature) && this.accessory.context.config.type === 'HEATING')
       service.addCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature);
-      
-    } 
+    
+    let minValue = this.accessory.context.config.type === 'HOT_WATER'
+      ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
+        ? 30
+        : 86
+      : this.accessory.context.config.temperatureUnit === 'CELSIUS'
+        ? 5
+        : 41;
+        
+    let maxValue = this.accessory.context.config.type === 'HOT_WATER'
+      ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
+        ? 65
+        : 149
+      : this.accessory.context.config.temperatureUnit === 'CELSIUS'
+        ? 25
+        : 77;
     
     let props = {
       maxValue: 3,      
@@ -128,6 +135,9 @@ class HeaterCoolerAccessory {
       };
     }
     
+    service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)
+      .updateValue(1);
+    
     service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
       .setProps(props);
     
@@ -140,49 +150,40 @@ class HeaterCoolerAccessory {
       
     service.getCharacteristic(this.api.hap.Characteristic.CurrentTemperature)
       .setProps({
-        minValue: -100,
-        maxValue: 100
+        minValue: -255,
+        maxValue: 255
       });
-      
       
     if(this.accessory.context.config.type === 'HEATING'){
     
+      if (!service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value < minValue)
+        service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
+          .updateValue(minValue);
+          
+      if (!service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value < maxValue)
+        service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
+          .updateValue(maxValue);
+    
       service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
         .setProps({
-          minValue: this.accessory.context.config.type === 'HOT_WATER'
-            ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
-              ? 30
-              : 86
-            : this.accessory.context.config.temperatureUnit === 'CELSIUS'
-              ? 5
-              : 41,
-          maxValue: this.accessory.context.config.type === 'HOT_WATER'
-            ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
-              ? 65
-              : 149
-            : this.accessory.context.config.temperatureUnit === 'CELSIUS'
-              ? 25
-              : 77
+          minValue: minValue,
+          maxValue: maxValue
         });
     
     }
+    
+    if (!service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature).value < minValue)
+      service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)
+        .updateValue(minValue);
+        
+    if (!service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature).value < maxValue)
+      service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)
+        .updateValue(maxValue);
       
     service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)
       .setProps({
-        minValue: this.accessory.context.config.type === 'HOT_WATER'
-          ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
-            ? 30
-            : 86
-          : this.accessory.context.config.temperatureUnit === 'CELSIUS'
-            ? 5
-            : 41,
-        maxValue: this.accessory.context.config.type === 'HOT_WATER'
-          ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
-            ? 65
-            : 149
-          : this.accessory.context.config.temperatureUnit === 'CELSIUS'
-            ? 25
-            : 77
+        minValue: minValue,
+        maxValue: maxValue
       });
     
     service.getCharacteristic(this.api.hap.Characteristic.Active)
