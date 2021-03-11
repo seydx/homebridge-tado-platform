@@ -43,7 +43,7 @@ class SolarlightAccessory {
     service.getCharacteristic(this.api.hap.Characteristic.Brightness)
       .onSet(() => {        
         setTimeout(() => {
-          service.getCharacteristic(this.api.hap.Characteristic.On)
+          service.getCharacteristic(this.api.hap.Characteristic.Brightness)
             .updateValue(this.accessory.context.lightBulbBrightness || 0);
         }, 500);     
       }); 
