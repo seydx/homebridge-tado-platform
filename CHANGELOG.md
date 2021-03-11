@@ -9,6 +9,7 @@
 - Refactored code
 - Multiple tado accounts
 - Possibility to control multiple homes
+- Customizable temperature unit via HomeKit
 - Customizable Modes (AUTO | HEAT | COOL | OFF) or (ON | OFF)
 - Deactivatable battery indicator (support for old gen thermostats)
 - Customizable zone termination, separate for each zone
