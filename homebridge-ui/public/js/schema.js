@@ -197,24 +197,52 @@ const schema = {
               }
             },
             'presenceLock': {
-              'title': 'PresenceLock Security System',
+              'title': 'Presence Lock',
               'type': 'boolean',
               'description': 'If enabled, a Home/Away switch will be exposed to HomeKit.'
+            },
+            'accTypePresenceLock': {
+              'title': 'Presence Lock Accessory Type',
+              'type': 'string',
+              'oneOf': [
+                {
+                  'title': 'Security System',
+                  'enum': [
+                    'ALARM'
+                  ]
+                },
+                {
+                  'title': 'Switch',
+                  'enum': [
+                    'SWITCH'
+                  ]
+                }
+              ],
+              'description': 'The accessory type of the presence lock.'
             },
             'boostSwitch': {
               'title': 'Boost Switch',
               'type': 'boolean',
-              'description': 'If enabled, a boost heat switch will be exposed to HomeKit.'
+              'condition': {
+                'functionBody': 'try { return model.homes.extras.centralSwitch } catch(e){ return false }'
+              },
+              'description': 'If enabled, a boost heat switch will be added to the central switch.'
             },
             'sheduleSwitch': {
               'title': 'Shedule Switch',
               'type': 'boolean',
-              'description': 'If enabled, a shedule heat switch will be exposed to HomeKit.'
+              'condition': {
+                'functionBody': 'try { return model.homes.extras.centralSwitch } catch(e){ return false }'
+              },
+              'description': 'If enabled, a shedule heat switch will be added to the central switch.'
             },
             'turnoffSwitch': {
               'title': 'Turn Off Switch',
               'type': 'boolean',
-              'description': 'If enabled, a turn off heat switch will be exposed to HomeKit.'
+              'condition': {
+                'functionBody': 'try { return model.homes.extras.centralSwitch } catch(e){ return false }'
+              },
+              'description': 'If enabled, a turn off heat switch will be added to the central switch.'
             },
             'childLockSwitches': {
               'title': 'Child Lock Switches',
@@ -621,10 +649,17 @@ const schema = {
       'expanded': false,
       'orderable': false,
       'items': [
-        'homes.extras.boostSwitch',
-        'homes.extras.sheduleSwitch',
-        'homes.extras.turnoffSwitch',
-        'homes.extras.presenceLock',
+        {
+          'title': 'Presence Lock',
+          'type': 'section',
+          'expandable': true,
+          'expanded': false,
+          'orderable': false,
+          'items': [
+            'homes.extras.presenceLock',
+            'homes.extras.accTypePresenceLock'
+          ]
+        },
         {
           'title': 'Central Switch',
           'type': 'section',
@@ -633,7 +668,10 @@ const schema = {
           'orderable': false,
           'items': [
             'homes.extras.centralSwitch',
-            'homes.extras.runningInformation'
+            'homes.extras.runningInformation',
+            'homes.extras.boostSwitch',
+            'homes.extras.sheduleSwitch',
+            'homes.extras.turnoffSwitch'
           ]
         },
         {

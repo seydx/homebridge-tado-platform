@@ -89,7 +89,7 @@ class ThermostatAccessory {
         service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.DelaySwitch));
         
       if(service.testCharacteristic(this.api.hap.Characteristic.DelayTimer))
-      service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.DelayTimer));
+        service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.DelayTimer));
    
     }
 

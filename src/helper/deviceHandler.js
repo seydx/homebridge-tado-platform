@@ -142,22 +142,68 @@ module.exports = (api, accessories, config, tado, telegram) => {
           
         }  
         
-        case 'extra-plock': {
-          
+        case 'extra-plock':
+        case 'extra-plockswitch': {
+        
           let targetState;
         
-          if(value === 1){ //away
+          if(accessory.context.config.subtype === 'extra-plockswitch'){
             
-            targetState = 'AWAY';
+            let serviceHomeSwitch = accessory.getServiceById(api.hap.Service.Switch, 'HomeSwitch');
+            let serviceAwaySwitch = accessory.getServiceById(api.hap.Service.Switch, 'AwaySwitch');
             
-          } else if(value === 3){ //off
+            let characteristic = api.hap.Characteristic.On;
             
-            targetState = 'AUTO';
+            if(value){
             
-          } else { //at home
+              if(target === 'Home'){
+              
+                targetState = 'HOME';
+              
+                serviceAwaySwitch
+                  .getCharacteristic(characteristic)
+                  .updateValue(false);
+              
+              } else {
+              
+                targetState = 'AWAY';
+              
+                serviceHomeSwitch
+                  .getCharacteristic(characteristic)
+                  .updateValue(false);
+              
+              }
             
-            targetState = 'HOME';
+            } else {
             
+              targetState = 'AUTO';
+            
+              serviceAwaySwitch
+                .getCharacteristic(characteristic)
+                .updateValue(false);
+                
+              serviceHomeSwitch
+                .getCharacteristic(characteristic)
+                .updateValue(false);
+            
+            }
+          
+          } else {
+          
+            if(value === 1){ //away
+              
+              targetState = 'AWAY';
+              
+            } else if(value === 3){ //off
+              
+              targetState = 'AUTO';
+              
+            } else { //at home
+              
+              targetState = 'HOME';
+              
+            }
+          
           }
           
           await tado.setPresenceLock(config.homeId, targetState);
@@ -168,8 +214,11 @@ module.exports = (api, accessories, config, tado, telegram) => {
           
         case 'zone-window-switch': {
         
-          await tado.setWindowDetection(config.homeId, accessory.context.config.zoneId, value, 3600);
-          await tado.setOpenWindowMode(config.homeId, accessory.context.config.zoneId, value);
+          let id = target.split('-');
+          id = id[id.length-1];
+        
+          await tado.setWindowDetection(config.homeId, id, value, 3600);
+          await tado.setOpenWindowMode(config.homeId, id, value);
 
           break;  
           
@@ -177,79 +226,214 @@ module.exports = (api, accessories, config, tado, telegram) => {
           
         case 'extra-childswitch': {
         
-          await tado.setChildLock(accessory.context.config.serialNumber, value);
+          await tado.setChildLock(target, value);
 
           break;  
           
         }
           
-        case 'extra-cntrlswitch':
-        case 'extra-turnoff':
-        case 'extra-boost': {
-        
-          if(!value && accessory.context.config.subtype !== 'extra-cntrlswitch')
-            return;
+        case 'extra-cntrlswitch': {
+         
+          if(target === 'Shedule'){
           
-          const rooms = accessory.context.config.rooms.map(room => {
-            return {
-              id: room.id,
-              power: accessory.context.config.subtype === 'extra-cntrlswitch'
-                ? value
-                  ? 'ON'
-                  : 'OFF'
-                : accessory.context.config.subtype === 'extra-turnoff'
-                  ? 'OFF'
-                  : 'ON',
-              maxTempInCelsius: accessory.context.config.subtype === 'extra-cntrlswitch'
-                ? value
-                  ? 25
-                  : 0
-                : accessory.context.config.subtype === 'extra-turnoff'
-                  ? false
-                  : 25,
-              termination: ['MANUAL', 'AUTO', 'TIMER'].includes(room.mode)
-                ? room.mode
-                : 'MANUAL',
-              timer: ['MANUAL', 'AUTO', 'TIMER'].includes(room.mode) && room.mode === 'TIMER'
-                ? room.modeTimer && room.modeTimer >= 1
-                  ? room.modeTimer * 60
-                  : 1800 //30min
-                : false
-            };
-          }).filter(room => room);
+            if(!value)
+              return;
           
-          if(accessory.context.config.subtype !== 'extra-cntrlswitch'){
             setTimeout(() => {
               accessory
-                .getService(api.hap.Service.Switch)
+                .getServiceById(api.hap.Service.Switch, 'Central' + target)
                 .getCharacteristic(api.hap.Characteristic.On)
-                .updateValue(!value);
+                .setValue(false);
             }, 500);
-          }
           
-          await tado.switchAll(config.homeId, rooms);
-
-          break;  
+            const heatAccessories = accessories.filter(acc => acc && acc.context.config.type === 'HEATING');
           
-        }  
-          
-        case 'extra-shedule': {
-        
-          const roomIds = accessory.context.config.rooms.map(room => {
-            return room.id;
-          }).filter(id => id);
-          
-          setTimeout(() => {
-            accessory
-              .getService(api.hap.Service.Switch)
-              .getCharacteristic(api.hap.Characteristic.On)
-              .updateValue(!value);
-          }, 500);
+            const roomIds = accessory.context.config.rooms.map(room => {
+              return room.id;
+            }).filter(id => id);
+              
+            await tado.resumeShedule(config.homeId, roomIds);
             
-          await tado.resumeShedule(config.homeId, roomIds);
-
-          break;  
+            //Turn all back to AUTO/ON
+            heatAccessories.forEach(acc => {
+            
+              let serviceThermostat = acc.getService(api.hap.Service.Thermostat);
+              let serviceHeaterCooler = acc.getService(api.hap.Service.HeaterCooler); 
+              
+              if(serviceThermostat){
+              
+                let characteristicTarget = api.hap.Characteristic.TargetHeatingCoolingState;
+                  
+                serviceThermostat
+                  .getCharacteristic(characteristicTarget)
+                  .updateValue(3);
+              
+              } else if(serviceHeaterCooler){
+              
+                let characteristicActive = api.hap.Characteristic.Active;
+                
+                serviceHeaterCooler
+                  .getCharacteristic(characteristicActive)
+                  .updateValue(1);
+                                
+              }
+                         
+            });
+            
+            accessory
+              .getServiceById(api.hap.Service.Switch, 'Central')
+              .getCharacteristic(api.hap.Characteristic.On)
+              .updateValue(true);
           
+          } else {
+            
+            if(!value && target !== 'Central')
+              return;
+              
+            if(target !== 'Central'){
+              setTimeout(() => {
+                accessory
+                  .getServiceById(api.hap.Service.Switch, 'Central' + target)
+                  .getCharacteristic(api.hap.Characteristic.On)
+                  .setValue(false);
+              }, 500);
+            }
+              
+            const heatAccessories = accessories.filter(acc => acc && acc.context.config.type === 'HEATING');
+            
+            const rooms = accessory.context.config.rooms.map(room => {
+              return {
+                id: room.id,
+                power: target === 'Central'
+                  ? value
+                    ? 'ON'
+                    : 'OFF'
+                  : target === 'Off'
+                    ? 'OFF'
+                    : 'ON',
+                maxTempInCelsius: target === 'Central'
+                  ? value
+                    ? 25
+                    : 0
+                  : target === 'Off'
+                    ? false
+                    : 25,
+                termination: ['MANUAL', 'AUTO', 'TIMER'].includes(room.mode)
+                  ? room.mode
+                  : 'MANUAL',
+                timer: ['MANUAL', 'AUTO', 'TIMER'].includes(room.mode) && room.mode === 'TIMER'
+                  ? room.modeTimer && room.modeTimer >= 1
+                    ? room.modeTimer * 60
+                    : 1800 //30min
+                  : false
+              };
+            }).filter(room => room);
+            
+            await tado.switchAll(config.homeId, rooms);
+            
+            if((!value && target === 'Central') || target === 'Off'){
+            
+              //Turn Off All && Central Switch
+              heatAccessories.forEach(acc => {
+              
+                let serviceThermostat = acc.getService(api.hap.Service.Thermostat);
+                let serviceHeaterCooler = acc.getService(api.hap.Service.HeaterCooler); 
+                
+                if(serviceThermostat){
+                
+                  let characteristicCurrent = api.hap.Characteristic.CurrentHeatingCoolingState;
+                  let characteristicTarget = api.hap.Characteristic.TargetHeatingCoolingState;
+                  
+                  serviceThermostat
+                    .getCharacteristic(characteristicCurrent)
+                    .updateValue(0);
+                    
+                  serviceThermostat
+                    .getCharacteristic(characteristicTarget)
+                    .updateValue(0);
+                
+                } else if(serviceHeaterCooler){
+                
+                  let characteristicActive = api.hap.Characteristic.Active;
+                  
+                  serviceHeaterCooler
+                    .getCharacteristic(characteristicActive)
+                    .updateValue(0);
+                
+                }
+                           
+              });
+              
+              accessory
+                .getServiceById(api.hap.Service.Switch, 'Central')
+                .getCharacteristic(api.hap.Characteristic.On)
+                .updateValue(false);
+            
+            }
+            
+            if((value && target === 'Central') || target === 'Boost'){
+            
+              //Turn On All & Max temp & Central Switch
+              heatAccessories.forEach(acc => {
+              
+                let serviceThermostat = acc.getService(api.hap.Service.Thermostat);
+                let serviceHeaterCooler = acc.getService(api.hap.Service.HeaterCooler); 
+                
+                if(serviceThermostat){
+                
+                  let characteristicCurrent = api.hap.Characteristic.CurrentHeatingCoolingState;
+                  let characteristicTarget = api.hap.Characteristic.TargetHeatingCoolingState;
+                  let characteristicTargetTemp = api.hap.Characteristic.TargetTemperature;
+                  
+                  let maxTemp = serviceThermostat.getCharacteristic(characteristicTargetTemp).props.maxValue;
+                  
+                  serviceThermostat
+                    .getCharacteristic(characteristicCurrent)
+                    .updateValue(1);
+                    
+                  serviceThermostat
+                    .getCharacteristic(characteristicTarget)
+                    .updateValue(1);
+                    
+                  serviceThermostat
+                    .getCharacteristic(characteristicTargetTemp)
+                    .updateValue(maxTemp);
+                
+                } else if(serviceHeaterCooler){
+                
+                  let characteristicActive = api.hap.Characteristic.Active;
+                  let characteristicTargetTempHeat = api.hap.Characteristic.HeatingThresholdTemperature;
+                  let characteristicTargetTempCool = api.hap.Characteristic.CoolingThresholdTemperature;
+                  
+                  let maxTemp = serviceHeaterCooler.getCharacteristic(characteristicTargetTempHeat).props.maxValue;  //same for cool
+                  
+                  serviceHeaterCooler
+                    .getCharacteristic(characteristicActive)
+                    .updateValue(1); 
+                    
+                  serviceHeaterCooler
+                    .getCharacteristic(characteristicTargetTempHeat)
+                    .updateValue(maxTemp);
+                    
+                  serviceHeaterCooler
+                    .getCharacteristic(characteristicTargetTempCool)
+                    .updateValue(maxTemp);
+                                  
+                }
+                           
+              });
+              
+              accessory
+                .getServiceById(api.hap.Service.Switch, 'Central')
+                .getCharacteristic(api.hap.Characteristic.On)
+                .updateValue(true);
+            
+            }
+          
+          }
+        
+          break;
+        
         }
           
         default:
@@ -871,78 +1055,94 @@ module.exports = (api, accessories, config, tado, telegram) => {
         //HumiditySensor
         const humidityAccessory = accessories.filter(acc => acc && acc.context.config.subtype === 'zone-humidity');
         
-        if(humidityAccessory.length){
+        humidityAccessory.forEach(acc => {
+            
+          if(acc.displayName.includes(zone.name)){
+            
+            let serviceBattery = acc.getService(api.hap.Service.BatteryService); 
+            let characteristicBattery = api.hap.Characteristic.BatteryLevel;
+            
+            if(serviceBattery && !isNaN(battery)){
+              
+              serviceBattery
+                .getCharacteristic(characteristicBattery)
+                .updateValue(battery);
+           
+            }
           
-          humidityAccessory.forEach(acc => {
-              
-            if(acc.displayName.includes(zone.name)){
-              
-              let serviceBattery = acc.getService(api.hap.Service.BatteryService); 
-              let characteristicBattery = api.hap.Characteristic.BatteryLevel;
-              
-              if(serviceBattery && !isNaN(battery)){
+            if(!isNaN(humidity)){
+          
+              let service = acc.getService(api.hap.Service.HumiditySensor);          
+              let characteristic = api.hap.Characteristic.CurrentRelativeHumidity;
                 
-                serviceBattery
-                  .getCharacteristic(characteristicBattery)
-                  .updateValue(battery);
-             
-              }
-            
-              if(!isNaN(humidity)){
-            
-                let service = acc.getService(api.hap.Service.HumiditySensor);          
-                let characteristic = api.hap.Characteristic.CurrentRelativeHumidity;
-                  
-                service
-                  .getCharacteristic(characteristic)
-                  .updateValue(humidity);
-                
-              }
+              service
+                .getCharacteristic(characteristic)
+                .updateValue(humidity);
               
             }
             
-          });
+          }
           
-        }
+        });
         
         //WindowSensor
-        const windowAccessory = accessories.filter(acc => acc && (acc.context.config.subtype === 'zone-window-switch' || acc.context.config.subtype === 'zone-window-contact'));
-        
-        if(windowAccessory.length){
+        const windowContactAccessory = accessories.filter(acc => acc && acc.context.config.subtype === 'zone-window-contact');
+        const windowSwitchAccessory = accessories.filter(acc => acc && acc.displayName === 'Open Window');
           
-          windowAccessory.forEach(acc => {
-              
-            if(acc.displayName.includes(zone.name)){
-              
-              let serviceBattery = acc.getService(api.hap.Service.BatteryService); 
-              let characteristicBattery = api.hap.Characteristic.BatteryLevel;
-              
-              if(serviceBattery && !isNaN(battery)){
-                
-                serviceBattery
-                  .getCharacteristic(characteristicBattery)
-                  .updateValue(battery);
-             
-              }
+        windowContactAccessory.forEach(acc => {
             
-              let serviceSwitch = acc.getService(api.hap.Service.Switch);    
-              let serviceContact = acc.getService(api.hap.Service.ContactSensor);   
+          if(acc.displayName.includes(zone.name)){
+            
+            let serviceBattery = acc.getService(api.hap.Service.BatteryService); 
+            let characteristicBattery = api.hap.Characteristic.BatteryLevel;
+            
+            if(serviceBattery && !isNaN(battery)){
               
-              let service = serviceSwitch || serviceContact;
+              serviceBattery
+                .getCharacteristic(characteristicBattery)
+                .updateValue(battery);
+           
+            }
+          
+            let serviceSwitch = acc.getService(api.hap.Service.Switch);    
+            let serviceContact = acc.getService(api.hap.Service.ContactSensor);   
+            
+            let service = serviceSwitch || serviceContact;
+            
+            let characteristic = serviceSwitch
+              ? api.hap.Characteristic.On
+              : api.hap.Characteristic.ContactSensorState;
               
-              let characteristic = serviceSwitch
-                ? api.hap.Characteristic.On
-                : api.hap.Characteristic.ContactSensorState;
+            let state = serviceSwitch
+              ? zone.openWindowEnabled
+                ? true
+                : false
+              : zoneState.openWindow === null
+                ? 0
+                : 1;
+              
+            service
+              .getCharacteristic(characteristic)
+              .updateValue(state);
+            
+          }
+          
+        });
+        
+        if(windowSwitchAccessory.length){
+          
+          windowSwitchAccessory[0].services.forEach(service => {
+              
+            if(service.subtype && service.subtype.includes(zone.name)){
+            
+              let serviceSwitch = windowSwitchAccessory[0].getServiceById(api.hap.Service.Switch, service.subtype);  
+              let characteristic = api.hap.Characteristic.On;
                 
-              let state = serviceSwitch
-                ? zone.openWindowEnabled
-                  ? true
-                  : false
-                : zoneState.openWindow === null
-                  ? 0
-                  : 1;
+              let state = zone.openWindowEnabled
+                ? true
+                : false;
                 
-              service
+              serviceSwitch
                 .getCharacteristic(characteristic)
                 .updateValue(state);
               
@@ -968,23 +1168,38 @@ module.exports = (api, accessories, config, tado, telegram) => {
       const centralSwitchAccessory = accessories.filter(acc => acc && acc.displayName === 'Central Switch');
       
       if(centralSwitchAccessory.length){
-
-        let service = centralSwitchAccessory[0].getService(api.hap.Service.Switch);          
-        let characteristicAuto = api.hap.Characteristic.AutoThermostats;
-        let characteristicOff = api.hap.Characteristic.OfflineThermostats;
-        let characteristicManual = api.hap.Characteristic.ManualThermostats;
+      
+        centralSwitchAccessory[0].services.forEach(service => {
         
-        service
-          .getCharacteristic(characteristicAuto)
-          .updateValue(inAutoMode);
+          if(service.subtype === 'Central'){
           
-        service
-          .getCharacteristic(characteristicManual)
-          .updateValue(inManualMode);
+            let serviceSwitch = centralSwitchAccessory[0].getServiceById(api.hap.Service.Switch, service.subtype);
+            let characteristicOn = api.hap.Characteristic.On;
+            let characteristicAuto = api.hap.Characteristic.AutoThermostats;
+            let characteristicOff = api.hap.Characteristic.OfflineThermostats;
+            let characteristicManual = api.hap.Characteristic.ManualThermostats;
           
-        service
-          .getCharacteristic(characteristicOff)
-          .updateValue(inOffMode);
+            let state = (inManualMode || inAutoMode) !== 0;
+            
+            serviceSwitch
+              .getCharacteristic(characteristicAuto)
+              .updateValue(inAutoMode);
+              
+            serviceSwitch
+              .getCharacteristic(characteristicManual)
+              .updateValue(inManualMode);
+              
+            serviceSwitch
+              .getCharacteristic(characteristicOff)
+              .updateValue(inOffMode);
+              
+            serviceSwitch
+              .getCharacteristic(characteristicOn)
+              .updateValue(state);
+          
+          }
+        
+        });
         
       }
     
@@ -1197,9 +1412,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
       const presenceLockAccessory = accessories.filter(acc => acc && acc.displayName === 'Presence Lock');
       
       /*
-        0: Home
-        1: Away
-        3: Off
+        0: Home  | true
+        1: Away  | true
+        3: Off   | false
       */
 
       let state = presenceLock.presenceLocked
@@ -1208,17 +1423,44 @@ module.exports = (api, accessories, config, tado, telegram) => {
           : 0
         : 3;
         
-      let service = presenceLockAccessory[0].getService(api.hap.Service.SecuritySystem);          
-      let characteristicCurrent = api.hap.Characteristic.SecuritySystemCurrentState;
-      let characteristicTarget = api.hap.Characteristic.SecuritySystemTargetState;
+      let serviceSecurity = presenceLockAccessory[0].getService(api.hap.Service.SecuritySystem); 
+      let serviceHomeSwitch = presenceLockAccessory[0].getServiceById(api.hap.Service.Switch, 'HomeSwitch');
+      let serviceAwaySwitch = presenceLockAccessory[0].getServiceById(api.hap.Service.Switch, 'AwaySwitch');        
       
-      service
-        .getCharacteristic(characteristicCurrent)
-        .updateValue(state);
+      if(serviceSecurity){
+      
+        let characteristicCurrent = api.hap.Characteristic.SecuritySystemCurrentState;
+        //let characteristicTarget = api.hap.Characteristic.SecuritySystemTargetState;
         
-      service
-        .getCharacteristic(characteristicTarget)
-        .updateValue(state);
+        serviceSecurity
+          .getCharacteristic(characteristicCurrent)
+          .updateValue(state);
+          
+        /*serviceSecurity
+          .getCharacteristic(characteristicTarget)
+          .updateValue(state);*/
+      
+      } else if(serviceHomeSwitch || serviceAwaySwitch){
+      
+        let characteristicOn = api.hap.Characteristic.On;
+        
+        let homeState = !state
+          ? true
+          : false;
+          
+        let awayState = state === 1
+          ? true
+          : false;
+        
+        serviceAwaySwitch
+          .getCharacteristic(characteristicOn)
+          .updateValue(awayState);
+          
+        serviceHomeSwitch
+          .getCharacteristic(characteristicOn)
+          .updateValue(homeState);
+      
+      }
      
     }
   
@@ -1239,10 +1481,10 @@ module.exports = (api, accessories, config, tado, telegram) => {
       
       let summaryInHours = Math.round(((Math.round(runningTime.summary.totalRunningTimeInSeconds / 3600)) + Number.EPSILON) * 100) / 100;
       
-      let service = centralSwitchAccessory[0].getService(api.hap.Service.Switch);          
+      let serviceSwitch = centralSwitchAccessory[0].getServiceById(api.hap.Service.Switch, 'Central');         
       let characteristic = api.hap.Characteristic.OverallHeat;
       
-      service
+      serviceSwitch
         .getCharacteristic(characteristic)
         .updateValue(summaryInHours);
     
@@ -1263,15 +1505,15 @@ module.exports = (api, accessories, config, tado, telegram) => {
       const childLockAccessories = accessories.filter(acc => acc && acc.context.config.subtype === 'extra-childswitch');
       
       devices.forEach(device => {
-        childLockAccessories.forEach(acc => {
-          if(device.serialNo === acc.context.config.serialNumber){
-            
-            let childLockEnabled = device.childLockEnabled || false;
-              
-            let service = acc.getService(api.hap.Service.Switch);       
+        childLockAccessories[0].services.forEach(service => {
+          if(device.serialNo === service.subtype){
+          
+            let serviceChildLock = childLockAccessories[0].getServiceById(api.hap.Service.Switch, service.subtype);
             let characteristic = api.hap.Characteristic.On;
             
-            service
+            let childLockEnabled = device.childLockEnabled || false;
+            
+            serviceChildLock
               .getCharacteristic(characteristic)
               .updateValue(childLockEnabled);
 

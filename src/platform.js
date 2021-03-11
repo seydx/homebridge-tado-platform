@@ -127,6 +127,8 @@ TadoPlatform.prototype = {
             
             if(home.zones && home.zones.length){
             
+              let validOpenWindowSwitches = [];
+            
               home.zones.forEach(zone => {
               
                 if(zone.active){
@@ -217,24 +219,11 @@ TadoPlatform.prototype = {
                       
                       //Configure openWindowSwitch
                       if(zone.openWindowSwitch){
-                        
-                        const uuid2 = UUIDGen.generate(zone.name + ' Window Switch');
-                        
-                        if (this.devices.has(uuid2)) {
-                        
-                          Logger.warn('Multiple devices are configured with this name. Duplicate devices will be skipped.', zone.name + ' Window Switch');
-                        
-                        } else {
-                        
-                          let newConfig = { ...config };
-                          newConfig.name = zone.name + ' Window Switch';
-                          newConfig.subtype = 'zone-window-switch';
-                          newConfig.model = newConfig.subtype;
-                          newConfig.serialNumber = hashCode(zone.name);
-                        
-                          this.devices.set(uuid2, newConfig);
-                        
-                        }
+                      
+                        validOpenWindowSwitches.push({
+                          name: zone.name + ' Window',
+                          zoneId: zone.id
+                        });
                       
                       }
                       
@@ -291,6 +280,31 @@ TadoPlatform.prototype = {
                 }
           
               });
+              
+              if(validOpenWindowSwitches.length){
+              
+                const name = 'Open Window';
+                const uuid = UUIDGen.generate(name);
+                 
+                if (this.devices.has(uuid)) {
+               
+                  Logger.warn('Multiple devices are configured with this name. Duplicate devices will be skipped.', name);
+               
+                } else {
+                     
+                  let config = { ...accessoryConfig };
+                     
+                  config.name = name;
+                  config.subtype = 'zone-window-switch';
+                  config.openWindows = validOpenWindowSwitches; 
+                  config.model = config.subtype;
+                  config.serialNumber = hashCode(name);
+                
+                  this.devices.set(uuid, config);
+                    
+                }
+              
+              }
             
             }
             
@@ -468,10 +482,51 @@ TadoPlatform.prototype = {
             if(home.extras){
               
               if(activeZones){
+              
+                let validSwitches = [];
                 
                 //Configure Central Switch
                 if(home.extras.centralSwitch){
-                 
+                
+                  validSwitches.push({
+                    name: 'Central',
+                    sub: 'Central'
+                  });
+
+                  //Configure Boost Switch
+                  if(home.extras.boostSwitch){
+                   
+                    validSwitches.push({
+                      name: 'Boost',
+                      sub: 'CentralBoost'
+                    });
+                   
+                  }
+                  
+                  //Configure Shedule Switch
+                  if(home.extras.sheduleSwitch){
+                   
+                    validSwitches.push({
+                      name: 'Shedule',
+                      sub: 'CentralShedule'
+                    });
+                   
+                  }
+                  
+                  //Configure Turnoff Switch
+                  if(home.extras.turnoffSwitch){
+                   
+                    validSwitches.push({
+                      name: 'Off',
+                      sub: 'CentralOff'
+                    });
+                   
+                  }
+               
+                }
+                
+                if(validSwitches.length){ 
+                
                   const name = 'Central Switch'; 
                   const uuid = UUIDGen.generate(name);
                    
@@ -487,91 +542,14 @@ TadoPlatform.prototype = {
                     config.subtype = 'extra-cntrlswitch';
                     config.runningInformation = home.extras.runningInformation; 
                     config.rooms = home.zones.filter(zne => zne && zne.id);
+                    config.switches = validSwitches;
                     config.model = 'Central Switch';
                     config.serialNumber = hashCode(name);
                      
                     this.devices.set(uuid, config);
                       
                   }
-               
-                }
-              
-                //Configure Boost Switch
-                if(home.extras.boostSwitch){
-                 
-                  const name = 'Boost Switch'; 
-                  const uuid2 = UUIDGen.generate(name);
-                   
-                  if (this.devices.has(uuid2)) {
-                 
-                    Logger.warn('Multiple devices are configured with this name. Duplicate devices will be skipped.', name);
-                 
-                  } else {
-                       
-                    let config = { ...accessoryConfig };
-                       
-                    config.name = name;
-                    config.subtype = 'extra-boost';
-                    config.rooms = home.zones.filter(zne => zne && zne.id);
-                    config.model = 'Boost Switch';
-                    config.serialNumber = hashCode(name);
-                     
-                    this.devices.set(uuid2, config);
-                      
-                  }
-                 
-                }
                 
-                //Configure Shedule Switch
-                if(home.extras.sheduleSwitch){
-                 
-                  const name = 'Shedule Switch'; 
-                  const uuid2 = UUIDGen.generate(name);
-                   
-                  if (this.devices.has(uuid2)) {
-                 
-                    Logger.warn('Multiple devices are configured with this name. Duplicate devices will be skipped.', name);
-                 
-                  } else {
-                       
-                    let config = { ...accessoryConfig };
-                       
-                    config.name = name;
-                    config.subtype = 'extra-shedule';
-                    config.rooms = home.zones.filter(zne => zne && zne.id); 
-                    config.model = 'Boost Switch';
-                    config.serialNumber = hashCode(name);
-                     
-                    this.devices.set(uuid2, config);
-                      
-                  }
-                 
-                }
-                
-                //Configure Turnoff Switch
-                if(home.extras.turnoffSwitch){
-                 
-                  const name = 'Turn Off Switch'; 
-                  const uuid2 = UUIDGen.generate(name);
-                   
-                  if (this.devices.has(uuid2)) {
-                 
-                    Logger.warn('Multiple devices are configured with this name. Duplicate devices will be skipped.', name);
-                 
-                  } else {
-                       
-                    let config = { ...accessoryConfig };
-                       
-                    config.name = name;
-                    config.subtype = 'extra-turnoff';
-                    config.rooms = home.zones.filter(zne => zne && zne.id); 
-                    config.model = 'Turn Off Switch';
-                    config.serialNumber = hashCode(name);
-                     
-                    this.devices.set(uuid2, config);
-                      
-                  }
-                 
                 }
               
               }
@@ -591,7 +569,9 @@ TadoPlatform.prototype = {
                   let config = { ...accessoryConfig };
                      
                   config.name = name;
-                  config.subtype = 'extra-plock';
+                  config.subtype = home.extras.accTypePresenceLock === 'ALARM'
+                    ? 'extra-plock'
+                    : 'extra-plockswitch';
                    
                   config.model = 'Presence Lock';
                   config.serialNumber = hashCode(name);
@@ -605,6 +585,8 @@ TadoPlatform.prototype = {
               //Configure ChildLock Switch
               if(home.extras.childLockSwitches){
               
+                let validSwitches = [];
+              
                 home.extras.childLockSwitches.forEach(childLock => {
                 
                   if(childLock.active){
@@ -614,27 +596,9 @@ TadoPlatform.prototype = {
                       error = true;
                     }
                      
-                    if(!error){   
-                     
-                      const uuid = UUIDGen.generate(childLock.name);
-                       
-                      if (this.devices.has(uuid)) {
-                     
-                        Logger.warn('Multiple devices are configured with this name. Duplicate devices will be skipped.', childLock.name);
-                     
-                      } else {
-                           
-                        let config = { ...accessoryConfig };
-                           
-                        config.name = childLock.name;
-                        config.subtype = 'extra-childswitch';
-                         
-                        config.model = config.subtype;
-                        config.serialNumber = childLock.serialNumber;
-                      
-                        this.devices.set(uuid, config);
-                          
-                      }
+                    if(!error){  
+                    
+                      validSwitches.push(childLock); 
                      
                     }
                      
@@ -642,6 +606,31 @@ TadoPlatform.prototype = {
                 
                 
                 });
+                
+                if(validSwitches.length){
+                
+                  const name = 'Child Lock';
+                  const uuid = UUIDGen.generate(name);
+                   
+                  if (this.devices.has(uuid)) {
+                 
+                    Logger.warn('Multiple devices are configured with this name. Duplicate devices will be skipped.', name);
+                 
+                  } else {
+                       
+                    let config = { ...accessoryConfig };
+                       
+                    config.name = name;
+                    config.subtype = 'extra-childswitch';
+                    config.childLocks = validSwitches; 
+                    config.model = config.subtype;
+                    config.serialNumber = hashCode(name);
+                  
+                    this.devices.set(uuid, config);
+                      
+                  }
+                
+                }
                
               }
             
@@ -807,6 +796,7 @@ TadoPlatform.prototype = {
       case 'extra-boost':
       case 'extra-shedule':
       case 'extra-turnoff':
+      case 'extra-plockswitch':
         new SwitchAccessory(this.api, accessory, this.accessories, tado, deviceHandler);  
         break;        
       case 'zone-faucet': 

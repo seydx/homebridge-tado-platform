@@ -44,7 +44,7 @@ async function showOldSchema(oldVersion) {
   }
   
   if(!config.length)
-    homebridge.updatePluginConfig([{}])
+    homebridge.updatePluginConfig([{}]);
   
   homebridge.showSchemaForm();
   
@@ -454,7 +454,7 @@ async function fetchDevices(credentials, refresh, resync){
               if(foundZone.devices)
                 foundZone.devices.forEach(dev => {
                   allFoundDevices.push({
-                    name: foundZone.name + ' ' + dev.shortSerialNo + ' ChildLock',
+                    name: foundZone.name + ' ' + dev.shortSerialNo,
                     serialNumber: dev.shortSerialNo
                   });
                 });
@@ -494,7 +494,7 @@ async function fetchDevices(credentials, refresh, resync){
               if(zone.devices)
                 zone.devices.forEach(dev => {
                   allFoundDevices.push({
-                    name: zone.name + ' ' + dev.shortSerialNo + ' ChildLock',
+                    name: zone.name + ' ' + dev.shortSerialNo,
                     serialNumber: dev.shortSerialNo
                   });
                 });
@@ -759,7 +759,7 @@ async function fetchDevices(credentials, refresh, resync){
                 if(foundZone.devices)
                   foundZone.devices.forEach(dev => {
                     allFoundDevices.push({
-                      name: foundZone.name + ' ' + dev.shortSerialNo + ' ChildLock',
+                      name: foundZone.name + ' ' + dev.shortSerialNo,
                       serialNumber: dev.shortSerialNo
                     });
                   });
@@ -799,7 +799,7 @@ async function fetchDevices(credentials, refresh, resync){
                 if(zone.devices)
                   zone.devices.forEach(dev => {
                     allFoundDevices.push({
-                      name: zone.name + ' ' + dev.shortSerialNo + ' ChildLock',
+                      name: zone.name + ' ' + dev.shortSerialNo,
                       serialNumber: dev.shortSerialNo
                     });
                   });
@@ -924,6 +924,7 @@ async function fetchDevices(credentials, refresh, resync){
               centralSwitch: false,
               runningInformation: false,
               presenceLock: false,
+              accTypePresenceLock: 'ALARM',
               childLockSwitches: []
             },
             telegram: {
@@ -961,7 +962,7 @@ async function fetchDevices(credentials, refresh, resync){
                 if(device.childLockEnabled !== undefined || device.childLockEnabled !== null)
                   homeConfig.extras.childLockSwitches.push({
                     active: false,
-                    name: zone.name + ' ' + device.shortSerialNo + ' ChildLock',
+                    name: zone.name + ' ' + device.shortSerialNo,
                     serialNumber: device.shortSerialNo
                   });
               });
@@ -1040,6 +1041,7 @@ async function fetchDevices(credentials, refresh, resync){
               centralSwitch: false,
               runningInformation: false,
               presenceLock: false,
+              accTypePresenceLock: 'ALARM',
               childLockSwitches: []
             },
             telegram: {
@@ -1089,7 +1091,7 @@ async function fetchDevices(credentials, refresh, resync){
                 if(device.childLockEnabled !== undefined || device.childLockEnabled !== null)
                   homeConfig.extras.childLockSwitches.push({
                     active: false,
-                    name: zone.name + ' ' + device.shortSerialNo + ' ChildLock',
+                    name: zone.name + ' ' + device.shortSerialNo,
                     serialNumber: device.shortSerialNo
                   });
               });

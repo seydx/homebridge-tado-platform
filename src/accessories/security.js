@@ -24,6 +24,25 @@ class SecurityAccessory {
   getService () {
     
     let service = this.accessory.getService(this.api.hap.Service.SecuritySystem);
+    let serviceOld = this.accessory.getService(this.api.hap.Service.Switch);
+    
+    let serviceHomeSwitch = this.accessory.getServiceById(this.api.hap.Service.Switch, 'HomeSwitch');
+    let serviceAwaySwitch = this.accessory.getServiceById(this.api.hap.Service.Switch, 'AwaySwitch');
+    
+    if(serviceHomeSwitch){
+      Logger.info('Removing Switch service (home)', this.accessory.displayName);
+      this.accessory.removeService(serviceHomeSwitch);
+    }
+    
+    if(serviceAwaySwitch){
+      Logger.info('Removing Switch service (away)', this.accessory.displayName);
+      this.accessory.removeService(serviceAwaySwitch);
+    }
+    
+    if(serviceOld){
+      Logger.info('Removing Switch service', this.accessory.displayName);
+      this.accessory.removeService(serviceOld);
+    }
     
     if(!service){
       Logger.info('Adding SecuritySystem service', this.accessory.displayName);
