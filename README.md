@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://i.ibb.co/kJSkyhD/tado-logo.png">
+  <img src="https://github.com/SeydX/homebridge-tado-platform/blob/beta/images/tado_logo.png">
 </p>
 
 # Tado Platform v6
