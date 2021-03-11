@@ -47,6 +47,7 @@
                         "centralSwitch": true,
                         "runningInformation": true,
                         "presenceLock": true,
+                        "accTypePresenceLock": "SWITCH",
                         "boostSwitch": true,
                         "sheduleSwitch": true,
                         "turnoffSwitch": true,
