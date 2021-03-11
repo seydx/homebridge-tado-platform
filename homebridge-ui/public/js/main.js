@@ -20,14 +20,31 @@ function toggleContent(){
   
 }
 
-function showOldSchema() {
+async function showOldSchema(oldVersion) {
 
-  $('#main').removeClass('pb-5');
-  $('#notSupported').show();
+  let config = await homebridge.getPluginConfig();
+
+  if(oldVersion){
+    
+    $('#main').removeClass('pb-5');
+    $('#notSupported').show();
+    
+    setTimeout(() => {
+      $('#main').fadeOut(500);
+    }, 5000);
   
-  setTimeout(() => {
-    $('#main').fadeOut(500);
-  }, 5000);
+  } else {
+  
+    let activeContent = $('#notConfigured').css('display') !== 'none' 
+      ? '#notConfigured'
+      : '#isConfigured';
+  
+    transPage($('#main, ' + activeContent), $('#headerOld'), false, true);
+  
+  }
+  
+  if(!config.length)
+    homebridge.updatePluginConfig([{}])
   
   homebridge.showSchemaForm();
   
@@ -1137,7 +1154,8 @@ async function fetchDevices(credentials, refresh, resync){
   
     //check version before load ui
     if(window.compareVersions(window.homebridge.serverEnv.env.packageVersion, '4.34.0') < 0){
-      return showOldSchema();
+      await showOldSchema(true);
+      return;
     }
     
     pluginConfig = await homebridge.getPluginConfig();
@@ -1182,16 +1200,8 @@ $('.back').on('click', () => {
   goBack();
 });
 
-$('.oldConfig').on('click', () => {
-
-  let activeContent = $('#notConfigured').css('display') !== 'none' 
-    ? '#notConfigured'
-    : '#isConfigured';
-    
-  homebridge.showSchemaForm();
-
-  transPage($('#main, ' + activeContent), $('#headerOld'), false, true);
-  
+$('.oldConfig').on('click', async () => {
+  await showOldSchema(false);
 });
 
 $('#start, #addDevice').on('click', () => {
