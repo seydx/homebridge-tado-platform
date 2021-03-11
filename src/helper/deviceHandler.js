@@ -47,7 +47,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 .getCharacteristic(targetTempCharacteristic)
                 .value;
               
-              await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit)
+              await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit);
               
             } else {
               
@@ -75,9 +75,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   .value;
                 
                 if(clear){
-                  await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId)
+                  await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);
                 } else {
-                  await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit)
+                  await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit);
                 }
                 
                 delayTimer[accessory.displayName] = null;
@@ -110,9 +110,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
             }
             
             if(clear){
-              await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId)
+              await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);
             } else {
-              await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit)
+              await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit);
             }
             
           }
@@ -136,7 +136,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
               .getCharacteristic(this.api.hap.Characteristic.InUse)
               .updateValue(value);
         
-          await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit)
+          await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit);
 
           break;  
           
@@ -160,7 +160,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
             
           }
           
-          await tado.setPresenceLock(config.homeId, targetState)
+          await tado.setPresenceLock(config.homeId, targetState);
 
           break;  
           
@@ -188,35 +188,35 @@ module.exports = (api, accessories, config, tado, telegram) => {
         case 'extra-boost': {
         
           if(!value && accessory.context.config.subtype !== 'extra-cntrlswitch')
-            return
+            return;
           
           const rooms = accessory.context.config.rooms.map(room => {
-             return {
-               id: room.id,
-               power: accessory.context.config.subtype === 'extra-cntrlswitch'
-                 ? value
-                   ? 'ON'
-                   : 'OFF'
-                 : accessory.context.config.subtype === 'extra-turnoff'
-                   ? 'OFF'
-                   : 'ON',
-               maxTempInCelsius: accessory.context.config.subtype === 'extra-cntrlswitch'
-                 ? value
-                   ? 25
-                   : 0
-                 : accessory.context.config.subtype === 'extra-turnoff'
-                   ? false
-                   : 25,
-               termination: ['MANUAL', 'AUTO', 'TIMER'].includes(room.mode)
-                 ? room.mode
-                 : 'MANUAL',
-               timer: ['MANUAL', 'AUTO', 'TIMER'].includes(room.mode) && room.mode === 'TIMER'
-                 ? room.modeTimer && room.modeTimer >= 1
-                    ? room.modeTimer * 60
-                    : 1800 //30min
-                 : false
-              }
-            }).filter(room => room);
+            return {
+              id: room.id,
+              power: accessory.context.config.subtype === 'extra-cntrlswitch'
+                ? value
+                  ? 'ON'
+                  : 'OFF'
+                : accessory.context.config.subtype === 'extra-turnoff'
+                  ? 'OFF'
+                  : 'ON',
+              maxTempInCelsius: accessory.context.config.subtype === 'extra-cntrlswitch'
+                ? value
+                  ? 25
+                  : 0
+                : accessory.context.config.subtype === 'extra-turnoff'
+                  ? false
+                  : 25,
+              termination: ['MANUAL', 'AUTO', 'TIMER'].includes(room.mode)
+                ? room.mode
+                : 'MANUAL',
+              timer: ['MANUAL', 'AUTO', 'TIMER'].includes(room.mode) && room.mode === 'TIMER'
+                ? room.modeTimer && room.modeTimer >= 1
+                  ? room.modeTimer * 60
+                  : 1800 //30min
+                : false
+            };
+          }).filter(room => room);
           
           if(accessory.context.config.subtype !== 'extra-cntrlswitch'){
             setTimeout(() => {
@@ -227,7 +227,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
             }, 500);
           }
           
-          await tado.switchAll(config.homeId, rooms)
+          await tado.switchAll(config.homeId, rooms);
 
           break;  
           
@@ -246,7 +246,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
               .updateValue(!value);
           }, 500);
             
-          await tado.resumeShedule(config.homeId, roomIds)
+          await tado.resumeShedule(config.homeId, roomIds);
 
           break;  
           
@@ -390,7 +390,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
         }
         
         default: 
-          Logger.warn('Accessory with unknown subtype wanted to store history data', accessory.displayName)
+          Logger.warn('Accessory with unknown subtype wanted to store history data', accessory.displayName);
           break;
       
       }
@@ -536,7 +536,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
           if(zoneWithID.name === zone.name){
             config.zones[index].id = zoneWithID.id;
             config.zones[index].battery = !config.zones[index].noBattery
-              ? zoneWithID.devices.filter(device => device && zone.type === 'HEATING' && device.batteryState && !device.batteryState.includes('NORMAL')).length
+              ? zoneWithID.devices.filter(device => device && zone.type === 'HEATING' && typeof device.batteryState === 'string' && !device.batteryState.includes('NORMAL')).length
                 ? zoneWithID.devices.filter(device => device && !device.batteryState.includes('NORMAL'))[0].batteryState
                 : zoneWithID.devices.filter(device => device && device.duties.includes('ZONE_LEADER'))[0].batteryState
               : false;
@@ -897,9 +897,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   .getCharacteristic(characteristic)
                   .updateValue(humidity);
                 
-                }
-              
               }
+              
+            }
             
           });
           
@@ -1017,15 +1017,15 @@ module.exports = (api, accessories, config, tado, telegram) => {
             if(atHome)
               activeUser += 1;
             
-            let service = acc.getService(api.hap.Service.MotionSensor) || acc.getService(api.hap.Service.OccupancySensor)
+            let service = acc.getService(api.hap.Service.MotionSensor) || acc.getService(api.hap.Service.OccupancySensor);
             
             let characteristic = service.testCharacteristic(api.hap.Characteristic.MotionDetected)
               ? api.hap.Characteristic.MotionDetected
               : api.hap.Characteristic.OccupancyDetected;
             
-              service
-                .getCharacteristic(characteristic)
-                .updateValue(atHome)
+            service
+              .getCharacteristic(characteristic)
+              .updateValue(atHome);
 
           }
         });
@@ -1033,15 +1033,15 @@ module.exports = (api, accessories, config, tado, telegram) => {
       
       if(anyone.length){
       
-        let service = anyone[0].getService(api.hap.Service.MotionSensor) || anyone[0].getService(api.hap.Service.OccupancySensor)
+        let service = anyone[0].getService(api.hap.Service.MotionSensor) || anyone[0].getService(api.hap.Service.OccupancySensor);
               
         let characteristic = service.testCharacteristic(api.hap.Characteristic.MotionDetected)
           ? api.hap.Characteristic.MotionDetected
           : api.hap.Characteristic.OccupancyDetected;
   
         service
-         .getCharacteristic(characteristic)
-         .updateValue(activeUser ? 1 : 0);
+          .getCharacteristic(characteristic)
+          .updateValue(activeUser ? 1 : 0);
        
       }
     
@@ -1074,14 +1074,14 @@ module.exports = (api, accessories, config, tado, telegram) => {
           : weather.outsideTemperature.celsius;
           
         service
-         .getCharacteristic(characteristic)
-         .updateValue(temp);
+          .getCharacteristic(characteristic)
+          .updateValue(temp);
         
       }
       
       if(solarIntensityAccessory.length && weather.solarIntensity){
         
-        let state = weather.solarIntensity.percentage !== 0
+        let state = weather.solarIntensity.percentage !== 0;
         let brightness = weather.solarIntensity.percentage;
         
         solarIntensityAccessory[0].context.lightBulbState = state;
@@ -1214,11 +1214,11 @@ module.exports = (api, accessories, config, tado, telegram) => {
       
       service
         .getCharacteristic(characteristicCurrent)
-        .updateValue(state)
+        .updateValue(state);
         
       service
         .getCharacteristic(characteristicTarget)
-        .updateValue(state)
+        .updateValue(state);
      
     }
   
@@ -1237,7 +1237,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
       
       const centralSwitchAccessory = accessories.filter(acc => acc && acc.displayName === 'Central Switch');
       
-      let summaryInHours = Math.round(((Math.round(runningTime.summary.totalRunningTimeInSeconds / 3600)) + Number.EPSILON) * 100) / 100
+      let summaryInHours = Math.round(((Math.round(runningTime.summary.totalRunningTimeInSeconds / 3600)) + Number.EPSILON) * 100) / 100;
       
       let service = centralSwitchAccessory[0].getService(api.hap.Service.Switch);          
       let characteristic = api.hap.Characteristic.OverallHeat;
@@ -1273,7 +1273,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
             
             service
               .getCharacteristic(characteristic)
-              .updateValue(childLockEnabled)
+              .updateValue(childLockEnabled);
 
           }
         });
