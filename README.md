@@ -13,7 +13,7 @@
 
 [Click here](https://github.com/SeydX) to review more of my plugins.
 
-**<u>NOTE:</u>** Updating from **<= v5.x** to **v6.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/veta/example-config.json) 
+**<u>NOTE:</u>** Updating from **<= v5.x** to **v6.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/beta/example-config.json) 
 
 ## Info
 
