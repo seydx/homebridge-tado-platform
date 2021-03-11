@@ -536,7 +536,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
           if(zoneWithID.name === zone.name){
             config.zones[index].id = zoneWithID.id;
             config.zones[index].battery = !config.zones[index].noBattery
-              ? zoneWithID.devices.filter(device => device && zone.type === 'HEATING' && !device.batteryState.includes('NORMAL')).length
+              ? zoneWithID.devices.filter(device => device && zone.type === 'HEATING' && device.batteryState && !device.batteryState.includes('NORMAL')).length
                 ? zoneWithID.devices.filter(device => device && !device.batteryState.includes('NORMAL'))[0].batteryState
                 : zoneWithID.devices.filter(device => device && device.duties.includes('ZONE_LEADER'))[0].batteryState
               : false;
