@@ -2,26 +2,52 @@
   <img src="https://i.ibb.co/kJSkyhD/tado-logo.png">
 </p>
 
-
-## Tado Platform v6
+# Tado Platform v6
 
 [![npm](https://img.shields.io/npm/v/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![npm](https://img.shields.io/npm/dt/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![GitHub last commit](https://img.shields.io/github/last-commit/SeydX/homebridge-tado-platform.svg?style=flat-square)](https://github.com/SeydX/homebridge-tado-platform)
 [![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg?style=flat-square&maxAge=2592000)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NP4T3KASWQLD8)
 
-
 **Creating and maintaining Homebridge plugins consume a lot of time and effort, if you would like to share your appreciation, feel free to "Star" or donate.**
 
 [Click here](https://github.com/SeydX) to review more of my plugins.
 
-
 **<u>NOTE:</u>** Updating from **<= v5.x** to **v6.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/example-config.json) 
-
 
 ## Info
 
 **TafoPlatform** is possibly the biggest homebridge plugin for Tado devices. Pretty much everything you can do with the Tado app you can also do with this plugin and much more! Every temperature sensor, humidity sensor, contact sensor, motion sensor and thermostats are also able to show the history in Elgato EVE app.
+
+## Installation
+
+After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
+
+ ```sudo npm install -g homebridge-tado-platform@beta```
+
+## Documentation
+
+- [Example config.json](#example-configjson)
+- [Configuration](#configuration)
+  - [Thermostat](#thermostat)
+    -  [Open Window](#open-window)
+  - [Hot Water](#hot-water)
+  - [Presence](#presence)
+  - [Weather](#weather)
+    - [Air Quality](#air-quality)
+  - [Extras](#extras)
+    - [Central Switch](#central-switch)
+    - [Presence Lock](#presence-lock)
+    - [Boost Switch](#boost-switch)
+    - [Shedule Switch](#shedule-switch)
+    - [Turnoff Switch](#turnoff-switch)
+    - [Child Lock](#child-lock)
+  - [Telegram](#telegram)
+  - [Supported Clients](#supported-clients)
+  - [Contributing](#contributing)
+  - [Troubleshooting](#troubleshooting)
+
+## Custom UI
 
 Unlike other plugins, this plugin allows you to manually enable/disable each zone, thermostat, user and everything you see in HomeKit via config.json.
 
@@ -32,15 +58,8 @@ It supports the full potential of Config UI X and makes configuring the plugin m
 <img src="https://i.ibb.co/tL955Lg/hb-tadoplatform-ui-test.gif" align="center" alt="CustomUI">
 
 _(In the section below you can find more information about the functions.)_
-
-## Installation instructions
-
-After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
-
- ```sudo npm install -g homebridge-tado-platform@latest```
  
- 
- ## Example config.json:
+## Example config.json:
 
 ```
 {
@@ -87,6 +106,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 ```
 See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/beta/example-config.json) for more details
 
+## Configuration
 
 ## Thermostat
 
@@ -135,8 +155,7 @@ Each zone in the config.json with ``type: HEATING`` and ``easyMode: true`` is ex
 ]
 ```
 
-
-#### OpenWindow:
+#### Open Window:
 
 Each zone with ``"type": "HEATING"`` also has the possibility to display "OpenWindow" contact sensors or switches in HomeKit with the following features:
 
@@ -163,38 +182,6 @@ Each zone with ``"type": "HEATING"`` also has the possibility to display "OpenWi
 ]
 ```
 
-#### ChildLock
-
-Each device with ``"type": HEATING`` and child lock support can be exposed to HomeKit as Switches with following features:
-
-- Shows the current child lock state for the device
-- Possibility to change child lock state
-
-```
-"homes": [
-  {
-    "zones": [ ... ],
-    "extras": {
-      "childLockSwitches": [
-        {
-        "active": true,
-        "name": "Living Room Heater",
-        "serialNumber": "VA1234567890"
-        },
-        {
-        "active": true,
-        "name": "Sleeping Room Heater",
-        "serialNumber": "VA1234567890"
-        }
-      ]
-    }
-    ...
-  }
-  ...
-]
-```
-
-
 ## Hot Water
 
 Each zone in the config.json with ``"type": HOT_WATER`` and ``"boilerTempSupport": false`` is exposed to HomeKit as a switch (``"accTypeBoiler: "SWITCH"``) or faucet (``"accTypeBoiler: "FAUCET"``) accessory with the following features:
@@ -208,7 +195,6 @@ Each zone in the config.json with ``type: HOT_WATER`` and ``boilerTempSupport: t
 - Curent Temperature
 - Target Temperature
 - Separate Temperature Sensor (if ``separateTemperature: true``)
-
 
 ```
 "homes": [
@@ -305,27 +291,10 @@ In order to use the Air Quality Sensor, you need to enable airQuality ``"airQual
 ]
 ```
 
-
 ## Extras
 
-**Central Switch:**
+### Central Switch
 Shows a switch accessory with additional custom characteristics in HomeKit which mimics the "Boost" and "Turnoff" switch from Tado. It also shows the Heater Running information as a custom characteristic for the month (in hours) and it shows also how many thermostats are in auto, manual or off mode.
-
-**Presence Lock:**
-Shows a security accessory in HomeKit with following features: HOME | AWAY | DISABLED
-
-**Boost Switch:**
-Shows a switch accessory in HomeKit which mimics the "Boost" switch from Tado and switches all heaters to max temperature
-
-**Shedule Switch:**
-Shows a switch accessory in HomeKit which mimics the "Shedule" switch from Tado and switches all heaters to their default shedule
-
-**Turnoff Switch:**
-Shows a switch accessory in HomeKit which mimics the "Turn Off" switch from Tado and switches all heaters off
-
-**Child Lock:**
-Each device with ``"type": "HEATING"`` and child lock support can be exposed to HomeKit as switches which can show you if child lock is enabled or you can also enable/disable child lock.
-
 
 ```
 "homes": [
@@ -336,10 +305,101 @@ Each device with ``"type": "HEATING"`` and child lock support can be exposed to 
     "weather": { ... },
     "extras": {
       "centralSwitch": true,
-      "runningInformation": true,
-      "presenceLock": true,
-      "boostSwitch": true,
-      "sheduleSwitch": true,
+      "runningInformation": true
+    }
+    ...
+  }
+  ...
+]
+```
+
+### Presence Lock
+Shows a security accessory in HomeKit with following features: HOME | AWAY | DISABLED
+
+```
+"homes": [
+  {
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... },
+    "extras": {
+      "presenceLock": true
+    }
+    ...
+  }
+  ...
+]
+```
+
+### Boost Switch
+Shows a switch accessory in HomeKit which mimics the "Boost" switch from Tado and switches all heaters to max temperature
+
+```
+"homes": [
+  {
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... },
+    "extras": {
+      "boostSwitch": true
+    }
+    ...
+  }
+  ...
+]
+```
+
+### Shedule Switch
+Shows a switch accessory in HomeKit which mimics the "Shedule" switch from Tado and switches all heaters to their default shedule
+
+```
+"homes": [
+  {
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... },
+    "extras": {
+      "sheduleSwitch": true
+    }
+    ...
+  }
+  ...
+]
+```
+
+### Turnoff Switch
+Shows a switch accessory in HomeKit which mimics the "Turn Off" switch from Tado and switches all heaters off
+
+```
+"homes": [
+  {
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... },
+    "extras": {
+      "turnoffSwitch": true
+    }
+    ...
+  }
+  ...
+]
+```
+
+### Child Lock
+Each device with ``"type": "HEATING"`` and child lock support can be exposed to HomeKit as switches which can show you if child lock is enabled or you can also enable/disable child lock.
+
+```
+"homes": [
+  {
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... },
+    "extras": {
       "turnoffSwitch": true,
       "childLockSwitches": [
         {
@@ -362,7 +422,7 @@ Each device with ``"type": "HEATING"`` and child lock support can be exposed to 
 
 ## Telegram
 
-You can set up the notifier to get a Telegram notification with customized messages and markdown capability when user arrives/leaves or open window detection triggers.
+You can set up the notifier to get a Telegram notification with customized messages and markdown capability when user arrives/leaves or open window detection triggers. Before you can use the "Telegram Notification" functionality, you need to set up a bot. Here you can find more information: [Setup Telegram Bot](https://github.com/SeydX/homebridge-fritz-platform/blob/master/docs/Telegram.md)
 
 ```
 "homes": [
@@ -401,7 +461,6 @@ This plugin has been verified to work with the following apps on iOS 14:
 * All 3rd party apps like Elgato Eve etc.
 * Homebridge >= v1.1.6
 
-
 ## Contributing
 
 You can contribute to this homebridge plugin in following ways:
@@ -412,7 +471,6 @@ You can contribute to this homebridge plugin in following ways:
 - Contribute changes to extend the capabilities
 
 Pull requests are accepted.
-
 
 ## Troubleshooting
 
