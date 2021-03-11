@@ -19,10 +19,25 @@
   </div>
 </div>
 
+<!-- header old schema -->
+<div id="headerOld" style="display:none; height: 50px;" class="w-100 p-0 m-0">
+  <button type="submit" class="btn btn-elegant back float-left">
+    <i class="fa fa-arrow-left" aria-hidden="true"></i>
+  </button>
+</div>
+
 <div id="main" class="card card-body pb-5">
+
+  <!-- not supported version -->
+  <div id="notSupported" style="display: none;" class="container text-center">
+    <h6 class="m-0 p-0">Custom UI cannot be displayed. The used Config UI X version is not supported!</h6>
+  </div>
   
   <!-- isConfigured -->
   <div id="isConfigured" style="display:none;">
+    <button type="submit" class="btn btn-elegant oldConfig" style="position: absolute;">
+      <i class="fas fa-cogs" aria-hidden="true"></i>
+    </button>
     <img src="images/tado_logo.png" alt="Tado meets Homebridge" width="150px" class="center-it tadoLogo">
     <h3 class="text-center"><span style="font-size: 20px">Welcome to</span> <br> <b style="font-weight: 800;">TadoPlatform</b></h3>
     <h6 class="text-center">Homebridge plugin for Tado devices</h6>
@@ -50,6 +65,9 @@
  
   <!-- notConfigured -->
   <div id="notConfigured" style="display:none;">
+    <button type="submit" class="btn btn-elegant oldConfig" style="position: absolute;">
+      <i class="fas fa-cogs" aria-hidden="true"></i>
+    </button>
     <img src="images/tado_logo.png" alt="Tado meets Homebridge" width="150px" class="center-it tadoLogo">
     <h3 class="text-center">Welcome to <br> <b style="font-weight: 800;">TadoPlatform</b></h3>
     <h6 class="text-center">Homebridge plugin for Tado devices</h6>
@@ -90,10 +108,10 @@
 <script type="text/javascript" src="js/modules/progressbar.min.js"></script>
 
 <!-- Custom Schema -->
-<script type="text/javascript" src="js/schema.js?v=0.0.136"></script>
+<script type="text/javascript" src="js/schema.js?v=0.0.137"></script>
 
 <!-- Progress Bars -->
-<script type="text/javascript" src="js/progressbars.js?v=0.0.136"></script>
+<script type="text/javascript" src="js/progressbars.js?v=0.0.137"></script>
  
 <!-- Main -->
-<script type="text/javascript" src="js/main.js?v=0.0.136"></script>
+<script type="text/javascript" src="js/main.js?v=0.0.137"></script>
