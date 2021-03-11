@@ -190,6 +190,13 @@ module.exports = (api, accessories, config, tado, telegram) => {
           
           } else {
           
+            let serviceSecurity = accessory.getService(api.hap.Service.SecuritySystem);
+            let characteristicCurrent = api.hap.Characteristic.SecuritySystemCurrentState;
+            
+            serviceSecurity
+              .getCharacteristic(characteristicCurrent)
+              .updateValue(value);
+          
             if(value === 1){ //away
               
               targetState = 'AWAY';
@@ -1430,15 +1437,15 @@ module.exports = (api, accessories, config, tado, telegram) => {
       if(serviceSecurity){
       
         let characteristicCurrent = api.hap.Characteristic.SecuritySystemCurrentState;
-        //let characteristicTarget = api.hap.Characteristic.SecuritySystemTargetState;
+        let characteristicTarget = api.hap.Characteristic.SecuritySystemTargetState;
         
         serviceSecurity
           .getCharacteristic(characteristicCurrent)
           .updateValue(state);
           
-        /*serviceSecurity
+        serviceSecurity
           .getCharacteristic(characteristicTarget)
-          .updateValue(state);*/
+          .updateValue(state);
       
       } else if(serviceHomeSwitch || serviceAwaySwitch){
       
