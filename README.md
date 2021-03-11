@@ -314,7 +314,7 @@ Shows a switch accessory with additional custom characteristics in HomeKit which
 ```
 
 ### Presence Lock
-Shows a security accessory in HomeKit with following features: HOME | AWAY | DISABLED
+Shows a switch (``"accTypePresenceLock": "SWITCH"``) or security (``"accTypePresenceLock": "ALARM"``) accessory in HomeKit with following features: HOME | AWAY | DISABLED
 
 ```
 "homes": [
@@ -324,7 +324,8 @@ Shows a security accessory in HomeKit with following features: HOME | AWAY | DIS
     "presence": { ... },
     "weather": { ... },
     "extras": {
-      "presenceLock": true
+      "presenceLock": true,
+      "accTypePresenceLock": "SWITCH"
     }
     ...
   }
