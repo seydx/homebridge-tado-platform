@@ -1,4 +1,4 @@
-/*global $, homebridge, fetchDevicesBar, schema*/
+/*global $, window, homebridge, fetchDevicesBar, schema*/
 
 const pageNavigation = {
   currentContent: false,
@@ -18,6 +18,21 @@ function toggleContent(){
   
   return;
   
+}
+
+function showOldSchema() {
+
+  $('#main').removeClass('pb-5');
+  $('#notSupported').show();
+  
+  setTimeout(() => {
+    $('#main').fadeOut(500);
+  }, 5000);
+  
+  homebridge.showSchemaForm();
+  
+  return;
+
 }
 
 function transPage(cur, next, removed, showSchema) {
@@ -1119,6 +1134,11 @@ async function fetchDevices(credentials, refresh, resync){
 (async () => {
                                        
   try {
+  
+    //check version before load ui
+    if(window.compareVersions(window.homebridge.serverEnv.env.packageVersion, '4.34.0') < 0){
+      return showOldSchema();
+    }
     
     pluginConfig = await homebridge.getPluginConfig();
     
@@ -1162,6 +1182,18 @@ $('.back').on('click', () => {
   goBack();
 });
 
+$('.oldConfig').on('click', () => {
+
+  let activeContent = $('#notConfigured').css('display') !== 'none' 
+    ? '#notConfigured'
+    : '#isConfigured';
+    
+  homebridge.showSchemaForm();
+
+  transPage($('#main, ' + activeContent), $('#headerOld'), false, true);
+  
+});
+
 $('#start, #addDevice').on('click', () => {
   
   resetUI();
@@ -1177,25 +1209,6 @@ $('#reSync').on('click', async () => {
   try {
   
     homebridge.showSpinner();
-  
-    /*for(const home of pluginConfig[0].homes){
-    
-      if(!home.username || !home.password)
-        homebridge.toast.warning((home.name ? home.name : 'Home') + ' has no credentials setted up! Skipping..', 'Warning');
-        
-      let credentials = {
-        username: home.username,
-        password: home.password 
-      };
-      
-      const config = await fetchDevices(credentials, false, true);
-      
-      if(config){
-        await addNewDeviceToConfig(config, false, true);
-        resetUI();
-      }
-    
-    }*/
     
     const config = await fetchDevices(false, false, true);
     
