@@ -95,7 +95,7 @@ class HeaterCoolerAccessory {
         service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.DelaySwitch));
         
       if(service.testCharacteristic(this.api.hap.Characteristic.DelayTimer))
-      service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.DelayTimer));
+        service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.DelayTimer));
    
     }
     
@@ -195,7 +195,7 @@ class HeaterCoolerAccessory {
         
         this.waitForEndValue = setTimeout(() => {
           
-            this.deviceHandler.setStates(this.accessory, this.accessories, 'State', value);
+          this.deviceHandler.setStates(this.accessory, this.accessories, 'State', value);
           
         }, 500);
 
@@ -215,7 +215,7 @@ class HeaterCoolerAccessory {
           
         }, 250);
       
-      })
+      });
     
   }
 

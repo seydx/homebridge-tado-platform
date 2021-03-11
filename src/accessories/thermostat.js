@@ -2,6 +2,7 @@
 
 const Logger = require('../helper/logger.js');
 
+const fs = require('fs-extra');
 const moment = require('moment');
 
 const timeout = (ms) => new Promise((res) => setTimeout(res, ms));
@@ -107,8 +108,8 @@ class ThermostatAccessory {
       
     service.getCharacteristic(this.api.hap.Characteristic.CurrentTemperature)
       .setProps({
-        minValue: -100,
-        maxValue: 100
+        minValue: -255,
+        maxValue: 255
       });
       
     service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
@@ -141,6 +142,9 @@ class ThermostatAccessory {
       service.addCharacteristic(this.api.hap.Characteristic.ValvePosition);
     
     this.historyService = new this.FakeGatoHistoryService('thermo', this.accessory, {storage:'fs', path: this.api.user.storagePath(), disableTimer:true}); 
+    
+    service.getCharacteristic(this.api.hap.Characteristic.TemperatureDisplayUnits)
+      .onSet(this.changeUnit.bind(this, service));
     
     service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState)
       .onSet(value => {
@@ -177,6 +181,22 @@ class ThermostatAccessory {
 
     service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
       .onSet(value => {
+        
+        let tempUnit = service.getCharacteristic(this.api.hap.Characteristic.TemperatureDisplayUnits).value;
+        
+        let cToF = (c) => Math.round((c * 9/5) + 32);
+        let fToC = (f) => Math.round((f - 32) * 5/9);
+        
+        let newValue = tempUnit
+          ? value <= 25
+            ? cToF(value)
+            : value
+          : value > 25
+            ? fToC(value)
+            : value;
+        
+        service.getCharacteristic(this.api.hap.Characteristic.CurrentTemperature)
+          .updateValue(newValue);
       
         this.timeoutAuto = setTimeout(() => {
           
@@ -222,6 +242,63 @@ class ThermostatAccessory {
     setTimeout(() => {
       this.refreshHistory(service);
     }, 10 * 60 * 1000);
+    
+  }
+  
+  async changeUnit(service, value){
+    
+    let charachteristicCurrentTemp = this.api.hap.Characteristic.CurrentTemperature;
+    
+    if(!value){
+          
+      //CELSIUS
+      this.accessory.context.config.temperatureUnit = 'CELSIUS';
+      
+      let fToC = (f) => Math.round((f - 32) * 5/9);
+      
+      let currentVal = service.getCharacteristic(charachteristicCurrentTemp).value;
+  
+      service.getCharacteristic(charachteristicCurrentTemp)
+        .updateValue(fToC(currentVal));
+      
+    } else {
+      
+      //FAHRENHEIT
+      this.accessory.context.config.temperatureUnit = 'FAHRENHEIT';
+      
+      let cToF = (c) => Math.round((c * 9/5) + 32);
+      
+      let currentVal = service.getCharacteristic(charachteristicCurrentTemp).value;
+
+      service.getCharacteristic(charachteristicCurrentTemp)
+        .updateValue(cToF(currentVal));
+      
+    }
+    
+    try {
+      
+      const configJSON = await fs.readJson(this.api.user.storagePath() + '/config.json');
+        
+      for(const i in configJSON.platforms)
+        if(configJSON.platforms[i].platform === 'TadoPlatform')
+          for(const home in configJSON.platforms[i].homes)
+            if(configJSON.platforms[i].homes[home].name === this.accessory.context.config.homeName)
+              configJSON.platforms[i].homes[home].temperatureUnit = value
+                ? 'FAHRENHEIT'
+                : 'CELSIUS';
+      
+      fs.writeJsonSync(this.api.user.storagePath() + '/config.json', configJSON, { spaces: 4 });
+      
+      Logger.info('New temperature unit stored in config', this.accessory.displayName);
+      
+    } catch(err) {
+      
+      Logger.error('Error storing temperature unit in config!', this.accessory.displayName);
+      Logger.error(err);
+      
+    }
+    
+    return;
     
   }
 

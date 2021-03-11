@@ -341,8 +341,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
         
         }
         
-        case 'presence-motion':
-        case 'presence-occupancy': {
+        case 'presence-motion': {
         
           if(historyService){
        
@@ -535,9 +534,11 @@ module.exports = (api, accessories, config, tado, telegram) => {
         allZones.forEach(zoneWithID => {
           if(zoneWithID.name === zone.name){
             config.zones[index].id = zoneWithID.id;
-            config.zones[index].battery = zoneWithID.devices.filter(device => zone.type === 'HEATING' && device && !device.batteryState.includes('NORMAL')).length
-              ? zoneWithID.devices.filter(device => device && !device.batteryState.includes('NORMAL'))[0].batteryState
-              : zoneWithID.devices.filter(device => device && device.duties.includes('ZONE_LEADER'))[0].batteryState;
+            config.zones[index].battery = !config.zones[index].noBattery
+              ? zoneWithID.devices.filter(device => device && zone.type === 'HEATING' && !device.batteryState.includes('NORMAL')).length
+                ? zoneWithID.devices.filter(device => device && !device.batteryState.includes('NORMAL'))[0].batteryState
+                : zoneWithID.devices.filter(device => device && device.duties.includes('ZONE_LEADER'))[0].batteryState
+              : false;
             config.zones[index].openWindowEnabled = zoneWithID.openWindowDetection && zoneWithID.openWindowDetection.enabled
               ? true
               : false;
@@ -624,12 +625,29 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   let characteristicCurrentState = api.hap.Characteristic.CurrentHeatingCoolingState;
                   let characteristicTargetState = api.hap.Characteristic.TargetHeatingCoolingState;
                   let characteristicHumidity = api.hap.Characteristic.CurrentRelativeHumidity;         
+                  let characteristicUnit = api.hap.Characteristic.TemperatureDisplayUnits;
                   
-                  if(!isNaN(currentTemp))
+                  if(!isNaN(currentTemp)){
+                    
+                    let tempUnit = serviceThermostat.getCharacteristic(characteristicUnit).value;
+                    
+                    let cToF = (c) => Math.round((c * 9/5) + 32);
+                    let fToC = (f) => Math.round((f - 32) * 5/9);
+                    
+                    let newValue = tempUnit
+                      ? currentTemp <= 25
+                        ? cToF(currentTemp)
+                        : currentTemp
+                      : currentTemp > 25
+                        ? fToC(currentTemp)
+                        : currentTemp;
+                                
                     serviceThermostat
                       .getCharacteristic(characteristicCurrentTemp)
-                      .updateValue(currentTemp);
-                   
+                      .updateValue(newValue);
+                  
+                  }
+                  
                   if(!isNaN(targetTemp))  
                     serviceThermostat
                       .getCharacteristic(characteristicTargetTemp)

@@ -1,6 +1,6 @@
 {
   "name": "homebridge-tado-platform",
-  "version": "6.0.0-beta.0",
+  "version": "6.0.0-beta.1",
   "description": "homebridge-tado-platform",
   "main": "index.js",
   "devDependencies": {},
@@ -49,6 +49,7 @@
     "@homebridge/plugin-ui-utils": "^0.0.18",
     "fakegato-history": "^0.6.1",
     "form-data": "^3.0.0",
+    "fs-extra": "^9.1.0",
     "got": "^11.8.2",
     "moment": "^2.24.0",
     "simple-oauth2": "^4.2.0"
