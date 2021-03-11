@@ -61,6 +61,7 @@ typings/
 .next
 .github/
 images/
+demo/
 docs/
 example/
 CHANGELOG.md 
