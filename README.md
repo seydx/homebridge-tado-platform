@@ -283,6 +283,29 @@ Weather settings allow you to display a sensor for temperature, a light bulb for
 ]
 ```
 
+### Air Quality
+
+In order to use the Air Quality Sensor, you need to enable airQuality ``"airQuality": true`` (see above) **AND** you must enter your location data (latitude and longitude) in config.json. You can easily find the coordinates to your location/address on the following page: [latlong.net](https://www.latlong.net/convert-address-to-lat-long.html)
+
+
+```
+"homes": [
+  {
+    "geolocation": {
+      "longitude": "13.765010",
+      "latitude": "52.290840"
+    },
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... }
+    ...
+  }
+  ...
+]
+```
+
+
 ## Extras
 
 **Central Switch:**
@@ -350,7 +373,7 @@ You can set up the notifier to get a Telegram notification with customized messa
     "weather": { ... },
     "telegram": {
       "active": true,
-      "token": "136373846:HKAHEVbsuwxl0uCSIi8kdFJsheköjezz72525",
+      "token": "136373846:HKAHEVbsuwxl0uCSIi8kdFJshekÃ¶jezz72525",
       "chatID": "-123456789",
       "messages": {
         "presence": {
