@@ -37,10 +37,10 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
     - [Air Quality](#air-quality)
   - [Extras](#extras)
     - [Central Switch](#central-switch)
+      - [Boost Switch](#boost-switch)
+      - [Shedule Switch](#shedule-switch)
+      - [Turnoff Switch](#turnoff-switch)
     - [Presence Lock](#presence-lock)
-    - [Boost Switch](#boost-switch)
-    - [Shedule Switch](#shedule-switch)
-    - [Turnoff Switch](#turnoff-switch)
     - [Child Lock](#child-lock)
   - [Telegram](#telegram)
   - [Supported Clients](#supported-clients)
@@ -313,8 +313,71 @@ Shows a switch accessory with additional custom characteristics in HomeKit which
 ]
 ```
 
+#### Boost Switch
+Shows a switch accessory in HomeKit (added to central switch) which mimics the "Boost" switch from Tado and switches all heaters to max temperature. 
+_Note: Central Switch needs to be truned on._
+
+```
+"homes": [
+  {
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... },
+    "extras": {
+      "centralSwitch": true,
+      "boostSwitch": true
+    }
+    ...
+  }
+  ...
+]
+```
+
+#### Shedule Switch
+Shows a switch accessory in HomeKit (added to central switch) which mimics the "Shedule" switch from Tado and switches all heaters to their default shedule
+_Note: Central Switch needs to be truned on._
+
+```
+"homes": [
+  {
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... },
+    "extras": {
+      "centralSwitch": true,
+      "sheduleSwitch": true
+    }
+    ...
+  }
+  ...
+]
+```
+
+#### Turnoff Switch
+Shows a switch accessory in HomeKit (added to central switch) which mimics the "Turn Off" switch from Tado and switches all heaters off
+_Note: Central Switch needs to be truned on._
+
+```
+"homes": [
+  {
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... },
+    "extras": {
+      "centralSwitch": true,
+      "turnoffSwitch": true
+    }
+    ...
+  }
+  ...
+]
+```
+
 ### Presence Lock
-Shows a switch (``"accTypePresenceLock": "SWITCH"``) or security (``"accTypePresenceLock": "ALARM"``) accessory in HomeKit with following features: HOME | AWAY | DISABLED
+Shows a switch with to sub switchs within the main accessory (``"accTypePresenceLock": "SWITCH"``) or security (``"accTypePresenceLock": "ALARM"``) accessory in HomeKit with following features: HOME | AWAY | DISABLED
 
 ```
 "homes": [
@@ -333,65 +396,8 @@ Shows a switch (``"accTypePresenceLock": "SWITCH"``) or security (``"accTypePres
 ]
 ```
 
-### Boost Switch
-Shows a switch accessory in HomeKit which mimics the "Boost" switch from Tado and switches all heaters to max temperature
-
-```
-"homes": [
-  {
-    "zones": [ ... ],
-    "extras": { ... },
-    "presence": { ... },
-    "weather": { ... },
-    "extras": {
-      "boostSwitch": true
-    }
-    ...
-  }
-  ...
-]
-```
-
-### Shedule Switch
-Shows a switch accessory in HomeKit which mimics the "Shedule" switch from Tado and switches all heaters to their default shedule
-
-```
-"homes": [
-  {
-    "zones": [ ... ],
-    "extras": { ... },
-    "presence": { ... },
-    "weather": { ... },
-    "extras": {
-      "sheduleSwitch": true
-    }
-    ...
-  }
-  ...
-]
-```
-
-### Turnoff Switch
-Shows a switch accessory in HomeKit which mimics the "Turn Off" switch from Tado and switches all heaters off
-
-```
-"homes": [
-  {
-    "zones": [ ... ],
-    "extras": { ... },
-    "presence": { ... },
-    "weather": { ... },
-    "extras": {
-      "turnoffSwitch": true
-    }
-    ...
-  }
-  ...
-]
-```
-
 ### Child Lock
-Each device with ``"type": "HEATING"`` and child lock support can be exposed to HomeKit as switches which can show you if child lock is enabled or you can also enable/disable child lock.
+Each device with ``"type": "HEATING"`` and child lock support can be exposed to HomeKit as a "sub" switch to the main switch accessory which can show you if child lock is enabled or you can also enable/disable child lock.
 
 ```
 "homes": [
@@ -401,7 +407,6 @@ Each device with ``"type": "HEATING"`` and child lock support can be exposed to 
     "presence": { ... },
     "weather": { ... },
     "extras": {
-      "turnoffSwitch": true,
       "childLockSwitches": [
         {
         "active": true,
