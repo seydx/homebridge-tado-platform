@@ -227,7 +227,10 @@ class Tado {
       
       
     } else {
+      
       config.setting.power = 'OFF';
+      config.setting.temperature = null;
+    
     }
 
     if (!isNaN(parseInt(termination))) {
