@@ -269,8 +269,8 @@ In order to use the Air Quality Sensor, you need to enable airQuality ``"airQual
 "homes": [
   {
     "geolocation": {
-      "longitude": "13.765010",
-      "latitude": "52.290840"
+      "longitude": "10.1234567",
+      "latitude": "23.4567890"
     },
     "zones": [ ... ],
     "extras": { ... },
