@@ -937,7 +937,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
             
           targetTemp = currentTemp;
           
-          currentState = 1;
+          currentState = 2;
           targetState = 1;
           
           active = zoneState.setting.power === 'ON'
