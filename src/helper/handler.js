@@ -1277,49 +1277,53 @@ module.exports = (api, accessories, config, tado, telegram) => {
   
     if(!settingState){
       
-      Logger.debug('Polling Weather...', config.homeName); 
-            
-      const weather = await tado.getWeather(config.homeId);
-      
       const weatherTemperatureAccessory = accessories.filter(acc => acc && acc.displayName === acc.context.config.homeName + ' Weather Temperature');
       
       const solarIntensityAccessory = accessories.filter(acc => acc && acc.displayName === acc.context.config.homeName + ' Solar Intensity');
       
-      if(weatherTemperatureAccessory.length && weather.outsideTemperature){
+      if(weatherTemperatureAccessory.length || solarIntensityAccessory.length){
         
-        let tempUnit = config.temperatureUnit;
-        let service = weatherTemperatureAccessory[0].getService(api.hap.Service.TemperatureSensor);          
-        let characteristic = api.hap.Characteristic.CurrentTemperature;
-          
-        let temp = tempUnit === 'FAHRENHEIT'
-          ? weather.outsideTemperature.fahrenheit
-          : weather.outsideTemperature.celsius;
-          
-        service
-          .getCharacteristic(characteristic)
-          .updateValue(temp);
-        
-      }
+        Logger.debug('Polling Weather...', config.homeName); 
+            
+        const weather = await tado.getWeather(config.homeId);
       
-      if(solarIntensityAccessory.length && weather.solarIntensity){
+        if(weatherTemperatureAccessory.length && weather.outsideTemperature){
         
-        let state = weather.solarIntensity.percentage !== 0;
-        let brightness = weather.solarIntensity.percentage;
+          let tempUnit = config.temperatureUnit;
+          let service = weatherTemperatureAccessory[0].getService(api.hap.Service.TemperatureSensor);          
+          let characteristic = api.hap.Characteristic.CurrentTemperature;
+            
+          let temp = tempUnit === 'FAHRENHEIT'
+            ? weather.outsideTemperature.fahrenheit
+            : weather.outsideTemperature.celsius;
+            
+          service
+            .getCharacteristic(characteristic)
+            .updateValue(temp);
+          
+        }
         
-        solarIntensityAccessory[0].context.lightBulbState = state;
-        solarIntensityAccessory[0].context.lightBulbBrightness = brightness;
-        
-        let service = solarIntensityAccessory[0].getService(api.hap.Service.Lightbulb);          
-        let characteristicOn = api.hap.Characteristic.On;
-        let characteristicBrightness = api.hap.Characteristic.Brightness;
-        
-        service
-          .getCharacteristic(characteristicOn)
-          .updateValue(state);
-         
-        service
-          .getCharacteristic(characteristicBrightness)
-          .updateValue(brightness);
+        if(solarIntensityAccessory.length && weather.solarIntensity){
+          
+          let state = weather.solarIntensity.percentage !== 0;
+          let brightness = weather.solarIntensity.percentage;
+          
+          solarIntensityAccessory[0].context.lightBulbState = state;
+          solarIntensityAccessory[0].context.lightBulbBrightness = brightness;
+          
+          let service = solarIntensityAccessory[0].getService(api.hap.Service.Lightbulb);          
+          let characteristicOn = api.hap.Characteristic.On;
+          let characteristicBrightness = api.hap.Characteristic.Brightness;
+          
+          service
+            .getCharacteristic(characteristicOn)
+            .updateValue(state);
+           
+          service
+            .getCharacteristic(characteristicBrightness)
+            .updateValue(brightness);
+          
+        }     
         
       }
     
@@ -1333,13 +1337,13 @@ module.exports = (api, accessories, config, tado, telegram) => {
   
     if(!settingState){   
     
-      Logger.debug('Polling AirQuality...', config.homeName);
-      
-      const airQuality = await tado.getWeatherAirComfort(config.homeId, config.geolocation.longitude, config.geolocation.latitude);
-      
       const airQualityAccessory = accessories.filter(acc => acc && acc.displayName === acc.context.config.homeName + ' Air Quality');
       
       if(airQualityAccessory.length){
+        
+        Logger.debug('Polling AirQuality...', config.homeName);
+      
+        const airQuality = await tado.getWeatherAirComfort(config.homeId, config.geolocation.longitude, config.geolocation.latitude);
         
         let service = airQualityAccessory[0].getService(api.hap.Service.AirQualitySensor);          
         
@@ -1416,13 +1420,14 @@ module.exports = (api, accessories, config, tado, telegram) => {
   
     if(!settingState){
        
-      Logger.debug('Polling PresenceLock...', config.homeName);
-    
-      const presenceLock = await tado.getState(config.homeId);
-      
       const presenceLockAccessory = accessories.filter(acc => acc && acc.displayName === acc.context.config.homeName + ' Presence Lock');
         
       if(presenceLockAccessory.length){
+        
+        Logger.debug('Polling PresenceLock...', config.homeName);
+    
+        const presenceLock = await tado.getState(config.homeId);
+      
         
         /*
           0: Home  | true
@@ -1485,17 +1490,17 @@ module.exports = (api, accessories, config, tado, telegram) => {
   
     if(!settingState){
     
-      Logger.debug('Polling RunningTime...', config.homeName);
-      
-      let fromDate = moment().format('YYYY-MM-01');
-      let toDate = moment().format('YYYY-MM-DD');
-      
-      const runningTime = await tado.getRunningTime(config.homeId, fromDate, toDate);
-        
-      const centralSwitchAccessory = accessories.filter(acc => acc && acc.displayName === 'Central Switch');
+      const centralSwitchAccessory = accessories.filter(acc => acc && acc.displayName === acc.context.config.homeName + ' Central Switch');
       
       if(centralSwitchAccessory.length){
       
+        Logger.debug('Polling RunningTime...', config.homeName);
+      
+        let fromDate = moment().format('YYYY-MM-01');
+        let toDate = moment().format('YYYY-MM-DD');
+      
+        const runningTime = await tado.getRunningTime(config.homeId, fromDate, toDate);
+           
         let summaryInHours = Math.round(((Math.round(runningTime.summary.totalRunningTimeInSeconds / 3600)) + Number.EPSILON) * 100) / 100;
       
         let serviceSwitch = centralSwitchAccessory[0].getServiceById(api.hap.Service.Switch, 'Central');         
