@@ -75,9 +75,17 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   .value;
                 
                 if(clear){
+               
                   await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);
+               
                 } else {
-                  await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit);
+                
+                  let mode = accessory.context.config.mode === 'TIMER'
+                    ? accessory.context.config.modeTimer || 30
+                    : accessory.context.config.mode;
+                
+                  await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, mode, accessory.context.config.temperatureUnit);
+               
                 }
                 
                 delayTimer[accessory.displayName] = null;
@@ -110,9 +118,17 @@ module.exports = (api, accessories, config, tado, telegram) => {
             }
             
             if(clear){
+           
               await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);
+           
             } else {
-              await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit);
+            
+              let mode = accessory.context.config.mode === 'TIMER'
+                ? accessory.context.config.modeTimer || 30
+                : accessory.context.config.mode;
+            
+              await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, mode, accessory.context.config.temperatureUnit);
+            
             }
             
           }
@@ -135,8 +151,12 @@ module.exports = (api, accessories, config, tado, telegram) => {
             faucetService
               .getCharacteristic(this.api.hap.Characteristic.InUse)
               .updateValue(value);
+              
+          let mode = accessory.context.config.mode === 'TIMER'
+            ? accessory.context.config.modeTimer || 30
+            : accessory.context.config.mode;
         
-          await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, accessory.context.config.mode, accessory.context.config.temperatureUnit);
+          await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, mode, accessory.context.config.temperatureUnit);
 
           break;  
           

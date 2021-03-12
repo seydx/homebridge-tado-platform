@@ -85,6 +85,12 @@ class Tado {
       responseType: 'json',
       headers: {
         Authorization: 'Bearer ' + this._accessToken.token.access_token
+      },
+      timeout: 30000,
+      retry: {
+        limit: 2,
+        statusCodes: [408, 429, 503, 504],
+        methods: ['GET', 'POST', 'DELETE', 'PUT']
       }
     };
     
@@ -206,13 +212,20 @@ class Tado {
     if (power.toLowerCase() == 'on') {
       config.setting.power = 'ON';
 
-      if (config.setting.type == 'HEATING' && temperature) {
+      if (!isNaN(temperature)) {
         
         if(tempUnit.toLowerCase() === 'fahrenheit')
           temperature = (temperature - 32) * 5/9;
         
         config.setting.temperature = { celsius: temperature };
+      
+      } else {
+      
+        config.setting.temperature = null;
+      
       }
+      
+      
     } else {
       config.setting.power = 'OFF';
     }
