@@ -5,6 +5,7 @@
 - Config UI X support (config.schema.json)
 - Custom UI
 - Support for non config ui x user
+- Auto-fill config for non config ui x user
 - HB 1.3 support
 - Refactored code
 - Multiple tado accounts
