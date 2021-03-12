@@ -26,7 +26,7 @@ class ContactAccessory {
   // Services
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-  getService () {
+  async getService () {
     
     let service = this.accessory.getService(this.api.hap.Service.ContactSensor);
     let serviceSwitch = this.accessory.getService(this.api.hap.Service.Switch);
@@ -92,6 +92,8 @@ class ContactAccessory {
     
     this.historyService = new this.FakeGatoHistoryService('door', this.accessory, {storage:'fs', path: this.api.user.storagePath(), disableTimer:true}); 
     
+    await timeout(250); //wait for historyService to load
+    
     service.getCharacteristic(this.api.hap.Characteristic.ContactSensorState)
       .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName));
     
@@ -99,9 +101,7 @@ class ContactAccessory {
     
   }
   
-  async refreshHistory(service){ 
-    
-    await timeout(5000);
+  refreshHistory(service){ 
     
     let state = service.getCharacteristic(this.api.hap.Characteristic.ContactSensorState).value;
     

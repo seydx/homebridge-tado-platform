@@ -27,7 +27,7 @@ class ThermostatAccessory {
   // Services
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-  getService () {
+  async getService () {
     
     let service = this.accessory.getService(this.api.hap.Service.Thermostat);
     let serviceOld = this.accessory.getService(this.api.hap.Service.HeaterCooler);
@@ -143,6 +143,8 @@ class ThermostatAccessory {
     
     this.historyService = new this.FakeGatoHistoryService('thermo', this.accessory, {storage:'fs', path: this.api.user.storagePath(), disableTimer:true}); 
     
+    await timeout(250); //wait for historyService to load
+    
     service.getCharacteristic(this.api.hap.Characteristic.TemperatureDisplayUnits)
       .onSet(this.changeUnit.bind(this, service));
     
@@ -219,9 +221,7 @@ class ThermostatAccessory {
     
   }
   
-  async refreshHistory(service){ 
-    
-    await timeout(5000);
+  refreshHistory(service){ 
 
     let currentState = service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState).value;  
     let targetState = service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState).value;  

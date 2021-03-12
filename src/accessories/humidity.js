@@ -26,7 +26,7 @@ class HumidityAccessory {
   // Services
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-  getService () {
+  async getService () {
     
     let service = this.accessory.getService(this.api.hap.Service.HumiditySensor);
     
@@ -53,6 +53,8 @@ class HumidityAccessory {
     
     this.historyService = new this.FakeGatoHistoryService('room', this.accessory, {storage:'fs', path: this.api.user.storagePath(), disableTimer:true});
     
+    await timeout(250); //wait for historyService to load
+    
     service.getCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity)
       .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName));
     
@@ -60,9 +62,7 @@ class HumidityAccessory {
     
   }
   
-  async refreshHistory(service){ 
-    
-    await timeout(5000);
+  refreshHistory(service){ 
     
     let state = service.getCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity).value;
     

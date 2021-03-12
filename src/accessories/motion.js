@@ -46,6 +46,8 @@ class MotionAccessory {
     
     this.historyService = new this.FakeGatoHistoryService('motion', this.accessory, {storage:'fs', path: this.api.user.storagePath(), disableTimer:true});
     
+    await timeout(250); //wait for historyService to load
+    
     service.getCharacteristic(this.api.hap.Characteristic.MotionDetected)
       .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName));
     
@@ -54,8 +56,6 @@ class MotionAccessory {
   }
   
   async refreshHistory(service){ 
-    
-    await timeout(5000);
     
     let state = service.getCharacteristic(this.api.hap.Characteristic.MotionDetected).value;
     
