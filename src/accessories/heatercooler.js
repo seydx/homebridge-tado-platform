@@ -133,6 +133,8 @@ class HeaterCoolerAccessory {
         minValue: 2,        
         validValues: [2]
       };
+      service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
+        .updateValue(2);
     }
     
     service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)

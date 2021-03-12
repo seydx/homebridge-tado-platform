@@ -96,7 +96,7 @@ module.exports = {
           
             if(zone.devices)
               zone.devices.forEach(device => {
-                if(device.childLockEnabled !== undefined || device.childLockEnabled !== null)
+                if(device.deviceType && (device.deviceType.includes('VA01') || device.deviceType.includes('VA02')))  //https://community.tado.com/en-gb/discussion/705/released-child-lock
                   homeConfig.extras.childLockSwitches.push({
                     active: false,
                     name: zone.name + ' ' + device.shortSerialNo,
@@ -310,10 +310,11 @@ module.exports = {
           
             if(foundZone.devices)
               foundZone.devices.forEach(dev => {
-                allFoundDevices.push({
-                  name: foundZone.name + ' ' + dev.shortSerialNo,
-                  serialNumber: dev.shortSerialNo
-                });
+                if(dev.deviceType && (dev.deviceType.includes('VA01') || dev.deviceType.includes('VA02')))
+                  allFoundDevices.push({
+                    name: foundZone.name + ' ' + dev.shortSerialNo,
+                    serialNumber: dev.shortSerialNo
+                  });
               });
           
             let zoneIndex;
@@ -350,10 +351,11 @@ module.exports = {
           
             if(zone.devices)
               zone.devices.forEach(dev => {
-                allFoundDevices.push({
-                  name: zone.name + ' ' + dev.shortSerialNo,
-                  serialNumber: dev.shortSerialNo
-                });
+                if(dev.deviceType && (dev.deviceType.includes('VA01') || dev.deviceType.includes('VA02')))
+                  allFoundDevices.push({
+                    name: zone.name + ' ' + dev.shortSerialNo,
+                    serialNumber: dev.shortSerialNo
+                  });
               });
           
             return {

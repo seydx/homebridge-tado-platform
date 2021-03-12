@@ -525,8 +525,12 @@ module.exports = (api, accessories, config, tado, telegram) => {
             ? 'opened'
             : 'closed';
           
+          let info = replacer.split(accessory.context.config.homeName + ' ');
+          let additional = info[0];
+          replacer = info[1];
+          
           if(telegram)
-            telegram.send('openWindow', dest, replacer);
+            telegram.send('openWindow', dest, replacer, additional);
         
           break;
         
@@ -549,15 +553,23 @@ module.exports = (api, accessories, config, tado, telegram) => {
           }
           
           let dest = false;
+          let info = replacer.split(accessory.context.config.homeName + ' ');
+          let additional = info[0];
+          replacer = info[1];
+          
           
           if(value.newValue){
-            dest = accessory.displayName === 'Anyone Sensor' ? 'anyone_in' : 'user_in';
+            dest = accessory.displayName === (accessory.context.config.homeName + ' Anyone') 
+              ? 'anyone_in' 
+              : 'user_in';
           } else {
-            dest = accessory.displayName === 'Anyone Sensor' ? 'anyone_out' : 'user_out';
+            dest = accessory.displayName === (accessory.context.config.homeName + ' Anyone') 
+              ? 'anyone_out' 
+              : 'user_out';
           }
           
           if(telegram)
-            telegram.send('presence', dest, replacer === 'Anyone' ? false : replacer);
+            telegram.send('presence', dest, replacer === 'Anyone' ? false : replacer, replacer === 'Anyone' ? false : additional);
         
           break;
         
@@ -917,9 +929,11 @@ module.exports = (api, accessories, config, tado, telegram) => {
         } else {
           
           //HOT_WATER
-          currentTemp = config.temperatureUnit === 'CELSIUS'
-            ? zoneState.setting.temperature.celsius
-            : zoneState.setting.temperature.fahrenheit;
+          currentTemp = zoneState.setting.power === 'ON'
+            ? config.temperatureUnit === 'CELSIUS'
+              ? zoneState.setting.temperature.celsius
+              : zoneState.setting.temperature.fahrenheit
+            : false;
             
           targetTemp = currentTemp;
           
@@ -954,15 +968,27 @@ module.exports = (api, accessories, config, tado, telegram) => {
                     .getCharacteristic(characteristicActive)
                     .updateValue(active);
                 
-                if(!isNaN(currentTemp))  
+                if(!isNaN(currentTemp) || acc.context.currentTemp){ 
+                  
+                  if(!isNaN(currentTemp))
+                    acc.context.currentTemp = currentTemp; //store current temp in config
+                  
                   service
                     .getCharacteristic(characteristicCurrentTemp)
-                    .updateValue(currentTemp);
+                    .updateValue(acc.context.currentTemp);
+                
+                }
+                 
+                if(!isNaN(targetTemp) || acc.context.targetTemp){
                   
-                if(!isNaN(targetTemp))    
+                  if(!isNaN(targetTemp))
+                    acc.context.targetTemp = targetTemp; //store target temp in config
+                   
                   service
                     .getCharacteristic(characteristicTargetTemp)
-                    .updateValue(targetTemp);
+                    .updateValue(acc.context.targetTemp);
+                
+                }
                   
                 if(!isNaN(currentState))    
                   service
@@ -1230,7 +1256,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
       
       mobileDevices.forEach(device => {
         userAccessories.forEach(acc => {
-          if(device.name === acc.displayName){
+          if((acc.context.config.homeName + ' ' + device.name) === acc.displayName){
             
             let atHome = device.location && device.location.atHome
               ? 1
