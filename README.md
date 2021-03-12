@@ -275,7 +275,9 @@ In order to use the Air Quality Sensor, you need to enable airQuality ``"airQual
     "zones": [ ... ],
     "extras": { ... },
     "presence": { ... },
-    "weather": { ... }
+    "weather": { 
+      "airQuality": true
+    }
     ...
   }
   ...
