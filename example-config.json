@@ -19,8 +19,8 @@
                     "polling": 60,
                     "temperatureUnit": "CELSIUS",
                     "geolocation": {
-                        "longitude": "10.3251249",
-                        "latitude": "52.1611176"
+                        "longitude": "10.1234567",
+                        "latitude": "23.4567890"
                     },
                     "presence": {
                         "anyone": true,
