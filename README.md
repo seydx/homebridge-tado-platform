@@ -106,6 +106,12 @@ Each zone in the config.json with ``"type": "HEATING"`` and ``"easyMode": false`
 - Delay Switch characteristic with timer (if ``"delaySwitch": true``)
 - Elgato EVE history feature (FakeGato)
 
+**Delay Switch**
+The Delay Switch (characteristic) can be used for eg. if you have an automation with `Open Window => Thermostat Off / Close Window => Thermostat On` and you want avoid multiple state changes, u can set ``"delaySwitch": true``in your config and change the timer (in seconds) via a third party app. If setted correctly, the thermostat will wait eg 60 seconds before switching to ON.
+
+**Mode / Mode Timer**
+``mode`` for the commands to be sent with. can be 'MANUAL' for manual control until ended by the user, 'AUTO' for manual control until next schedule change in tado° app OR 'TIMER' for manual control until timer ends. ``modeTimer`` for the ``MANUAL`` mode in minutes.
+
 Each zone in the config.json with ``type: HEATING`` and ``easyMode: true`` is exposed to HomeKit as a HeaterCooler accessory with the features as above and some minor changes:
 
 - Active: ON | OFF
@@ -121,6 +127,8 @@ Each zone in the config.json with ``type: HEATING`` and ``easyMode: true`` is ex
         "id": 32,
         "name": "Living Room",
         "type": "HEATING",
+        "mode": "MANUAL",
+        "modeTimer": 30,
         "delaySwitch": true,
         "openWindowSensor": true,
         "openWindowSwitch": false,
