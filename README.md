@@ -62,7 +62,7 @@ _(In the section below you can find more information about the functions.)_
  
 ## Non Config Ui X User?:
 
-The plugin can also work without config ui x or a custom ui. If you want the config.json auto-fill feature, you have to put the following part in your config.json. This will generate a ready to use config.json with all options disabled except thermostats.
+The plugin can also work without config ui x or a custom ui. If you want the config.json auto-fill feature, you have to put the following part in your config.json. This will generate a ready to use config.json with all options disabled except thermostats. After the first start, thhis user will get ``"reconfigure": false``. If you want to refresh a home, just enable ``"reconfigure"`` for the user and restart homebridge. If you want to add an another home, add the user credentials (username/password) to the array. The Plugin can handle multiple accounts.
 
 ```
 {
