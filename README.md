@@ -27,7 +27,8 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 
 ## Documentation
 
-- [Example config.json](#example-configjson)
+- [Example config.json](https://github.com/SeydX/homebridge-tado-platform/blob/beta/example-config.json)
+- [Non Config Ui X User?](#non-config-ui-x-user)
 - [Configuration](#configuration)
   - [Thermostat](#thermostat)
     -  [Open Window](#open-window)
@@ -59,7 +60,9 @@ It supports the full potential of Config UI X and makes configuring the plugin m
 
 _(In the section below you can find more information about the functions.)_
  
-## Example config.json:
+## Non Config Ui X User?:
+
+The plugin can also work without config ui x or a custom ui. If you want the config.json auto-fill feature, you have to put the following part in your config.json. This will generate a ready to use config.json with all options disabled except thermostats.
 
 ```
 {
@@ -74,30 +77,10 @@ _(In the section below you can find more information about the functions.)_
       "name": "TadoPlatform",
       "platform": "TadoPlatform",
       "debug": false,
-      "homes": [
+      "user": [
         {
-          "name": "My Home",
-          "username": "test@user.com",
-          "password": "myPassWord!",
-          "polling": 60,
-          "temperatureUnit": "CELSIUS",
-          "zones": [
-            {
-              "active": true,
-              "name": "Living Room",
-              "type": "HEATING",
-              "mode": "AUTO"
-            },
-            {
-              "active": true,
-              "id": 48,
-              "name": "Badezimmer Unten",
-              "type": "HOT_WATER",
-              "mode": "AUTO",
-              "boilerTempSupport": false,
-              "accTypeBoiler": "FAUCET"
-            }
-          ]
+          "username": "test@mail.com",
+          "password": "testPassword123"
         }
       ]
     }
