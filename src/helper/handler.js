@@ -645,7 +645,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
           }  
           
           if(telegram)
-            telegram.send('presence', dest, replacer === 'Anyone' ? false : replacer, replacer === 'Anyone' ? false : additional);
+            telegram.send('presence', dest, replacer === 'Anyone' ? false : replacer, additional);
         
           break;
         
