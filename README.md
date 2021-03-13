@@ -67,9 +67,9 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
     - [Presence Lock](#presence-lock)
     - [Child Lock](#child-lock)
   - [Telegram](#telegram)
-  - [Supported Clients](#supported-clients)
-  - [Contributing](#contributing)
-  - [Troubleshooting](#troubleshooting)
+- [Supported Clients](#supported-clients)
+- [Contributing](#contributing)
+- [Troubleshooting](#troubleshooting)
 
 ## Custom UI
 
