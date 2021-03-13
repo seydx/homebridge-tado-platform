@@ -1278,15 +1278,19 @@ module.exports = (api, accessories, config, tado, telegram) => {
           
         }
         
-        //CentralSwitch
-        if(zoneState.overlayType === null)
-          inAutoMode += 1;
-          
-        if(zoneState.overlayType !== null && zoneState.setting.power === 'OFF')
-          inOffMode += 1;
-          
-        if(zoneState.overlayType !== null && zoneState.setting.power === 'ON' && zoneState.overlay.termination)
-          inManualMode += 1;
+        if(zoneState.setting.type === 'HEATING'){
+        
+          //CentralSwitch
+          if(zoneState.overlayType === null)
+            inAutoMode += 1;
+            
+          if(zoneState.overlayType !== null && zoneState.setting.power === 'OFF')
+            inOffMode += 1;
+            
+          if(zoneState.overlayType !== null && zoneState.setting.power === 'ON' && zoneState.overlay.termination)
+            inManualMode += 1;
+        
+        }
 
       }
       
