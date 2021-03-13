@@ -17,7 +17,30 @@
 
 ## Info
 
-**TafoPlatform** is possibly the biggest homebridge plugin for Tado devices. Pretty much everything you can do with the Tado app you can also do with this plugin and much more! Every temperature sensor, humidity sensor, contact sensor, motion sensor and thermostats are also able to show the history in Elgato EVE app.
+**TafoPlatform** is possibly the biggest homebridge plugin for Tado devices. 
+
+
+**Multiple home support**
+
+The plugin even offers support for multiple houses. So it is finally possible to create multiple houses and control them together.
+
+
+**Full HomeKit Support**
+
+Everything Tado offers can be displayed through the plugin in Apple HomeKit. The thermostat buttons themselves have custom characteristics and can even display the air quality for a room. Full hot water support, weather temperature, solar intensity, weather air quality, tado quick actions, child lock, presence lock and much more awaits you with this plugin! 
+
+
+**History**
+
+Every temperature sensor, humidity sensor, contact sensor, motion sensor and thermostats are also able to show the history in Elgato EVE app. 
+
+
+**Push Notification**
+
+In addition, you can even get push notifications via Telegram when a user arrives or is absent, or when "Open Window" is triggered.
+
+
+You can do that and much more with the new version 6. Have Fun!
 
 ## Installation
 
