@@ -66,16 +66,6 @@
                                 "active": true,
                                 "name": "Badezimmer Towel",
                                 "serialNumber": "VA1234567890"
-                            },
-                            {
-                                "active": true,
-                                "name": "Wohnzimmer Heater",
-                                "serialNumber": "VA1234567890"
-                            },
-                            {
-                                "active": true,
-                                "name": "Schlafzimmer Heater",
-                                "serialNumber": "VA1234567890"
                             }
                         ]
                     },
@@ -86,6 +76,8 @@
                             "name": "Arbeitszimmer",
                             "type": "HEATING",
                             "delaySwitch": true,
+                            "autoOffDelay": true,
+                            "airQuality": true,
                             "openWindowSensor": true,
                             "openWindowSwitch": false,
                             "separateTemperature": false,
@@ -129,6 +121,8 @@
                             "name": "Wohnzimmer",
                             "type": "HEATING",
                             "delaySwitch": true,
+                            "autoOffDelay": false,
+                            "airQuality": true,
                             "openWindowSensor": true,
                             "openWindowSwitch": false,
                             "separateTemperature": true,
@@ -160,14 +154,14 @@
                         "chatID": "-123456789",
                         "messages": {
                             "presence": {
-                                "user_in": "Welcome at home @",
-                                "user_out": "Bye Bye @",
-                                "anyone_in": "Anyone at h;me.",
-                                "anyone_out": "Nobody at home."
+                                "user_in": "%: Welcome at home @",
+                                "user_out": "%: Bye Bye @",
+                                "anyone_in": "%: Anyone at home.",
+                                "anyone_out": "%: Nobody at home."
                             },
                             "openWindow": {
-                                "opened": "@: Window opened!",
-                                "closed": "@: Window closed!"
+                                "opened": "%: Open Window activated from @!",
+                                "closed": "%: Open Window deactivated from @!"
                             }
                         }
                     }
