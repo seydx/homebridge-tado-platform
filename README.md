@@ -130,6 +130,7 @@ Each zone in the config.json with ``type: HEATING`` and ``easyMode: true`` is ex
         "mode": "MANUAL",
         "modeTimer": 30,
         "delaySwitch": true,
+        "autoOffDelay": false,
         "openWindowSensor": true,
         "openWindowSwitch": false,
         "separateTemperature": false,
