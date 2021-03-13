@@ -449,6 +449,13 @@ Each device with ``"type": "HEATING"`` and child lock support can be exposed to 
 
 You can set up the notifier to get a Telegram notification with customized messages and markdown capability when user arrives/leaves or open window detection triggers. Before you can use the "Telegram Notification" functionality, you need to set up a bot. Here you can find more information: [Setup Telegram Bot](https://github.com/SeydX/homebridge-fritz-platform/blob/master/docs/Telegram.md)
 
+**Hint:**
+To better customize the messages, special characters can be set so that the plugin replaces them.
+
+**@** character will be replaced by the Accessory name
+
+**%** character will be replaced by the house name
+
 ```
 "homes": [
   {
@@ -462,14 +469,14 @@ You can set up the notifier to get a Telegram notification with customized messa
       "chatID": "-123456789",
       "messages": {
         "presence": {
-          "user_in": "Welcome at home @",
-          "user_out": "Bye Bye @",
-          "anyone_in": "Anyone at h;me.",
-          "anyone_out": "Nobody at home."
+          "user_in": "%: Welcome @",
+          "user_out": "%: Bye Bye @",
+          "anyone_in": "%: Anyone at home.",
+          "anyone_out": "%: Nobody at home."
         },
         "openWindow": {
-          "opened": "@: Window opened!",
-          "closed": "@: Window closed!"
+          "opened": "%: Open Window detected from @!",
+          "closed": "%: Open Window detected from @!"
         }
       }
     }
