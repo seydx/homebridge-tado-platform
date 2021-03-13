@@ -1028,7 +1028,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
               : zoneState.setting.temperature.fahrenheit
             : false;
             
-          targetTemp = currentTemp;
+          //targetTemp = currentTemp;
           
           currentState = 2;
           targetState = 1;
@@ -1051,7 +1051,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 let service = acc.getService(api.hap.Service.HeaterCooler);   
                 
                 let characteristicCurrentTemp = api.hap.Characteristic.CurrentTemperature;
-                let characteristicTargetTemp = api.hap.Characteristic.HeatingThresholdTemperature;
+                //let characteristicTargetTemp = api.hap.Characteristic.HeatingThresholdTemperature;
                 let characteristicCurrentState = api.hap.Characteristic.CurrentHeaterCoolerState;
                 let characteristicTargetState = api.hap.Characteristic.TargetHeaterCoolerState;
                 let characteristicActive = api.hap.Characteristic.Active;
@@ -1072,7 +1072,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 
                 }
                  
-                if(!isNaN(targetTemp) || acc.context.targetTemp){
+                /*if(!isNaN(targetTemp) || acc.context.targetTemp){
                   
                   if(!isNaN(targetTemp))
                     acc.context.targetTemp = targetTemp; //store target temp in config
@@ -1081,7 +1081,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
                     .getCharacteristic(characteristicTargetTemp)
                     .updateValue(acc.context.targetTemp);
                 
-                }
+                }*/
                   
                 if(!isNaN(currentState))    
                   service
