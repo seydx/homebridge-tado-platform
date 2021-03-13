@@ -473,6 +473,7 @@ module.exports = {
             geolocation: home.geolocation,
             tado: tado,
             anyone: home.presence && home.presence.anyone,
+            accTypeAnyone: home.presence && home.presence.accTypeAnyone,
             weather: home.weather || {},
             extras: home.extras || {},
             zones: home.zones
@@ -735,7 +736,7 @@ module.exports = {
             });
              
             //Coinfigure Anyone Sensor
-            if(activeUser && home.presence.anyone){
+            if(activeUser && home.presence.anyone){                       
                 
               const name = home.name + ' Anyone'; 
               const uuid = UUIDGen.generate(name);
@@ -746,7 +747,7 @@ module.exports = {
              
               } else {
                    
-                let config = { ...accessoryConfig };
+                let config = { ...accessoryConfig }; 
                    
                 config.name = name;
                 config.subtype = valid_userTypes.includes(config.accTypeAnyone) && config.accTypeAnyone === 'MOTION'
