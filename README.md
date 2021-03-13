@@ -475,8 +475,8 @@ To better customize the messages, special characters can be set so that the plug
           "anyone_out": "%: Nobody at home."
         },
         "openWindow": {
-          "opened": "%: Open Window detected from @!",
-          "closed": "%: Open Window detected from @!"
+          "opened": "%: Open Window activated from @!",
+          "closed": "%: Open Window deactivated from @!"
         }
       }
     }
