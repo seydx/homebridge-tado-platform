@@ -1,6 +1,6 @@
 {
   "name": "homebridge-tado-platform",
-  "version": "6.0.0-beta.17",
+  "version": "6.0.0-beta.18",
   "description": "homebridge-tado-platform",
   "main": "index.js",
   "devDependencies": {},
