@@ -100,6 +100,7 @@ Each zone in the config.json with ``"type": "HEATING"`` and ``"easyMode": false`
 - Curent Temperature
 - Target Temperature
 - Built-in humidity sensor
+- Room Air Quality
 - Separate Humidity (if ``"separateHumidity": true``)
 - Separate Temperature Sensor (if ``"separateTemperature": true``)
 - Battery state (if ``noBattery: false``)
@@ -133,6 +134,7 @@ Each zone in the config.json with ``type: HEATING`` and ``easyMode: true`` is ex
         "autoOffDelay": false,
         "openWindowSensor": true,
         "openWindowSwitch": false,
+        "airQuality": true,
         "separateTemperature": false,
         "separateHumidity": true,
         "mode": "MANUAL",
