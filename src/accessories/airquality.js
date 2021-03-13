@@ -44,6 +44,14 @@ class AirQualityAccessory {
     if (!service.testCharacteristic(this.api.hap.Characteristic.SulphurDioxideDensity))
       service.addCharacteristic(this.api.hap.Characteristic.SulphurDioxideDensity);
       
+    if (!service.testCharacteristic(this.api.hap.Characteristic.CarbonMonoxideLevel))
+      service.addCharacteristic(this.api.hap.Characteristic.CarbonMonoxideLevel);
+      
+    service.getCharacteristic(this.api.hap.Characteristic.CarbonMonoxideLevel)
+      .setProps({
+        minStep: 0.01
+      });
+      
   }
 
 }

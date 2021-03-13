@@ -307,7 +307,7 @@ TadoPlatform.prototype = {
         break;        
       case 'zone-heatercooler':
       case 'zone-heatercooler-boiler':
-        new HeaterCoolerAccessory(this.api, accessory, this.accessories, tado, deviceHandler);
+        new HeaterCoolerAccessory(this.api, accessory, this.accessories, tado, deviceHandler, FakeGatoHistoryService);
         break;
       case 'zone-switch': 
       case 'zone-window-switch':

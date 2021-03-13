@@ -323,6 +323,11 @@ const schema = {
                 'type': 'boolean',
                 'description': 'If enabled, additional window switch accessory for each zone will be exposed to HomeKit to trigger and enable/disable open window.'
               },
+              'airQuality': {
+                'title': 'Room Air Quality Sensor',
+                'type': 'boolean',
+                'description': 'If enabled, the thermostat/heater cooler accessory will also show an air quality indicator.'
+              },
               'separateTemperature': {
                 'title': 'Separate Temperature Sensors',
                 'type': 'boolean',
@@ -599,6 +604,7 @@ const schema = {
                   'expanded': false,
                   'type': 'section',
                   'items': [
+                    'homes.zones[].airQuality',
                     'homes.zones[].separateTemperature',
                     'homes.zones[].separateHumidity'
                   ]

@@ -122,6 +122,7 @@ module.exports = {
               openWindowSensor: false,
               openWindowSwitch: false,
               accTypeOpenWindowSwitch: 'SWITCH',
+              airQuality: false,
               separateTemperature: false,
               separateHumidity: false,
               accTypeBoiler: 'SWITCH',
@@ -347,6 +348,7 @@ module.exports = {
                 openWindowSensor: false,
                 openWindowSwitch: false,
                 accTypeOpenWindowSwitch: 'SWITCH',
+                airQuality: false,
                 separateTemperature: false,
                 separateHumidity: false,
                 accTypeBoiler: 'SWITCH',
@@ -380,6 +382,7 @@ module.exports = {
               openWindowSensor: false,
               openWindowSwitch: false,
               accTypeOpenWindowSwitch: 'SWITCH',
+              airQuality: false,
               separateTemperature: false,
               separateHumidity: false,
               accTypeBoiler: 'SWITCH',
@@ -540,6 +543,7 @@ module.exports = {
                       
                     config.zoneId = zone.id;
                     config.type = zone.type;
+                    config.airQuality = zone.airQuality;
                     config.separateTemperature = zone.separateTemperature;
                     config.separateHumidity = zone.separateHumidity;
                     config.openWindowSensor = zone.openWindowSensor;

@@ -60,6 +60,19 @@ class ThermostatAccessory {
       }
     }
     
+    //Handle AirQuality
+    if(this.accessory.context.config.airQuality && this.accessory.context.config.type !== 'HOT_WATER'){
+   
+      if(!service.testCharacteristic(this.api.hap.Characteristic.AirQuality))
+        service.addCharacteristic(this.api.hap.Characteristic.AirQuality);
+      
+    } else {
+      
+      if(service.testCharacteristic(this.api.hap.Characteristic.AirQuality))
+        service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.AirQuality));
+      
+    }
+    
     //Handle DelaySwitch
     if(this.accessory.context.config.delaySwitch && this.accessory.context.config.type !== 'HOT_WATER'){
    
@@ -260,7 +273,7 @@ class ThermostatAccessory {
     let currentTemp = service.getCharacteristic(this.api.hap.Characteristic.CurrentTemperature).value; 
     let targetTemp = service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value; 
       
-    let valvePos = currentTemp <= targetTemp && currentState !== this.api.hap.Characteristic.CurrentHeatingCoolingState.OFF && targetState !== this.api.hap.Characteristic.TargetHeatingCoolingState.OFF
+    let valvePos = currentTemp <= targetTemp && currentState !== 0 && targetState !== 0
       ? Math.round(((targetTemp - currentTemp) >= 5 ? 100 : (targetTemp - currentTemp) * 20))
       : 0;
       

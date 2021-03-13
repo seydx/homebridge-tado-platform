@@ -141,6 +141,58 @@ module.exports = {
     Characteristic.DelayTimer.UUID = '2e4eb630-62ab-41fe-bcc1-ea5c3cf98508';
     
     /// /////////////////////////////////////////////////////////////////////////
+    // Thermostat Service
+    /// ///////////////////////////////////////////////////////////////////////// 
+    Service.Thermostat = function(displayName, subtype) {
+      Service.call(this, displayName, '0000004A-0000-1000-8000-0026BB765291', subtype);
+      
+      // Required Characteristics
+      this.addCharacteristic(Characteristic.CurrentHeatingCoolingState);
+      this.addCharacteristic(Characteristic.TargetHeatingCoolingState);
+      this.addCharacteristic(Characteristic.CurrentTemperature);
+      this.addCharacteristic(Characteristic.TargetTemperature);
+      this.addCharacteristic(Characteristic.TemperatureDisplayUnits);
+
+      // Optional Characteristics
+      this.addOptionalCharacteristic(Characteristic.Name);
+      this.addOptionalCharacteristic(Characteristic.AirQuality);
+      this.addOptionalCharacteristic(Characteristic.CurrentRelativeHumidity);
+      this.addOptionalCharacteristic(Characteristic.TargetRelativeHumidity);
+      this.addOptionalCharacteristic(Characteristic.CoolingThresholdTemperature);
+      this.addOptionalCharacteristic(Characteristic.HeatingThresholdTemperature);
+    
+    };
+    inherits(Service.Thermostat, Service);
+    Service.Thermostat.UUID = '0000004A-0000-1000-8000-0026BB765291';
+    
+    /// /////////////////////////////////////////////////////////////////////////
+    // HeaterCooler Service
+    /// ///////////////////////////////////////////////////////////////////////// 
+    Service.HeaterCooler = function(displayName, subtype) {
+      Service.call(this, displayName, '000000BC-0000-1000-8000-0026BB765291', subtype);
+      
+      // Required Characteristics
+      this.addCharacteristic(Characteristic.Active);
+      this.addCharacteristic(Characteristic.CurrentHeaterCoolerState);
+      this.addCharacteristic(Characteristic.TargetHeaterCoolerState);
+      this.addCharacteristic(Characteristic.CurrentTemperature);
+
+      // Optional Characteristics
+      this.addOptionalCharacteristic(Characteristic.Name);
+      this.addOptionalCharacteristic(Characteristic.AirQuality);
+      this.addOptionalCharacteristic(Characteristic.CurrentRelativeHumidity);
+      this.addOptionalCharacteristic(Characteristic.LockPhysicalControls);
+      this.addOptionalCharacteristic(Characteristic.RotationSpeed);
+      this.addOptionalCharacteristic(Characteristic.SwingMode);
+      this.addOptionalCharacteristic(Characteristic.CoolingThresholdTemperature);
+      this.addOptionalCharacteristic(Characteristic.HeatingThresholdTemperature);
+      this.addOptionalCharacteristic(Characteristic.TemperatureDisplayUnits);
+    
+    };
+    inherits(Service.HeaterCooler, Service);
+    Service.HeaterCooler.UUID = '000000BC-0000-1000-8000-0026BB765291';
+    
+    /// /////////////////////////////////////////////////////////////////////////
     // Faucet Service
     /// ///////////////////////////////////////////////////////////////////////// 
     Service.Faucet = function(displayName, subtype) {
@@ -184,6 +236,35 @@ module.exports = {
     };
     inherits(Service.Valve, Service);
     Service.Valve.UUID = '000000D0-0000-1000-8000-0026BB765291';
+    
+    /// /////////////////////////////////////////////////////////////////////////
+    // AirQuality Service
+    /// ///////////////////////////////////////////////////////////////////////// 
+    Service.Valve = function(displayName, subtype) {
+      Service.call(this, displayName, '0000008D-0000-1000-8000-0026BB765291', subtype);
+      
+      // Required Characteristics
+      this.addCharacteristic(Characteristic.AirQuality);
+
+      // Optional Characteristics
+      this.addOptionalCharacteristic(Characteristic.Name);
+      
+      this.addOptionalCharacteristic(Characteristic.NitrogenDioxideDensity);
+      this.addOptionalCharacteristic(Characteristic.OzoneDensity);
+      this.addOptionalCharacteristic(Characteristic.PM10Density);
+      this.addOptionalCharacteristic(Characteristic.PM2_5Density);
+      this.addOptionalCharacteristic(Characteristic.SulphurDioxideDensity);
+      this.addOptionalCharacteristic(Characteristic.VOCDensity);
+      this.addOptionalCharacteristic(Characteristic.CarbonMonoxideLevel);
+      
+      this.addOptionalCharacteristic(Characteristic.StatusActive);
+      this.addOptionalCharacteristic(Characteristic.StatusFault);
+      this.addOptionalCharacteristic(Characteristic.StatusLowBattery);
+      this.addOptionalCharacteristic(Characteristic.StatusTampered);
+    
+    };
+    inherits(Service.Valve, Service);
+    Service.Valve.UUID = '0000008D-0000-1000-8000-0026BB765291';
     
   }
 };
