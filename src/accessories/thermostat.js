@@ -19,6 +19,8 @@ class ThermostatAccessory {
     this.deviceHandler = deviceHandler;
     this.tado = tado;
     
+    this.autoDelayTimeout = null;
+    
     this.getService();
 
   }
@@ -67,14 +69,38 @@ class ThermostatAccessory {
       if(!service.testCharacteristic(this.api.hap.Characteristic.DelayTimer))
         service.addCharacteristic(this.api.hap.Characteristic.DelayTimer);
    
-      service.getCharacteristic(this.api.hap.Characteristic.DelaySwitch)
-        .onGet(() => {
-          return this.accessory.context.delaySwitch || false;
-        })
-        .onSet(value => {
-          this.accessory.context.delaySwitch = value;
-        });
+      if(this.accessory.context.config.autoOffDelay){
         
+        service.getCharacteristic(this.api.hap.Characteristic.DelaySwitch)
+          .onSet(value => {
+            if(value && this.accessory.context.delayTimer){
+              this.autoDelayTimeout = setTimeout(() => {
+                Logger.info('Timer expired, turning off delay switch', this.accessory.displayName);
+                service.getCharacteristic(this.api.hap.Characteristic.DelaySwitch)
+                  .updateValue(false);
+                this.autoDelayTimeout = null;
+              }, this.accessory.context.delayTimer * 1000);
+            } else {
+              if(this.autoDelayTimeout){
+                clearTimeout(this.autoDelayTimeout);
+                this.autoDelayTimeout = null;
+              }
+            }            
+          })
+          .updateValue(false);
+          
+      } else {
+        
+        service.getCharacteristic(this.api.hap.Characteristic.DelaySwitch)
+          .onGet(() => {
+            return this.accessory.context.delaySwitch || false;
+          })
+          .onSet(value => {
+            this.accessory.context.delaySwitch = value;
+          });
+      
+      }
+      
       service.getCharacteristic(this.api.hap.Characteristic.DelayTimer)
         .onGet(() => {
           return this.accessory.context.delayTimer || 0;
@@ -82,6 +108,7 @@ class ThermostatAccessory {
         .onSet(value => {
           this.accessory.context.delayTimer = value;
         });
+        
    
     } else {
    
@@ -92,6 +119,22 @@ class ThermostatAccessory {
         service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.DelayTimer));
    
     }
+    
+    let minValue = this.accessory.context.config.type === 'HOT_WATER'
+      ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
+        ? 30
+        : 86
+      : this.accessory.context.config.temperatureUnit === 'CELSIUS'
+        ? 5
+        : 41;
+        
+    let maxValue = this.accessory.context.config.type === 'HOT_WATER'
+      ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
+        ? 65
+        : 149
+      : this.accessory.context.config.temperatureUnit === 'CELSIUS'
+        ? 25
+        : 77;
 
     service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState)
       .setProps({
@@ -114,20 +157,9 @@ class ThermostatAccessory {
       
     service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
       .setProps({
-        minValue: this.accessory.context.config.type === 'HOT_WATER'
-          ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
-            ? 30
-            : 86
-          : this.accessory.context.config.temperatureUnit === 'CELSIUS'
-            ? 5
-            : 41,
-        maxValue: this.accessory.context.config.type === 'HOT_WATER'
-          ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
-            ? 65
-            : 149
-          : this.accessory.context.config.temperatureUnit === 'CELSIUS'
-            ? 25
-            : 77
+        minValue: minValue,
+        maxValue: maxValue,
+        minStep: 1
       });
       
     if (!this.accessory.context.config.separateHumidity){

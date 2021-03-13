@@ -139,16 +139,42 @@ class SwitchAccessory {
             .updateValue(false);
        
         } else {
-        
-          if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeat))
-            serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.OverallHeat);
+          
+          //Modes
           if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.AutoThermostats))
             serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.AutoThermostats);
+            
           if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.ManualThermostats))
             serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.ManualThermostats);
+            
           if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OfflineThermostats))
             serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.OfflineThermostats);  
-        
+            
+          //Activity
+          if(this.accessory.context.config.runningInformation){
+            
+            if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatDay))
+              serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.OverallHeatDay);
+              
+            if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatMonth))
+              serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.OverallHeatMonth);
+              
+            if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatYear))
+              serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.OverallHeatYear);  
+          
+          } else {
+            
+            if(serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatDay))
+              serviceSubSwitch.removeCharacteristic(serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.OverallHeatDay));
+              
+            if(serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatMonth))
+              serviceSubSwitch.removeCharacteristic(serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.OverallHeatMonth));
+              
+            if(serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatYear))
+              serviceSubSwitch.removeCharacteristic(serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.OverallHeatYear));  
+            
+          }
+          
         }
             
         serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.On)

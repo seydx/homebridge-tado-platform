@@ -68,7 +68,7 @@ class Tado {
     
   }
 
-  async apiCall(path, method = 'GET', data = {}, params = {}, tado_url_dif) {
+  async apiCall(path, method = 'GET', data = {}, params = {}, tado_url_dif, blockLog) {
       
     Logger.debug('Checking access token..', this.name);
                                                   
@@ -103,7 +103,9 @@ class Tado {
     const response = await got(tadoLink + path, config);
     
     Logger.debug('API request ' + method + ' ' + path +  ' ' + (data && Object.keys(data).length ? JSON.stringify(data) + ' <success>': '<success>'), this.name);
-    Logger.debug('API request ' + method + ' ' + path +  ' <response> ' + JSON.stringify(response.body), this.name);
+    
+    if(!blockLog)
+      Logger.debug('API request ' + method + ' ' + path +  ' <response> ' + JSON.stringify(response.body), this.name);
     
     return response.body;
     
@@ -404,9 +406,12 @@ class Tado {
   
   }
   
-  async getRunningTime(home_id, from, to){  
+  async getRunningTime(home_id, time, from, to){  
 
-    const  period = {};
+    const  period = {
+      aggregate: time || 'day',
+      summary_only: true
+    };
     
     if(from)
       period.from = from;
@@ -414,7 +419,7 @@ class Tado {
     if(to)
       period.to = to;
  
-    return this.apiCall(`/v1/homes/${home_id}/runningTimes`, 'GET', {}, period, 'https://minder.tado.com');
+    return this.apiCall(`/v1/homes/${home_id}/runningTimes`, 'GET', {}, period, 'https://minder.tado.com', false);
  
   }
   

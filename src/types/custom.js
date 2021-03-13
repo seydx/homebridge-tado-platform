@@ -11,7 +11,7 @@ module.exports = {
     // AutoThermostats Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.AutoThermostats = function() {
-      Characteristic.call(this, 'State (auto)', '12edece0-36c8-427f-895c-3b88ea186388');
+      Characteristic.call(this, 'Mode Auto', '12edece0-36c8-427f-895c-3b88ea186388');
       this.setProps({
         format: Characteristic.Formats.INT,
         maxValue: 100,
@@ -28,7 +28,7 @@ module.exports = {
     // ManualThermostats Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.ManualThermostats = function() {
-      Characteristic.call(this, 'State (manual)', '2be09385-4dc3-4438-9fee-b5b2e0642004');
+      Characteristic.call(this, 'Mode Manual', '2be09385-4dc3-4438-9fee-b5b2e0642004');
       this.setProps({
         format: Characteristic.Formats.INT,
         maxValue: 100,
@@ -45,7 +45,7 @@ module.exports = {
     // OfflineThermostats Characteristic
     /// /////////////////////////////////////////////////////////////////////////
     Characteristic.OfflineThermostats = function() {
-      Characteristic.call(this, 'State (off)', '93131984-615c-401b-84ac-54e22db492c6');
+      Characteristic.call(this, 'Mode Off', '93131984-615c-401b-84ac-54e22db492c6');
       this.setProps({
         format: Characteristic.Formats.INT,
         maxValue: 100,
@@ -59,21 +59,55 @@ module.exports = {
     Characteristic.OfflineThermostats.UUID = '93131984-615c-401b-84ac-54e22db492c6';
     
     /// /////////////////////////////////////////////////////////////////////////
-    // OverallHeat Characteristic
+    // OverallHeatDay Characteristic
     /// /////////////////////////////////////////////////////////////////////////
-    Characteristic.OverallHeat = function() {
-      Characteristic.call(this, 'Overall Heat', 'fca005bd-5cb5-4c14-a290-6e1a9980c436');
+    Characteristic.OverallHeatDay = function() {
+      Characteristic.call(this, 'Activity Day', '43c89074-b70a-480c-8239-51697a9db445');
       this.setProps({
         format: Characteristic.Formats.FLOAT,
-        maxValue: 1000,
+        maxValue: 99999,
         minValue: 0,
         minStep: 0.01,
         perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
       });
       this.value = this.getDefaultValue();
     };
-    inherits(Characteristic.OverallHeat, Characteristic);
-    Characteristic.OverallHeat.UUID = 'fca005bd-5cb5-4c14-a290-6e1a9980c436';
+    inherits(Characteristic.OverallHeatDay, Characteristic);
+    Characteristic.OverallHeatDay.UUID = '43c89074-b70a-480c-8239-51697a9db445';
+    
+    /// /////////////////////////////////////////////////////////////////////////
+    // OverallHeatMonth Characteristic
+    /// /////////////////////////////////////////////////////////////////////////
+    Characteristic.OverallHeatMonth = function() {
+      Characteristic.call(this, 'Activity Month', '1874332a-d7dd-4e45-9d65-a4baa6d11121');
+      this.setProps({
+        format: Characteristic.Formats.FLOAT,
+        maxValue: 99999,
+        minValue: 0,
+        minStep: 0.01,
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+      });
+      this.value = this.getDefaultValue();
+    };
+    inherits(Characteristic.OverallHeatMonth, Characteristic);
+    Characteristic.OverallHeatMonth.UUID = '1874332a-d7dd-4e45-9d65-a4baa6d11121';
+    
+    /// /////////////////////////////////////////////////////////////////////////
+    // OverallHeatYear Characteristic
+    /// /////////////////////////////////////////////////////////////////////////
+    Characteristic.OverallHeatYear = function() {
+      Characteristic.call(this, 'Activity Year', 'd105b9f7-afe7-44a2-9cbe-f079ba499733');
+      this.setProps({
+        format: Characteristic.Formats.FLOAT,
+        maxValue: 99999,
+        minValue: 0,
+        minStep: 0.01,
+        perms: [Characteristic.Perms.READ, Characteristic.Perms.NOTIFY]
+      });
+      this.value = this.getDefaultValue();
+    };
+    inherits(Characteristic.OverallHeatYear, Characteristic);
+    Characteristic.OverallHeatYear.UUID = 'd105b9f7-afe7-44a2-9cbe-f079ba499733';
     
     /// /////////////////////////////////////////////////////////////////////////
     // DelaySwitch Characteristic

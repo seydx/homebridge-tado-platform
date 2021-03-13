@@ -60,8 +60,12 @@ module.exports = {
             extras: {
               centralSwitch: false,
               runningInformation: false,
+              boostSwitch: false,
+              sheduleSwitch: false,
+              turnoffSwitch: false,
               presenceLock: false,
               accTypePresenceLock: 'ALARM',
+              accTypeChildLock: 'SWITCH',
               childLockSwitches: []
             },
             telegram: {
@@ -110,12 +114,14 @@ module.exports = {
               name: zone.name,
               type: zone.type,
               delaySwitch: false,
+              autoOffDelay: false,
               noBattery: false,
               mode: 'MANUAL',
               modeTimer: 30,
               easyMode: false,
               openWindowSensor: false,
               openWindowSwitch: false,
+              accTypeOpenWindowSwitch: 'SWITCH',
               separateTemperature: false,
               separateHumidity: false,
               accTypeBoiler: 'SWITCH',
@@ -333,12 +339,14 @@ module.exports = {
                 name: foundZone.name,
                 type: foundZone.type,
                 delaySwitch: false,
+                autoOffDelay: false,
                 noBattery: false,
                 mode: 'MANUAL',
                 modeTimer: 30,
                 easyMode: false,
                 openWindowSensor: false,
                 openWindowSwitch: false,
+                accTypeOpenWindowSwitch: 'SWITCH',
                 separateTemperature: false,
                 separateHumidity: false,
                 accTypeBoiler: 'SWITCH',
@@ -364,12 +372,14 @@ module.exports = {
               name: zone.name,
               type: zone.type,
               delaySwitch: false,
+              autoOffDelay: false,
               noBattery: false,
               mode: 'MANUAL',
               modeTimer: 30,
               easyMode: false,
               openWindowSensor: false,
               openWindowSwitch: false,
+              accTypeOpenWindowSwitch: 'SWITCH',
               separateTemperature: false,
               separateHumidity: false,
               accTypeBoiler: 'SWITCH',
@@ -542,6 +552,7 @@ module.exports = {
                       ? zone.modeTimer
                       : 1;
                     config.delaySwitch = zone.delaySwitch;
+                    config.autoOffDelay = zone.autoOffDelay;
                     config.model = zone.type;
                     config.serialNumber = hashCode(name);
                     
@@ -915,7 +926,7 @@ module.exports = {
             
             }
              
-            //Configure PresenceLock Security
+            //Configure Presence Lock
             if(home.extras.presenceLock){
              
               const name = home.name + ' Presence Lock'; 
@@ -943,7 +954,7 @@ module.exports = {
              
             }
             
-            //Configure ChildLock Switch
+            //Configure Child Lock
             if(home.extras.childLockSwitches){
             
               let validSwitches = [];

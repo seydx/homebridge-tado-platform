@@ -310,21 +310,20 @@
                   "type": "boolean",
                   "description": "If enabled, additional delay switch characteristic for each zone will be within the accessory. If the delay switch is turned on, the thermostat/boiler will not change state until delay is turned off (timer adjustable within accessory). "
                 },
+                "autoOffDelay": {
+                  "title": "Auto Off",
+                  "type": "boolean",
+                  "description": "If enabled, the delay switch will not affect the thermostats and it automatically turns off after the period has expired."
+                },
                 "openWindowSensor": {
                   "title": "Open Window Sensor",
                   "type": "boolean",
-                  "description": "If enabled, additional window contact accessory for each zone will be exposed to HomeKit which triggers if tado detects an open window.",
-                  "condition": {
-                    "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HEATING' } catch(e){ return false }"
-                  }
+                  "description": "If enabled, additional window contact accessory for each zone will be exposed to HomeKit which triggers if tado detects an open window."
                 },
                 "openWindowSwitch": {
                   "title": "Open Window Switch",
                   "type": "boolean",
-                  "description": "If enabled, additional window switch accessory for each zone will be exposed to HomeKit to trigger and enable/disable open window.",
-                  "condition": {
-                    "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HEATING' } catch(e){ return false }"
-                  }
+                  "description": "If enabled, additional window switch accessory for each zone will be exposed to HomeKit to trigger and enable/disable open window."
                 },
                 "separateTemperature": {
                   "title": "Separate Temperature Sensors",
@@ -334,10 +333,7 @@
                 "separateHumidity": {
                   "title": "Separate Humidity Sensors",
                   "type": "boolean",
-                  "description": "If enabled, the humidity sensor will be shown as extra accessory.",
-                  "condition": {
-                    "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HEATING' } catch(e){ return false }"
-                  }
+                  "description": "If enabled, the humidity sensor will be shown as extra accessory."
                 },
                 "mode": {
                   "title": "Termination Mode",
@@ -413,17 +409,11 @@
                 "boilerTempSupport": {
                   "title": "Boiler (Hot Water) with temperature adjustment",
                   "type": "boolean",
-                  "description": "Enable this if your can also adjust the temperature from your hot water.",
-                  "condition": {
-                    "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HOT_WATER' } catch(e){ return false }"
-                  }
+                  "description": "Enable this if your can also adjust the temperature from your hot water."
                 },
                 "accTypeBoiler": {
                   "title": "Boiler (Hot Water) Accessory Type",
                   "type": "string",
-                  "condition": {
-                    "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HOT_WATER' && !model.homes[arrayIndices[0]].zones[arrayIndices[1]].boilerTempSupport } catch(e){ return false }"
-                  },
                   "oneOf": [
                     {
                       "title": "Faucet",
@@ -530,7 +520,6 @@
       "buttonText": "Add Home",
       "items": [
         "homes[].name",
-        "homes[].id",
         "homes[].polling",
         "homes[].temperatureUnit",
         {
@@ -541,6 +530,7 @@
           "expanded": false,
           "orderable": false,
           "items": [
+            "homes[].id",
             "homes[].username",
             "homes[].password"
           ]
@@ -569,7 +559,7 @@
                   ]
                 },
                 {
-                  "title": "Advanced",
+                  "title": "Options",
                   "expandable": true,
                   "expanded": false,
                   "orderable": false,
@@ -578,15 +568,61 @@
                   },
                   "items": [
                     "homes[].zones[].id",
-                    "homes[].zones[].delaySwitch",
                     "homes[].zones[].easyMode",
                     "homes[].zones[].noBattery",
-                    "homes[].zones[].openWindowSensor",
-                    "homes[].zones[].openWindowSwitch",
-                    "homes[].zones[].separateTemperature",
-                    "homes[].zones[].separateHumidity",
-                    "homes[].zones[].boilerTempSupport",
-                    "homes[].zones[].accTypeBoiler"
+                    {
+                      "title": "Hot Water",
+                      "orderable": false,
+                      "expandable": true,
+                      "expanded": false,
+                      "type": "section",
+                      "condition": {
+                        "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HOT_WATER' } catch(e){ return false }"
+                      },
+                      "items": [
+                        "homes[].zones[].boilerTempSupport",
+                        "homes[].zones[].accTypeBoiler"
+                      ]
+                    },
+                    {
+                      "title": "Open Window",
+                      "orderable": false,
+                      "expandable": true,
+                      "expanded": false,
+                      "type": "section",
+                      "condition": {
+                        "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HEATING' } catch(e){ return false }"
+                      },
+                      "items": [
+                        "homes[].zones[].openWindowSensor",
+                        "homes[].zones[].openWindowSwitch"
+                      ]
+                    },
+                    {
+                      "title": "Sensors",
+                      "orderable": false,
+                      "expandable": true,
+                      "expanded": false,
+                      "type": "section",
+                      "items": [
+                        "homes[].zones[].separateTemperature",
+                        "homes[].zones[].separateHumidity"
+                      ]
+                    },
+                    {
+                      "title": "Delay",
+                      "orderable": false,
+                      "expandable": true,
+                      "expanded": false,
+                      "type": "section",
+                      "condition": {
+                        "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HEATING' } catch(e){ return false }"
+                      },
+                      "items": [
+                        "homes[].zones[].delaySwitch",
+                        "homes[].zones[].autoOffDelay"
+                      ]
+                    }
                   ]
                 }
               ]
@@ -662,17 +698,6 @@
           "orderable": false,
           "items": [
             {
-              "title": "Presence Lock",
-              "type": "section",
-              "expandable": true,
-              "expanded": false,
-              "orderable": false,
-              "items": [
-                "homes[].extras.presenceLock",
-                "homes[].extras.accTypePresenceLock"
-              ]
-            },
-            {
               "title": "Central Switch",
               "type": "section",
               "expandable": true,
@@ -686,9 +711,20 @@
                 "homes[].extras.turnoffSwitch"
               ]
             },
+             {
+              "title": "Presence Lock",
+              "type": "section",
+              "expandable": true,
+              "expanded": false,
+              "orderable": false,
+              "items": [
+                "homes[].extras.presenceLock",
+                "homes[].extras.accTypePresenceLock"
+              ]
+            },
             {
               "key": "homes[].extras.childLockSwitches",
-              "title": "Child Lock Switches",
+              "title": "Child Lock",
               "buttonText": "Add Switch",
               "type": "section",
               "expandable": true,

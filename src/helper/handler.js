@@ -7,6 +7,8 @@ const moment = require('moment');
 var settingState = false;
 var delayTimer = {};
 
+const timeout = (ms) => new Promise((res) => setTimeout(res, ms));
+
 module.exports = (api, accessories, config, tado, telegram) => {
 
   async function setStates(accessory, accs, target, value){
@@ -32,7 +34,12 @@ module.exports = (api, accessories, config, tado, telegram) => {
             ? api.hap.Characteristic.HeatingThresholdTemperature
             : api.hap.Characteristic.TargetTemperature;
           
-          if(accessory.context.config.subtype !== 'zone-heatercooler-boiler' && accessory.context.config.delaySwitch && accessory.context.delaySwitch && accessory.context.delayTimer && value < 5){
+          if(accessory.context.config.subtype !== 'zone-heatercooler-boiler' && 
+            !accessory.context.config.autoOffDelay && 
+            accessory.context.config.delaySwitch && 
+            accessory.context.delaySwitch && 
+            accessory.context.delayTimer && 
+            value < 5){
             
             if(value === 0){
               
@@ -260,7 +267,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
         }
           
         case 'extra-cntrlswitch': {
-         
+          
           if(target === 'Shedule'){
           
             if(!value)
@@ -562,7 +569,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
           if(historyService){
        
             let lastActivation = moment().unix() - historyService.getInitialTime();
-            
+          
             accessory
               .getService(api.hap.Service.MotionSensor)
               .getCharacteristic(api.hap.Characteristic.LastActivation)
@@ -1474,7 +1481,6 @@ module.exports = (api, accessories, config, tado, telegram) => {
     
         const presenceLock = await tado.getState(config.homeId);
       
-        
         /*
           0: Home  | true
           1: Away  | true
@@ -1541,20 +1547,42 @@ module.exports = (api, accessories, config, tado, telegram) => {
       if(centralSwitchAccessory.length){
       
         Logger.debug('Polling RunningTime...', config.homeName);
-      
-        let fromDate = moment().format('YYYY-MM-01');
-        let toDate = moment().format('YYYY-MM-DD');
-      
-        const runningTime = await tado.getRunningTime(config.homeId, fromDate, toDate);
-           
-        let summaryInHours = Math.round(((Math.round(runningTime.summary.totalRunningTimeInSeconds / 3600)) + Number.EPSILON) * 100) / 100;
-      
-        let serviceSwitch = centralSwitchAccessory[0].getServiceById(api.hap.Service.Switch, 'Central');         
-        let characteristic = api.hap.Characteristic.OverallHeat;
         
-        serviceSwitch
-          .getCharacteristic(characteristic)
-          .updateValue(summaryInHours);
+        let periods = ['days', 'months', 'years'];
+        
+        for(const period of periods){
+          
+          let fromDate = period === 'days'
+            ? moment().format('YYYY-MM-DD')
+            : period === 'months'
+              ? moment().subtract(1, 'days').subtract(1, period).format('YYYY-MM-DD')
+              : moment().add(1, 'months').startOf('month').subtract(1, period).format('YYYY-MM-DD');
+              
+              
+          let toDate = period === 'years'
+            ? moment().format('YYYY-MM-DD')
+            : false;
+              
+          let time = period.substring(0, period.length - 1);
+        
+          const runningTime = await tado.getRunningTime(config.homeId, time, fromDate, toDate);
+             
+          let summaryInHours = runningTime.summary.totalRunningTimeInSeconds / 3600;
+        
+          let serviceSwitch = centralSwitchAccessory[0].getServiceById(api.hap.Service.Switch, 'Central');         
+          let characteristic = period === 'years'
+            ? api.hap.Characteristic.OverallHeatYear
+            : period === 'months'
+              ? api.hap.Characteristic.OverallHeatMonth
+              : api.hap.Characteristic.OverallHeatDay;
+          
+          serviceSwitch
+            .getCharacteristic(characteristic)
+            .updateValue(summaryInHours);
+            
+          await timeout(500);
+            
+        }
       
       }
     
