@@ -308,9 +308,6 @@ const schema = {
               'autoOffDelay': {
                 'title': 'Auto Off',
                 'type': 'boolean',
-                'condition': {
-                  'functionBody': 'try { return model.homes.zones[arrayIndices[0]].active && model.homes.zones[arrayIndices[0]].delaySwitch } catch(e){ return false }'
-                },
                 'description': 'If enabled, the delay switch will not affect the thermostats and it automatically turns off after the period has expired.'
               },
               'openWindowSensor': {
