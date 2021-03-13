@@ -26,8 +26,16 @@ class Telegram {
     
     if(this.messages[target] && this.messages[target][dest]){
     
-      let message = this.messages[target][dest].includes('@') && replacer ? this.messages[target][dest].replace('@', replacer) : this.messages[target][dest];
-      message = message.includes('%') && additional ? message.replace('%', additional) : message;
+      let message = this.messages[target][dest].includes('@') && replacer 
+        ? this.messages[target][dest].replace('@', replacer) 
+        : this.messages[target][dest];
+ 
+      message = message.includes('%') && additional 
+        ? message.replace('%', additional) 
+        : message;
+        
+      console.log('ADDITIONAL: ' + additional);  
+        
       
       const form = new FormData();
       

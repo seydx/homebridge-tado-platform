@@ -603,9 +603,8 @@ module.exports = (api, accessories, config, tado, telegram) => {
             ? 'opened'
             : 'closed';
           
-          let info = replacer.split(accessory.context.config.homeName + ' ');
-          let additional = info[0];
-          replacer = info[1];
+          replacer = replacer.split(accessory.context.config.homeName + ' ')[1];
+          let additional = accessory.context.config.homeName;       
           
           if(telegram)
             telegram.send('openWindow', dest, replacer, additional);
@@ -630,11 +629,10 @@ module.exports = (api, accessories, config, tado, telegram) => {
        
           }
           
-          let dest = false;
-          let info = replacer.split(accessory.context.config.homeName + ' ');
-          let additional = info[0];
-          replacer = info[1];
-          
+          let dest; 
+                  
+          replacer = replacer.split(accessory.context.config.homeName + ' ')[1];
+          let additional = accessory.context.config.homeName;
           
           if(value.newValue){
             dest = accessory.displayName === (accessory.context.config.homeName + ' Anyone') 
@@ -644,7 +642,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
             dest = accessory.displayName === (accessory.context.config.homeName + ' Anyone') 
               ? 'anyone_out' 
               : 'user_out';
-          }
+          }  
           
           if(telegram)
             telegram.send('presence', dest, replacer === 'Anyone' ? false : replacer, replacer === 'Anyone' ? false : additional);
