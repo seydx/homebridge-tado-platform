@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/SeydX/homebridge-tado-platform/blob/beta/images/tado_logo.png">
+  <img src="https://github.com/SeydX/homebridge-tado-platform/blob/master/images/tado_logo.png">
 </p>
 
 # Tado Platform v6
@@ -13,7 +13,7 @@
 
 [Click here](https://github.com/SeydX) to review more of my plugins.
 
-**<u>NOTE:</u>** Updating from **<= v5.x** to **v6.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/beta/example-config.json) 
+**<u>NOTE:</u>** Updating from **<= v5.x** to **v6.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/example-config.json) 
 
 ## Info
 
@@ -46,11 +46,11 @@ You can do that and much more with the new version 6. Have Fun!
 
 After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
 
- ```sudo npm install -g homebridge-tado-platform@beta```
+ ```sudo npm install -g homebridge-tado-platform@latest```
 
 ## Documentation
 
-- [Example config.json](https://github.com/SeydX/homebridge-tado-platform/blob/beta/example-config.json)
+- [Example config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/example-config.json)
 - [Non Config Ui X User?](#non-config-ui-x-user)
 - [Configuration](#configuration)
   - [Thermostat](#thermostat)
@@ -110,7 +110,7 @@ The plugin can also work without config ui x or a custom ui. If you want the con
   ]
 }
 ```
-See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/beta/example-config.json) for more details
+See [Example Config](https://github.com/SeydX/homebridge-tado-platform/edit/master/example-config.json) for more details
 
 ## Configuration
 
