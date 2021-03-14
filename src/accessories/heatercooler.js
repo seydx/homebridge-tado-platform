@@ -222,11 +222,11 @@ class HeaterCoolerAccessory {
           minStep: 1
         });
         
-      if (!service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value < minValue)
+      if (service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value < minValue)
         service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
           .updateValue(minValue);
           
-      if (!service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value > maxValue)
+      if (service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value > maxValue)
         service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
           .updateValue(maxValue);
     
@@ -239,11 +239,11 @@ class HeaterCoolerAccessory {
         minStep: 1
       });
       
-    if (!service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature).value < minValue)
+    if (service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature).value < minValue)
       service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)
         .updateValue(minValue);
         
-    if (!service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature).value > maxValue)
+    if (service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature).value > maxValue)
       service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)
         .updateValue(maxValue);
         
