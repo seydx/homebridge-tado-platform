@@ -175,6 +175,14 @@ class ThermostatAccessory {
         minStep: 1
       });
       
+    if (!service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value < minValue)
+      service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
+        .updateValue(minValue);
+        
+    if (!service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value > maxValue)
+      service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
+        .updateValue(maxValue);
+      
     if (!this.accessory.context.config.separateHumidity){
       if(!service.testCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity))
         service.addCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity);
