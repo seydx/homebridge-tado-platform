@@ -175,11 +175,11 @@ class ThermostatAccessory {
         minStep: 1
       });
       
-    if (!service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value < minValue)
+    if (service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value < minValue)
       service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
         .updateValue(minValue);
         
-    if (!service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value > maxValue)
+    if (service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value > maxValue)
       service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
         .updateValue(maxValue);
       
