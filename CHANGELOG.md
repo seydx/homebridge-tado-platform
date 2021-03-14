@@ -1,48 +1,55 @@
 # Changelog
 
 
-## v6.0.0
+## v6.0.0 - 2021-03-14
 - Config UI X support (config.schema.json)
 - Custom UI
 - Support for non config ui x user
 - Auto-fill config for non config ui x user
 - HB 1.3 support
+  - Support new onGet/onSet event
 - Refactored code
 - Multiple tado accounts
-- Possibility to control multiple homes
+  - Possibility to control multiple homes
 - Customizable temperature unit via HomeKit
 - Customizable Modes (AUTO | HEAT | COOL | OFF) or (ON | OFF)
 - Deactivatable battery indicator (support for old gen thermostats)
 - Customizable zone termination, separate for each zone
-- Delay Option
+- Delay Switch
   - Delay as switch characteristic with adjustable timer characteristic for automations
+  - Auto turn off options
 - Separate humidity sensor
 - Separate temperature sensor
 - Boiler with adjustable accessory type
-  - Switch (if no temperature is supported)
+  - Switch (if no temperature is supported) 
   - Faucet (if no temperature supported)
-  - Thermostat (if temperature supported)
-- Central Switch with custom characteristics
-  - Overall heat in h
-  - Thermostat/Boiler states (manual, auto, off) (?)
-- Boost trigger switch
-- Resume shedule trigger switch
-- Turn off trigger switch
+  - HeaterCooler (if temperature supported)
+- Grouped Central Switch with custom characteristics 
+  - Overall heat in h for day/month/year
+  - Thermostat/Boiler states (manual, auto, off)
+  - Boost trigger switch
+  - Resume shedule trigger switch
+  - Turn off trigger switch
 - OpenWindow
-  - Switch: Enables openWindow and trigger open window detection
+  - Grouped Switch: Enables open window and trigger open window detection
   - Contact: Read-only open window state as contact sensor
-- PresenceLock
-- ChildLock
-- AirQuality
+- Presence Lock
+  - As Security System
+  - As Grouped Switch Accessory 
+- Air Quality
+  - Weather
+  - Zones
 - FakeGato
   - Thermostats
+  - HeaterCooler
   - Temperature sensors
   - Humidity sensors
   - Contact sensors (window)
 - Telegram
   - Presence
   - OpenWindow
-  - Better error handling
+- Child Lock Switches as Grouped Switch Accessory
+- Better error handling
 
 ## v5.1.5 - 2019-04-27
 - Refactored HOTWATER Accessory (*)
