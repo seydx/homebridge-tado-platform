@@ -1,5 +1,5 @@
 /**
- * v6
+ * v6.0
  *
  * @url https://github.com/SeydX/homebridge-tado-platform
  * @author SeydX <seyd55@outlook.de>
