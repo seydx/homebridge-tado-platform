@@ -1,29 +1,19 @@
 'use strict';
 
-const HomeKitTypes = require('../types/types.js');
+const Logger = require('../helper/logger.js');
 
-var Service, Characteristic;
+class SwitchAccessory {
 
-class switch_Accessory {
-  constructor (platform, accessory) {
-  
-    Service = platform.api.hap.Service;
-    Characteristic = platform.api.hap.Characteristic;
+  constructor (api, accessory, accessories, tado, deviceHandler) {
     
-    HomeKitTypes.registerWith(platform.api.hap);
-
-    this.platform = platform;
-    this.log = platform.log;
-    this.logger = platform.logger;
-    this.debug = platform.debug;
-    this.api = platform.api;
-    this.config = platform.config;
-    this.accessories = platform.accessories;
+    this.api = api;
+    this.accessory = accessory;
+    this.accessories = accessories;
     
-    this.tado = platform.tado;
-    this.tadoHandler = platform.tadoHandler;
+    this.deviceHandler = deviceHandler;
+    this.tado = tado;
     
-    this.getService(accessory);
+    this.getService();
 
   }
 
@@ -31,138 +21,220 @@ class switch_Accessory {
   // Services
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-  getService (accessory) {
-  
-    const self = this;
+  getService () {
+    
+    let service = this.accessory.getService(this.api.hap.Service.Switch);
+    
+    let serviceContact = this.accessory.getService(this.api.hap.Service.ContactSensor);
+    let serviceHeater = this.accessory.getService(this.api.hap.Service.HeaterCooler);
+    let serviceFaucet = this.accessory.getService(this.api.hap.Service.Valve);
+    let serviceSecurity = this.accessory.getService(this.api.hap.Service.SecuritySystem);
+    
+    let serviceHomeSwitch = this.accessory.getServiceById(this.api.hap.Service.Switch, 'HomeSwitch');
+    let serviceAwaySwitch = this.accessory.getServiceById(this.api.hap.Service.Switch, 'AwaySwitch');
+    
+    if(serviceContact){
+      Logger.info('Removing ContactSensor service', this.accessory.displayName);
+      this.accessory.removeService(serviceContact);
+    }
+    
+    if(serviceHeater){
+      Logger.info('Removing HeaterCooler service', this.accessory.displayName);
+      this.accessory.removeService(serviceHeater);
+    }
+    
+    if(serviceFaucet){
+      Logger.info('Removing Faucet service', this.accessory.displayName);
+      this.accessory.removeService(serviceFaucet);
+    }
+    
+    if(serviceSecurity){
+      Logger.info('Removing Security service', this.accessory.displayName);
+      this.accessory.removeService(serviceSecurity);
+    }
+    
+    if(!service && this.accessory.context.config.subtype !== 'extra-plockswitch' && this.accessory.context.config.subtype !== 'extra-childswitch' && this.accessory.context.config.subtype !== 'zone-window-switch' && this.accessory.context.config.subtype !== 'extra-cntrlswitch'){
+      Logger.info('Adding Switch service', this.accessory.displayName);
+      service = this.accessory.addService(this.api.hap.Service.Switch, this.accessory.displayName, this.accessory.context.config.subtype);
+    }
+    
+    if(this.accessory.context.config.subtype === 'extra-plockswitch'){
 
-    accessory.on('identify', function(paired, callback) {
-      self.logger.info(accessory.displayName + ': Identify!!!');
-      callback();
-    });
-
-    let service = accessory.getService(Service.Switch);
-
-    service.getCharacteristic(Characteristic.On)
-      .on('set', this.setState.bind(this, accessory, service));
+      if(!serviceHomeSwitch){
+        Logger.info('Adding Switch service (home)', this.accessory.displayName);
+        serviceHomeSwitch = this.accessory.addService(this.api.hap.Service.Switch, 'Home', 'HomeSwitch');
+      }
       
-    if (!service.testCharacteristic(Characteristic.AutoThermostats))
-      service.addCharacteristic(Characteristic.AutoThermostats);
-      
-    if (!service.testCharacteristic(Characteristic.ManualThermostats))
-      service.addCharacteristic(Characteristic.ManualThermostats);
-      
-    if (!service.testCharacteristic(Characteristic.OfflineThermostats))
-      service.addCharacteristic(Characteristic.OfflineThermostats);
-      
-    if (!service.testCharacteristic(Characteristic.DummySwitch))
-      service.addCharacteristic(Characteristic.DummySwitch);
-      service.getCharacteristic(Characteristic.DummySwitch)
-        .on('set', function(state, callback){
-          accessory.context.windowState = state;
-          callback(null, state);
-        });
-        
-    this.getState(accessory, service);
-
-  }
-  
-  async getState (accessory, service){
-  
-    let states;
-    let auto = 0;
-    let manual = 0;
-    let off = 0;
-  
-    try {
-    
-      service.getCharacteristic(Characteristic.DummySwitch).updateValue(accessory.context.windowState);
-    
-      states = await this.accessories.map( device => {
-      
-        if(device.context.type === 'thermostat'){
-        
-          let tarState = device.getService(Service.Thermostat).getCharacteristic(Characteristic.TargetHeatingCoolingState).value;
-          
-          if(tarState===0)off++;
-          if(tarState===1||tarState===2)manual++;
-          if(tarState===3)auto++;
-        
-          return tarState;
-          
-        }
-       
-      });
-      
-      let status = ( states.includes(3) ) ? true : false;
-      
-      service.getCharacteristic(Characteristic.On).updateValue(status);
-      
-      service.getCharacteristic(Characteristic.AutoThermostats).updateValue(auto);
-      service.getCharacteristic(Characteristic.ManualThermostats).updateValue(manual);
-      service.getCharacteristic(Characteristic.OfflineThermostats).updateValue(off);
-    
-    } catch(err) {
-    
-      this.logger.error(accessory.displayName + ': An error occured while getting new state');
-      this.debug(err);
-    
-    } finally {
-  
-      if(!accessory.context.remove) setTimeout(this.getState.bind(this,accessory,service),2000);
+      if(!serviceAwaySwitch){
+        Logger.info('Adding Switch service (away)', this.accessory.displayName);
+        serviceAwaySwitch = this.accessory.addService(this.api.hap.Service.Switch, 'Away', 'AwaySwitch');
+      }
       
     }
-  
-  }
-  
-  async setState (accessory, service, state, callback){
-  
-    try {
-  
-      await this.accessories.map( device => {
+    
+    if(this.accessory.context.config.subtype === 'extra-childswitch'){
+    
+      this.accessory.services.forEach(service => {
+        if(service.subtype){
+          let found = false;
+          this.accessory.context.config.childLocks.forEach(childLock => {
+            if(service.subtype === childLock.serialNumber){
+              found = true;
+            }
+          });
+          if(!found){
+            Logger.info('Removing Switch service (' + service.displayName + ')', this.accessory.displayName);
+            let removableService = this.accessory.getServiceById(this.api.hap.Service.Switch, service.subtype);
+            this.accessory.removeService(removableService);
+          }
+        }
+      });
+
+      this.accessory.context.config.childLocks.forEach(childLock => {
       
-        if(device.context.type === 'thermostat'){
+        let serviceChildLock = this.accessory.getServiceById(this.api.hap.Service.Switch, childLock.serialNumber);
+         
+        if(!serviceChildLock){
+          Logger.info('Adding Switch service (' + childLock.name + ')', this.accessory.displayName);
+          serviceChildLock = this.accessory.addService(this.api.hap.Service.Switch, childLock.name, childLock.serialNumber);
+        }
+            
+        serviceChildLock.getCharacteristic(this.api.hap.Characteristic.On)
+          .onSet(this.deviceHandler.setStates.bind(this, this.accessory, this.accessories, childLock.serialNumber)); 
       
-          if(state){
+      });
+      
+    }
+    
+    if(this.accessory.context.config.subtype === 'extra-cntrlswitch'){
+      
+      this.accessory.services.forEach(service => {
+        if(service.subtype){
+          let found = false;
+          this.accessory.context.config.switches.forEach(sub => {
+            if(service.subtype === sub.sub){
+              found = true;
+            }
+          });
+          if(!found){
+            Logger.info('Removing Switch service (' + service.displayName + ')', this.accessory.displayName);
+            let removableService = this.accessory.getServiceById(this.api.hap.Service.Switch, service.subtype);
+            this.accessory.removeService(removableService);
+          }
+        }
+      });
+      
+      this.accessory.context.config.switches.forEach(sub => {
+      
+        let serviceSubSwitch = this.accessory.getServiceById(this.api.hap.Service.Switch, sub.sub);
+         
+        if(!serviceSubSwitch){
+          Logger.info('Adding Switch service (' + sub.name + ')', this.accessory.displayName);
+          serviceSubSwitch = this.accessory.addService(this.api.hap.Service.Switch, sub.name, sub.sub);
+        }
         
-            device.getService(Service.Thermostat).getCharacteristic(Characteristic.CurrentHeatingCoolingState)
-              .updateValue(0);
+        if(sub.name !== 'Central'){
+      
+          serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+            .updateValue(false);
+       
+        } else {
+          
+          //Modes
+          if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.AutoThermostats))
+            serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.AutoThermostats);
+            
+          if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.ManualThermostats))
+            serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.ManualThermostats);
+            
+          if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OfflineThermostats))
+            serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.OfflineThermostats);  
+            
+          //Activity
+          if(this.accessory.context.config.runningInformation){
+            
+            if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatDay))
+              serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.OverallHeatDay);
               
-            device.getService(Service.Thermostat).getCharacteristic(Characteristic.TargetHeatingCoolingState)
-              .setValue(3,undefined,{autoSwitch:true});
+            if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatMonth))
+              serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.OverallHeatMonth);
               
-            device.getService(Service.Thermostat).getCharacteristic(Characteristic.TargetHeatingCoolingState)
-              .updateValue(3);
+            if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatYear))
+              serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.OverallHeatYear);  
           
           } else {
-        
-            device.getService(Service.Thermostat).getCharacteristic(Characteristic.CurrentHeatingCoolingState)
-              .updateValue(0);
+            
+            if(serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatDay))
+              serviceSubSwitch.removeCharacteristic(serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.OverallHeatDay));
               
-            device.getService(Service.Thermostat).getCharacteristic(Characteristic.TargetHeatingCoolingState)
-              .setValue(0,undefined,{autoSwitch:true});
+            if(serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatMonth))
+              serviceSubSwitch.removeCharacteristic(serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.OverallHeatMonth));
               
-            device.getService(Service.Thermostat).getCharacteristic(Characteristic.TargetHeatingCoolingState)
-              .updateValue(0);
-        
+            if(serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.OverallHeatYear))
+              serviceSubSwitch.removeCharacteristic(serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.OverallHeatYear));  
+            
           }
-        
+          
         }
+            
+        serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+          .onSet(this.deviceHandler.setStates.bind(this, this.accessory, this.accessories, sub.name)); 
       
       });
       
-    } catch(err) {
+    }
     
-      this.logger.error(accessory.displayName + ': An error occured while setting new state');
-      this.debug(err);
+    if(this.accessory.context.config.subtype === 'zone-window-switch'){
+    
+      this.accessory.services.forEach(service => {
+        if(service.subtype){
+          let found = false;
+          this.accessory.context.config.openWindows.forEach(window => {
+            if(service.subtype === window.name){
+              found = true;
+            }
+          });
+          if(!found){
+            Logger.info('Removing Switch service (' + service.displayName + ')', this.accessory.displayName);
+            let removableService = this.accessory.getServiceById(this.api.hap.Service.Switch, service.subtype);
+            this.accessory.removeService(removableService);
+          }
+        }
+      });
+
+      this.accessory.context.config.openWindows.forEach(window => {
       
-    } finally {
-    
-      callback(null, state);
+        let serviceSwitch = this.accessory.getServiceById(this.api.hap.Service.Switch, window.name);
+         
+        if(!serviceSwitch){
+          Logger.info('Adding Switch service (' + window.name + ')', this.accessory.displayName);
+          serviceSwitch = this.accessory.addService(this.api.hap.Service.Switch, window.name, window.name);
+        }
+            
+        serviceSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+          .onSet(this.deviceHandler.setStates.bind(this, this.accessory, this.accessories, window.name + '-' + window.zoneId)); 
+      
+      });
       
     }
-  
+    
+    if(this.accessory.context.config.subtype === 'extra-plockswitch'){
+      
+      serviceHomeSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+        .onSet(this.deviceHandler.setStates.bind(this, this.accessory, this.accessories, 'Home')); 
+        
+      serviceAwaySwitch.getCharacteristic(this.api.hap.Characteristic.On)
+        .onSet(this.deviceHandler.setStates.bind(this, this.accessory, this.accessories, 'Away')); 
+        
+    } else if(this.accessory.context.config.subtype !== 'extra-childswitch' && this.accessory.context.config.subtype !== 'zone-window-switch' && this.accessory.context.config.subtype !== 'extra-cntrlswitch') {
+    
+      service.getCharacteristic(this.api.hap.Characteristic.On)
+        .onSet(this.deviceHandler.setStates.bind(this, this.accessory, this.accessories, 'Trigger State')); 
+    
+    }
+    
   }
 
 }
 
-module.exports = switch_Accessory;
+module.exports = SwitchAccessory;

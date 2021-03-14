@@ -1,667 +1,397 @@
 'use strict';
 
+const DeviceHandler = require('./helper/handler.js');
+const Logger = require('./helper/logger.js');
 const packageFile = require('../package.json');
-const LogUtil = require('../lib/LogUtil.js');
-
-const Tado = require('../lib/Tado.js');
-const tadoHandler = require('../lib/tadoHandler.js');
-const debug = require('debug')('TadoPlatform');
-const store = require('json-fs-store');
+const TadoConfig = require('./tado/tado-config.js');
 
 //Accessories
-const weather_Accessory = require('./accessories/weather.js');
-const sensor_Accessory = require('./accessories/sensor.js');
-const window_Accessory = require('./accessories/window.js');
-const occupancy_Accessory = require('./accessories/occupancy.js');
-const thermostat_Accessory = require('./accessories/thermostat.js');
-const boiler_Accessory = require('./accessories/boiler.js');
-const switch_Accessory = require('./accessories/switch.js');
+const AirqualityAccessory = require('./accessories/airquality.js');
+const ContactAccessory = require('./accessories/contact.js');
+const FaucetAccessory = require('./accessories/faucet.js');
+const HeaterCoolerAccessory = require('./accessories/heatercooler.js');
+const HumidityAccessory = require('./accessories/humidity.js');
+const MotionAccessory = require('./accessories/motion.js');
+const OccupancyAccessory = require('./accessories/occupancy.js');
+const SecurityAccessory = require('./accessories/security.js');
+const SolarlightAccessory = require('./accessories/lightbulb.js');
+const SwitchAccessory = require('./accessories/switch.js');
+const TemperatureAccessory = require('./accessories/temperature.js');
+const ThermostatAccessory = require('./accessories/thermostat.js');
 
-const pluginName = 'homebridge-tado-platform';
-const platformName = 'TadoPlatform';
+//Custom Types
+const CustomTypes = require('./types/custom.js');
+const EveTypes = require('./types/eve.js');
 
-var Accessory, Service, Characteristic, UUIDGen;
+const PLUGIN_NAME = 'homebridge-tado-platform';
+const PLATFORM_NAME = 'TadoPlatform';
+
+var Accessory, UUIDGen, FakeGatoHistoryService;
 
 module.exports = function (homebridge) {
 
   Accessory = homebridge.platformAccessory;
-  Service = homebridge.hap.Service;
-  Characteristic = homebridge.hap.Characteristic;
   UUIDGen = homebridge.hap.uuid;
   
   return TadoPlatform;
+
 };
 
 function TadoPlatform (log, config, api) {
-
-  if (!api||!config) return;
-
-  if(!config.username||!config.password) {
-    log('No credentials in config.json!');
+  
+  if (!api||!config) 
     return;
-  }
 
-  this.log = log;
-  this.logger = new LogUtil(null, log);
-  this.debug = debug;
+  //init logger
+  Logger.init(log, config.debug);
+  
+  //init types/fakegato
+  CustomTypes.registerWith(api.hap);
+  EveTypes.registerWith(api.hap);
+  FakeGatoHistoryService = require('fakegato-history')(api);
+
+  this.api = api;
   this.accessories = [];
-  this._accessories = new Map();
   this.config = config;
-  this.configPath = api.user.storagePath();
-  this.HBpath = api.user.storagePath()+'/accessories';
+  
+  this.user = [];
+  
+  //setup config/plugin
+  this.setupPlugin();
+  
+  if(!this.user.length)
+    this.setupConfig();
 
-  this.loggedIn = false;
-
-  if (api) {
-
-    if (api.version < 2.2) {
-      throw new Error('Unexpected API version. Please update your homebridge!');
-    }
-
-    this.logger.info('**************************************************************');
-    this.logger.info('TadoPlatform v'+packageFile.version+' by SeydX');
-    this.logger.info('GitHub: https://github.com/SeydX/'+pluginName);
-    this.logger.info('Email: seyd55@outlook.de');
-    this.logger.info('**************************************************************');
-    this.logger.info('start success...');
-
-    this.api = api;
-    this.tado = new Tado();
-
-    this.api.on('didFinishLaunching', this._login.bind(this));
-
-  }
+  this.api.on('didFinishLaunching', this.didFinishLaunching.bind(this));
+  
 }
 
 TadoPlatform.prototype = {
-
-  _login: async function(){
-
-    try {
+  
+  setupPlugin: async function(){
     
-      await this.tado.login(this.config.username, this.config.password);
-      this._checkConfig();
-
-    } catch(err) {
-    
-      debug(err);
-      
-    }
-
-  },
-
-  _checkConfig: async function(){
-
     try {
-
-      this.config.polling = this.config.polling||10;
-      this.config.exclude = [];
-      this.config.reConfig = this.config.reConfig || false;
-      this.config.unit = this.config.unit || false;
       
-      if(!this.config.reConfig){
-        this.config.deviceOptions = this.config.deviceOptions||{};
-      } else {
-        this.config.deviceOptions = {};
-      }
-      
-      if(!this.config.unit)
-        this.config.unit = 'celsius';
-      
-      // fetch homeID
-
-      if(this.config.homeID) {
-
-        this.tadoHandler = new tadoHandler(this);
-
-      } else if(this.config.homeName) {
-
-        let response = await this.tado.getMe();
-
-        let error = true;
-
-        for(const i in response.homes){
-          if(this.config.homeName === response.homes[i].name){
-            this.config.homeID = response.homes[i].id;
-            
-            this.tadoHandler = new tadoHandler(this);
-
-            error = false;
+      if(this.config.user && this.config.user.length){
+          
+        for(const credentials of this.config.user){
+          
+          let error = false;
+          
+          if(!credentials.username){
+            Logger.warn('There is no username configured for the user. This user will be skipped.');
+            error = true;
+          } else if(!credentials.password){
+            Logger.warn('There is no password configured for the user. This user will be skipped.');
+            error = true;
+          } else if(credentials.reconfigure === false){
+            error = true;
           }
-        }
-
-        if(error){
-          this.logger.warn('Error! Please check your home name in config.json!');
-          return;   
-        }
-
-      } else {
-
-        let response = await this.tado.getMe();
-
-        let error = true;
-
-        if(!(response.homes.length > 1)) {
-          this.config.homeID = response.homes[0].id;
           
-          this.tadoHandler = new tadoHandler(this);
-
-          error = false;
-        }
-
-        if(error){
-          this.logger.warn('Found ' + response.homes.length + ' home entries! Please define current home name in config.json and restart homebridge!');
-          return;
-        }
-
-      }
-      
-      this.deviceArray = await this.tadoHandler.getData();
-      
-      for(const dev of this.deviceArray){
-      
-        if(dev.type === 'thermostat') {
-          
-          this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{};
-          
-          this.config.deviceOptions[dev.serial] = {
-            active: this.config.deviceOptions[dev.serial].active || false,
-            heatValue: this.config.deviceOptions[dev.serial].heatValue || 5,
-            coolValue: this.config.deviceOptions[dev.serial].coolValue || 5,
-            maxDelay: this.config.deviceOptions[dev.serial].maxDelay || 10,
-            overrideMode: this.config.deviceOptions[dev.serial].overrideMode || 'manual',
-            ID: dev.zoneID,
-            zoneName: dev.zoneName,
-            zoneType: dev.zoneType,
-            deviceType: dev.deviceType,
-            serial: dev.serial.split('-')[0],
-            type: dev.type
-          };
-
-          if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) 
-            this.config.exclude.push(dev.serial);
-            
-          if(this.config.deviceOptions[dev.serial].active && this.config.exclude.includes(dev.serial)){
-          
-            let index = this.config.exclude.indexOf(dev.serial);
-            if (index > -1) {
-              this.config.exclude.splice(index, 1);
-            }
-          
-          }
-              
-        } else if(dev.type === 'boiler'){
-        
-          this.config.deviceOptions[dev.serial] = this.config.deviceOptions[dev.serial]||{};
-          
-          this.config.deviceOptions[dev.serial] = {
-            active: this.config.deviceOptions[dev.serial].active || false,
-            overrideMode: this.config.deviceOptions[dev.serial].overrideMode || 'manual',
-            autoTemp: this.config.deviceOptions[dev.serial].autoTemp||50,
-            ID: dev.zoneID,
-            zoneName: dev.zoneName,
-            zoneType: dev.zoneType,
-            deviceType: dev.deviceType,
-            serial: dev.serial.split('-')[0],
-            type: dev.type,
-            canSetTemperature: dev.canSetTemperature
-          };
-
-          if(!this.config.deviceOptions[dev.serial].active && !this.config.exclude.includes(dev.serial)) 
-            this.config.exclude.push(dev.serial);
-            
-          if(this.config.deviceOptions[dev.serial].active && this.config.exclude.includes(dev.serial)){
-          
-            let index = this.config.exclude.indexOf(dev.serial);
-            if (index > -1) {
-              this.config.exclude.splice(index, 1);
-            }
-          
-          }
-        
-        }
-      
-      }
-  
-      let config = {
-        homeID: this.config.homeID,
-        unit: this.config.unit,
-        polling: this.config.polling,
-        exclude: this.config.exclude,
-        reConfig: this.config.reConfig,
-        occupancy: this.config.occupancy||false,
-        anyone: this.config.anyone||false,
-        weather: this.config.weather||false,
-        openWindow: this.config.openWindow||false,
-        solarIntensity: this.config.solarIntensity||false,
-        centralSwitch: this.config.centralSwitch||false,
-        externalSensor: this.config.externalSensor||false,
-        deviceOptions: this.config.deviceOptions
-      };
-      
-      let newConfig = await this._refreshConfig(config);      
-      this.debug(JSON.stringify(newConfig,null,4));
-      
-      this.loggedIn = true;
-      
-      this._initPlatform();
-
-    } catch(err) {
-
-      this.logger.error('An error occured while checking config! Trying again..');
-      debug(err);
-      
-      setTimeout(this._checkConfig.bind(this),5000);
-
-    }
-
-  },
-  
-  _refreshConfig: function(object,accessory,deviceOptions){
-  
-    const self = this;
-    let name = accessory ? accessory.displayName : 'Platform';
-  
-    return new Promise((resolve, reject) => {
-
-      if(object && Object.keys(object).length){
-  
-        self.debug(name + ': Writing new parameter into config.json...');
-
-        let path = this.configPath;
-        store(path).load('config', function(err,obj){    
-          if(obj){
-                  
-            if(!(obj.id === 'config')) { 
-              self.firstLaunch = true;
-              self.logger.initinfo('Init first launch');
-            }
-            
-            self.debug(name + ': Config.json loaded!');
-      
-            obj.id = 'config';
-        
-            for(const i in obj.platforms){
-              if(obj.platforms[i].platform === 'TadoPlatform'){
-              
-                if(deviceOptions){
-              
-                  for(const j in obj.platforms[i].deviceOptions){
-              
-                    if(j === accessory.context.serial){
-              
-                      for(const l in object){
-              
-                        obj.platforms[i].deviceOptions[j][l] = object[l];
-                    
-                      }
-              
-                    }
-              
-                  }
-              
-                } else {
-            
-                  for(const j in object){
-                  
-                    obj.platforms[i][j] = object[j];
-                    
-                  }
-            
-                } 
-                
-              }
-            }
-        
-            store(path).add(obj, function(err) {
-              if(err)reject(err);
-              
-              if(self.firstLaunch){
-                self.logger.initinfo('Config.json refreshed');
-                //self.logger.initinfo(' ');
-                //self.logger.initinfo(JSON.stringify(object,null,4));
-              }
-              
-              self.debug(name + ': Config.json refreshed!');
-              
-              resolve(obj.platforms[0]);
+          if(!error){
+            this.user.push({
+              username: credentials.username,
+              password: credentials.password
             });
-        
-          } else {
-            reject(err);
           }
-        });
-    
-      } else {
-    
-        reject(name + ': Can not write new parameter into config.json, no key(s) defined!');
-    
+          
+        }
+          
       }
-
-    });
-  
-  },
-
-  _initPlatform: async function(){
-
-    this._devices = new Map();
+      
+      if(this.user.length){
+      
+        for(const user of this.user){
+        
+          if(user.reconfigure || user.reconfigure === undefined){
+        
+            if(this.config.homes && this.config.homes.length){
+             
+              let foundHome =  this.config.homes.filter(home => home && home.username === user.username);
+               
+              if(foundHome.length){
+                
+                //refresh
+                if(foundHome[0].name && foundHome[0].username && foundHome[0].password){
+                  Logger.info('Refreshing home...', foundHome[0].name);
+                  this.config = await TadoConfig.refresh(foundHome[0].name, this.config, { username: foundHome[0].username, password: foundHome[0].password });
+                }
+               
+              } else {
+                           
+                Logger.info('Generating new home...', user.username);
+                this.config = await TadoConfig.add(this.config, [user]);
+               
+              }
+             
+            } else {
+           
+              Logger.info('Generating new home...', user.username);
+              this.config = await TadoConfig.add(this.config, [user]);
+             
+            }
+           
+          }
+        
+        }
+      
+        //store config
+        Logger.info('Storing config...');
+        
+        this.config.user = this.user.map(user => {
+          return {
+            reconfigure: false,
+            username: user.username,
+            password: user.password
+          };
+        }).filter(user => user);
+        
+        await TadoConfig.store(this.config, this.api.user.storagePath());
+        
+        Logger.info('Done!');
+        
+        //setup config
+        this.user = [];
+        this.setupConfig();
+        
+        //configure accessories
+        this.accessories.forEach(accessory => {
+          this.configureAccessory(accessory, true);
+        });
+        
+        //finish
+        this.didFinishLaunching();
+      
+      }
+      
+    } catch(err){
+      
+      Logger.error('An error occured during setting up plugin!');
+      Logger.error(err);
+      
+    }
     
-    try {
+    return;
+    
+  },
   
-      //let deviceArray = await this.tadoHandler.getData();
-      this.deviceArray.map( dev => this._devices.set(dev.serial, dev));
-      this.deviceArray.map( dev => this._addOrRemoveDevice(dev, dev.serial, dev.type, (dev.type === 'occupancy' ? dev.gps : dev.enabled) ));
+  setupConfig: function(){
+     
+    try {
+      
+      const { config, devices, deviceHandler, telegram } = TadoConfig.setup(this.config, UUIDGen);
+      
+      this.config = config;
+      this.devices = devices;
+      this.deviceHandler = deviceHandler;
+      this.telegram = telegram;
     
     } catch(err) {
     
-      this.logger.error('An error occured while fetching devices!');
-      debug(err);
+      Logger.error('An error occured during setting up plugin!');
+      Logger.error(err);
     
-    } finally {
-
-      setTimeout(this._initPlatform.bind(this),2000);
-      
     }
     
-  },
-
-  _addOrRemoveDevice: function(object, serial, type, rm) {
-
-    if(rm === false){
-
-      this.accessories.map( accessory => {
-
-        if(accessory.context.serial === serial){
-          this._accessories.delete(serial);
-          this.removeAccessory(accessory);
-        }
-
-      });
-
-    } else {
-
-      if(!this.config.exclude.includes(serial)){
-
-        const accessory = this._accessories.get(serial);
-
-        if(!accessory){
-
-          this._accessories.set(serial, object);
-
-          this.addAccessory(object);
-
-        }
-
-      }
-
-      this.accessories.map( accessory => {
-
-        if(!this._devices.has(accessory.context.serial)){
-
-          this._accessories.delete(accessory.context.serial);
-          this.removeAccessory(accessory);
-
-        }
-
-        this.config.exclude.map( exSerial => {
-
-          if(this._accessories.has(exSerial) && accessory.context.serial === exSerial){
-
-            this._accessories.delete(exSerial);
-            this.removeAccessory(accessory);
-          }
-
-        });
-
-      });
-
-    }
-
+    return;
+  
   },
   
-  _refreshContext: function(accessory, object, type, add){
+  didFinishLaunching: function(){
+    
+    if(this.user.length)
+      return;
   
-    accessory.reachable = true;
-    accessory.context.homeID = this.config.homeID;
-    accessory.context.unit = this.config.unit === 'fahrenheit' ? 1 : 0;
-    accessory.context.polling = this.config.polling * 1000;
-
-    if(add){
-      accessory.context.serial = object.serial;
-      accessory.context.type = object.type;
-      if(object.id) accessory.context.id = object.id;
-      if(object.zoneID) accessory.context.zoneID = object.zoneID;
-      if(object.zoneName) accessory.context.zoneName = object.zoneName;
-      if(object.zoneType) accessory.context.zoneType = object.zoneType;
-      if(object.deviceType) accessory.context.deviceType = object.deviceType;      
-    }
+    for (const entry of this.devices.entries()) {
     
-    for(const i in this.config.deviceOptions){
+      let uuid = entry[0];
+      let device = entry[1];
+      
+      const cachedAccessory = this.accessories.find(curAcc => curAcc.UUID === uuid);
+      
+      if (!cachedAccessory) {
+      
+        const accessory = new Accessory(device.name, uuid);
 
-      if(i === accessory.context.serial){
-      
-        if(this.config.deviceOptions[i].type === 'thermostat'){
-      
-          accessory.context.active = this.config.deviceOptions[i].active;
-          accessory.context.heatValue = this.config.deviceOptions[i].heatValue;
-          accessory.context.coolValue = this.config.deviceOptions[i].coolValue;
-          accessory.context.maxDelay = this.config.deviceOptions[i].maxDelay * 60 * 1000;
-          accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
-          accessory.context.zoneType = this.config.deviceOptions[i].zoneType;
-          accessory.context.deviceType = this.config.deviceOptions[i].deviceType;
-          accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
-          accessory.context.zoneID = this.config.deviceOptions[i].ID;
-      
-        } else { //boiler
-      
-          accessory.context.active = this.config.deviceOptions[i].active;
-          accessory.context.overrideMode = this.config.deviceOptions[i].overrideMode;
-          accessory.context.zoneType = this.config.deviceOptions[i].zoneType;
-          accessory.context.deviceType = this.config.deviceOptions[i].deviceType;
-          accessory.context.zoneName = this.config.deviceOptions[i].zoneName;
-          accessory.context.zoneID = this.config.deviceOptions[i].ID;
-          accessory.context.canSetTemperature = this.config.deviceOptions[i].canSetTemperature;
-          accessory.context.autoTemp = this.config.deviceOptions[i].autoTemp;
-       
-        }
-      
+        Logger.info('Configuring new accessory...', accessory.displayName); 
+        
+        this.setupAccessory(accessory, device);
+        
+        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        
+        this.accessories.push(accessory);
+        
       }
-    
+      
     }
+
+    this.accessories.forEach(accessory => {
     
-    if(accessory.context.unit === 1){
-      accessory.context.minValue = accessory.context.zoneType === 'HOT_WATER' ? 86 : 41;
-      accessory.context.maxValue = accessory.context.zoneType === 'HOT_WATER' ? 149 : 77;
-    } else {
-      accessory.context.minValue = accessory.context.zoneType === 'HOT_WATER' ? 30 : 5;
-      accessory.context.maxValue = accessory.context.zoneType === 'HOT_WATER' ? 65 : 25;
+      const device = this.devices.get(accessory.UUID);
+      
+      try {
+      
+        if (!device)
+          this.removeAccessory(accessory);
+    
+      } catch(err) {
+
+        Logger.info('It looks like the device has already been removed. Skip removing.', device.name);
+        Logger.debug(err);
+     
+      }
+      
+    });
+    
+    for(const entry of this.deviceHandler.entries()){
+        
+      const name = entry[0];
+      const config = entry[1];
+      
+      const tado = config.tado;
+      delete config.tado;
+      
+      let accessories = this.accessories
+        .filter(acc => acc && acc.context.config.homeName === name);
+      
+      const deviceHandler = DeviceHandler(this.api, accessories, config, tado, this.telegram);
+      deviceHandler.getStates();
+      
     }
     
   },
-
-  _addOrConfigure: function(accessory, object, type, add){
-
-    this._refreshContext(accessory, object, type, add);    
-    this._addOrConfAccessoryInformation(accessory);
-
-    switch(type){
-
-      case 'thermostat':
-
-        if(add){
-          accessory.addService(Service.Thermostat, object.name);
-          accessory.addService(Service.BatteryService);
-        }
-        
-        if(this.config.deviceOptions.hasOwnProperty(accessory.context.serial) && !this.config.exclude.includes(accessory.context.serial)){
-          if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
-          new thermostat_Accessory(this, accessory);
-        }
-
-        break;
-        
-      case 'boiler':
-
-        if(add)
-          accessory.addService(Service.Faucet, object.name);
-
-        if(this.config.deviceOptions.hasOwnProperty(accessory.context.serial) && !this.config.exclude.includes(accessory.context.serial)){
-          if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
-          new boiler_Accessory(this, accessory);
-        }
-
-        break;
-
-      case 'occupancy':
-
-        if(add)
-          accessory.addService(Service.OccupancySensor, object.name);
-        
-        if(this.config.occupancy||this.config.anyone){
-          if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
-          new occupancy_Accessory(this, accessory);
-        }
-
-        break;
-
-      case 'contact':
-
-        if(add)
-          accessory.addService(Service.ContactSensor, object.name);
-
-        if(this.config.openWindow){
-          if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
-          new window_Accessory(this, accessory);
-        }
-
-        break;
-
-      case 'temperature':
-
-        if(add)
-          accessory.addService(Service.TemperatureSensor, object.name);
-
-        if(this.config.weather){
-          if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
-          new weather_Accessory(this, accessory);
-        }
-
-        break;
-        
-      case 'temperature humidity':
-
-        if(add)
-          accessory.addService(Service.TemperatureSensor, object.name);
-
-        if(this.config.externalSensor){
-          if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
-          new sensor_Accessory(this, accessory);
-        }
-        
-        break;
-        
-      case 'lightbulb':
-
-        if(add)
-          accessory.addService(Service.Lightbulb, object.name);
-
-        if(this.config.solarIntensity){
-          if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
-          new weather_Accessory(this, accessory);
-        }
-
-        break;
-        
-      case 'switch':
+  
+  setupAccessory: function(accessory, device){
+    
+    accessory.on('identify', () => {
+      Logger.info('Identify requested.', accessory.displayName);
+    });
+    
+    const manufacturer = 'Tado';
       
-        if(add)
-          accessory.addService(Service.Switch, object.name);
-          
-        if(this.config.centralSwitch){
-          if(!add)this.logger.info('Configuring accessory ' + accessory.displayName);
-          new switch_Accessory(this, accessory);
-        }
-      
+    const model = device.model
+      ? device.model 
+      : device.subtype;
+    
+    const serialNumber = device.serialNumber
+      ? device.serialNumber 
+      : '123456789';
+    
+    const AccessoryInformation = accessory.getService(this.api.hap.Service.AccessoryInformation);
+    
+    AccessoryInformation
+      .setCharacteristic(this.api.hap.Characteristic.Manufacturer, manufacturer)
+      .setCharacteristic(this.api.hap.Characteristic.Model, model)
+      .setCharacteristic(this.api.hap.Characteristic.SerialNumber, serialNumber)
+      .setCharacteristic(this.api.hap.Characteristic.FirmwareRevision, packageFile.version);
+    
+    const tado = device.tado;
+    
+    delete device.tado;
+    delete device.geolocation;
+    delete device.zones;
+    delete device.presence;
+    delete device.anyone;
+    delete device.weather;
+    delete device.extras;
+    delete device.childLock;
+    
+    accessory.context.config = device;
+    
+    const configHandler = this.deviceHandler.get(accessory.context.config.homeName);
+    const deviceHandler = DeviceHandler(this.api, false, configHandler, tado, this.telegram);
+    
+    switch (device.subtype) {
+      case 'zone-thermostat':
+        new ThermostatAccessory(this.api, accessory, this.accessories, tado, deviceHandler, FakeGatoHistoryService);   
+        break;        
+      case 'zone-heatercooler':
+      case 'zone-heatercooler-boiler':
+        new HeaterCoolerAccessory(this.api, accessory, this.accessories, tado, deviceHandler, FakeGatoHistoryService);
         break;
-        
+      case 'zone-switch': 
+      case 'zone-window-switch':
+      case 'extra-childswitch':
+      case 'extra-cntrlswitch':
+      case 'extra-boost':
+      case 'extra-shedule':
+      case 'extra-turnoff':
+      case 'extra-plockswitch':
+        new SwitchAccessory(this.api, accessory, this.accessories, tado, deviceHandler);  
+        break;        
+      case 'zone-faucet': 
+        new FaucetAccessory(this.api, accessory, this.accessories, tado, deviceHandler);
+        break;        
+      case 'zone-window-contact':
+        new ContactAccessory(this.api, accessory, this.accessories, tado, deviceHandler, FakeGatoHistoryService);
+        break;
+      case 'zone-temperature':
+        new TemperatureAccessory(this.api, accessory, this.accessories, tado, deviceHandler, FakeGatoHistoryService);
+        break;
+      case 'zone-humidity':
+        new HumidityAccessory(this.api, accessory, this.accessories, tado, deviceHandler, FakeGatoHistoryService);
+        break;
+      case 'presence-motion':
+        new MotionAccessory(this.api, accessory, this.accessories, tado, deviceHandler, FakeGatoHistoryService);
+        break;
+      case 'presence-occupancy': 
+        new OccupancyAccessory(this.api, accessory, this.accessories, tado, deviceHandler);     
+        break;
+      case 'weather-temperature':
+        new TemperatureAccessory(this.api, accessory, this.accessories, tado, deviceHandler, FakeGatoHistoryService);
+        break;
+      case 'weather-lightbulb':
+        new SolarlightAccessory(this.api, accessory, this.accessories, tado);
+        break;
+      case 'weather-airquality':
+        new AirqualityAccessory(this.api, accessory, this.accessories, tado);
+        break;
+      case 'extra-plock':
+        new SecurityAccessory(this.api, accessory, this.accessories, tado, deviceHandler);
+        break;
       default:
-        //
-
+        Logger.warn('Unknown accessory type: '  + device.subtype, accessory.displayName);
+        break;
     }
+    
+    return;
 
   },
+
+  configureAccessory: function(accessory, refresh){
+
+    if(!this.user.length){
+    
+      const device = this.devices.get(accessory.UUID);
   
-  _addOrConfAccessoryInformation(accessory){
-  
-    accessory.getService(Service.AccessoryInformation)
-      .setCharacteristic(Characteristic.Name, accessory.displayName)
-      .setCharacteristic(Characteristic.Identify, accessory.displayName)
-      .setCharacteristic(Characteristic.Manufacturer, 'SeydX')
-      .setCharacteristic(Characteristic.Model, accessory.context.type)
-      .setCharacteristic(Characteristic.SerialNumber, accessory.context.serial)
-      .setCharacteristic(Characteristic.FirmwareRevision, packageFile.version);
-  
-  },
-
-  addAccessory: function(object){
-
-    this.logger.info('Adding new accessory: ' + object.name);
-
-    let uuid = UUIDGen.generate(object.name);
-    let accessory = new Accessory(object.name, uuid);
-
-    accessory.context = {};
-
-    this._addOrConfigure(accessory, object, object.type, true);
-
-    this.accessories.push(accessory);
-    this.api.registerPlatformAccessories(pluginName, platformName, [accessory]);
-
-  },
-
-  configureAccessory: function(accessory){
-
-    this._accessories.set(accessory.context.serial, accessory);
-
-    if(this.loggedIn) {
-
-      this.accessories.push(accessory);
-      this._addOrConfigure(accessory, null, accessory.context.type, false);
-
-    } else {
-
-      setTimeout(this.configureAccessory.bind(this,accessory),1000);
-
-    }
-
-  },
-
-  removeAccessory: function (accessory) {
-    if (accessory) {
-
-      this.logger.warninfo('Removing accessory: ' + accessory.displayName + '. No longer configured.');
-
-      for(const i in this.accessories){
-        if(this.accessories[i].displayName === accessory.displayName){
-          this.accessories[i].context.remove = true;
-        }
+      if (device){                                                                                   
+        Logger.info('Configuring accessory...', accessory.displayName);
+        this.setupAccessory(accessory, device);
       }
-
-      let newAccessories = this.accessories.map( acc => {
-        if(acc.displayName !== accessory.displayName){
-          return acc;
-        }
-      });
-
-      let filteredAccessories = newAccessories.filter(function (el) {
-        return el != null;
-      });
-
-      this.api.unregisterPlatformAccessories(pluginName, platformName, [accessory]); 
-
-      this.accessories = filteredAccessories;
-
+    
     }
+  
+    if(!refresh)
+      this.accessories.push(accessory);
+  
+  },
+  
+  removeAccessory: function(accessory) {
+  
+    Logger.info('Removing accessory...', accessory.displayName);
+    
+    let accessories = this.accessories.map( cachedAccessory => {
+      if(cachedAccessory.displayName !== accessory.displayName){
+        return cachedAccessory;
+      }
+    });
+    
+    this.accessories = accessories.filter(function (el) {
+      return el != null;
+    });
+
+    this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+  
   }
 
 };

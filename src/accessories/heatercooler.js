@@ -2,12 +2,11 @@
 
 const Logger = require('../helper/logger.js');
 
-const fs = require('fs-extra');
 const moment = require('moment');
 
 const timeout = (ms) => new Promise((res) => setTimeout(res, ms));
 
-class ThermostatAccessory {
+class HeaterCoolerAccessory {
 
   constructor (api, accessory, accessories, tado, deviceHandler, FakeGatoHistoryService) {
     
@@ -31,22 +30,34 @@ class ThermostatAccessory {
 
   async getService () {
     
-    let service = this.accessory.getService(this.api.hap.Service.Thermostat);
-    let serviceOld = this.accessory.getService(this.api.hap.Service.HeaterCooler);
+    let service = this.accessory.getService(this.api.hap.Service.HeaterCooler);
+    let serviceThermostat = this.accessory.getService(this.api.hap.Service.Thermostat);
+    let serviceSwitch = this.accessory.getService(this.api.hap.Service.Switch);
+    let serviceFaucet = this.accessory.getService(this.api.hap.Service.Valve);
     
-    if(serviceOld){
-      Logger.info('Removing HeaterCooler service', this.accessory.displayName);
-      this.accessory.removeService(serviceOld);
+    if(serviceThermostat){
+      Logger.info('Removing Thermostat service', this.accessory.displayName);
+      this.accessory.removeService(serviceThermostat);
     }
-
+    
+    if(serviceSwitch){
+      Logger.info('Removing Switch service', this.accessory.displayName);
+      this.accessory.removeService(serviceSwitch);
+    }
+    
+    if(serviceFaucet){
+      Logger.info('Removing Faucet service', this.accessory.displayName);
+      this.accessory.removeService(serviceFaucet);
+    }
+    
     if(!service){
-      Logger.info('Adding Thermostat service', this.accessory.displayName);
-      service = this.accessory.addService(this.api.hap.Service.Thermostat, this.accessory.displayName, this.accessory.context.config.subtype);
+      Logger.info('Adding HeaterCooler service', this.accessory.displayName);
+      service = this.accessory.addService(this.api.hap.Service.HeaterCooler, this.accessory.displayName, this.accessory.context.config.subtype);
     }
     
     let batteryService = this.accessory.getService(this.api.hap.Service.BatteryService);
     
-    if(!this.accessory.context.config.noBattery){
+    if(!this.accessory.context.config.noBattery && this.accessory.context.config.type === 'HEATING'){
       if(!batteryService){
         Logger.info('Adding Battery service', this.accessory.displayName);
         batteryService = this.accessory.addService(this.api.hap.Service.BatteryService);
@@ -133,6 +144,24 @@ class ThermostatAccessory {
    
     }
     
+    if (!service.testCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature))
+      service.addCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature);
+    
+    if (this.accessory.context.config.type === 'HEATING'){
+    
+      if(!service.testCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature))
+        service.addCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature);
+    
+      if (!this.accessory.context.config.separateHumidity){
+        if(!service.testCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity))
+          service.addCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity);
+      } else {
+        if(service.testCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity))
+          service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity));
+      }
+      
+    }
+    
     let minValue = this.accessory.context.config.type === 'HOT_WATER'
       ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
         ? 30
@@ -148,18 +177,34 @@ class ThermostatAccessory {
       : this.accessory.context.config.temperatureUnit === 'CELSIUS'
         ? 25
         : 77;
-
-    service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState)
-      .setProps({
-        maxValue: 2,      
-        minValue: 0,        
-        validValues: [0, 1, 2]
-      });
     
-    service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState)
+    let props = {
+      maxValue: 3,      
+      minValue: 0,        
+      validValues: [0, 1, 2, 3]
+    };
+    
+    if(this.accessory.context.config.type === 'HOT_WATER'){
+      props = {
+        maxValue: 2,      
+        minValue: 2,        
+        validValues: [2]
+      };
+      service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
+        .updateValue(2);
+    }
+    
+    service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)
+      .updateValue(1);
+    
+    service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
+      .setProps(props);
+    
+    service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)
       .setProps({
-        maxValue: 3,        
-        validValues: [0, 1, 3]
+        maxValue: 1,
+        minValue: 1,        
+        validValues: [1]
       });
       
     service.getCharacteristic(this.api.hap.Characteristic.CurrentTemperature)
@@ -168,29 +213,40 @@ class ThermostatAccessory {
         maxValue: 255
       });
       
-    service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
+    if(this.accessory.context.config.type === 'HEATING'){
+    
+      service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
+        .setProps({
+          minValue: minValue,
+          maxValue: maxValue,
+          minStep: 1
+        });
+        
+      if (service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value < minValue)
+        service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
+          .updateValue(minValue);
+          
+      if (service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value > maxValue)
+        service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
+          .updateValue(maxValue);
+    
+    }
+      
+    service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)
       .setProps({
         minValue: minValue,
         maxValue: maxValue,
         minStep: 1
       });
       
-    if (service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value < minValue)
-      service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
+    if (service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature).value < minValue)
+      service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)
         .updateValue(minValue);
         
-    if (service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value > maxValue)
-      service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
+    if (service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature).value > maxValue)
+      service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)
         .updateValue(maxValue);
-      
-    if (!this.accessory.context.config.separateHumidity){
-      if(!service.testCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity))
-        service.addCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity);
-    } else {
-      if(service.testCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity))
-        service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity));
-    }
-    
+        
     if (!service.testCharacteristic(this.api.hap.Characteristic.ValvePosition))
       service.addCharacteristic(this.api.hap.Characteristic.ValvePosition);
     
@@ -198,10 +254,7 @@ class ThermostatAccessory {
     
     await timeout(250); //wait for historyService to load
     
-    service.getCharacteristic(this.api.hap.Characteristic.TemperatureDisplayUnits)
-      .onSet(this.changeUnit.bind(this, service));
-    
-    service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState)
+    service.getCharacteristic(this.api.hap.Characteristic.Active)
       .onSet(value => {
         
         if(this.waitForEndValue){
@@ -211,80 +264,51 @@ class ThermostatAccessory {
         
         this.waitForEndValue = setTimeout(() => {
           
-          if(value === 3){
-          
-            if(this.timeoutAuto){
-              this.deviceHandler.setStates(this.accessory, this.accessories, 'State', value);
-              clearTimeout(this.timeoutAuto);
-              this.timeoutAuto = null;
-            } else {
-              this.deviceHandler.setStates(this.accessory, this.accessories, 'State', value);
-            }
-          
-          } else {
-            
-            this.deviceHandler.setStates(this.accessory, this.accessories, 'State', value);
-          
-          }
+          this.deviceHandler.setStates(this.accessory, this.accessories, 'State', value);
           
         }, 500);
 
-      });
-
+      })
+      .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName));
+      
     service.getCharacteristic(this.api.hap.Characteristic.CurrentTemperature)
       .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName));
-
-    service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
+      
+    service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature)
       .onSet(value => {
         
-        let tempUnit = service.getCharacteristic(this.api.hap.Characteristic.TemperatureDisplayUnits).value;
+        if(this.waitForEndValue){
+          clearTimeout(this.waitForEndValue);
+          this.waitForEndValue = null;
+        }
         
-        let cToF = (c) => Math.round((c * 9/5) + 32);
-        let fToC = (f) => Math.round((f - 32) * 5/9);
-        
-        let newValue = tempUnit
-          ? value <= 25
-            ? cToF(value)
-            : value
-          : value > 25
-            ? fToC(value)
-            : value;
-        
-        service.getCharacteristic(this.api.hap.Characteristic.CurrentTemperature)
-          .updateValue(newValue);
+        this.waitForEndValue = setTimeout(() => {
+          
+          this.deviceHandler.setStates(this.accessory, this.accessories, 'Temperature', value);
+          
+        }, 250);
       
-        this.timeoutAuto = setTimeout(() => {
-          
-          let targetState = service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState).value;
-          
-          if(targetState)
-            this.deviceHandler.setStates(this.accessory, this.accessories, 'Temperature', value);
-          
-          this.timeoutAuto = null;
-              
-        }, 600);
-        
       })
       .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName));
       
     service.getCharacteristic(this.api.hap.Characteristic.ValvePosition)
       .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName));
-    
+      
     this.refreshHistory(service);
     
   }
   
   refreshHistory(service){ 
 
-    let currentState = service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState).value;  
-    let targetState = service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState).value;  
+    let currentState = service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState).value;  
     let currentTemp = service.getCharacteristic(this.api.hap.Characteristic.CurrentTemperature).value; 
-    let targetTemp = service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value; 
+    let targetTemp = service.getCharacteristic(this.api.hap.Characteristic.HeatingThresholdTemperature).value; 
       
-    let valvePos = currentTemp <= targetTemp && currentState !== 0 && targetState !== 0
+    let valvePos = currentTemp <= targetTemp && currentState !== 0
       ? Math.round(((targetTemp - currentTemp) >= 5 ? 100 : (targetTemp - currentTemp) * 20))
       : 0;
-      
+     
+    //Thermo 
     this.historyService.addEntry({
       time: moment().unix(), 
       currentTemp: currentTemp, 
@@ -297,64 +321,7 @@ class ThermostatAccessory {
     }, 10 * 60 * 1000);
     
   }
-  
-  async changeUnit(service, value){
-    
-    let charachteristicCurrentTemp = this.api.hap.Characteristic.CurrentTemperature;
-    
-    if(!value){
-          
-      //CELSIUS
-      this.accessory.context.config.temperatureUnit = 'CELSIUS';
-      
-      let fToC = (f) => Math.round((f - 32) * 5/9);
-      
-      let currentVal = service.getCharacteristic(charachteristicCurrentTemp).value;
-  
-      service.getCharacteristic(charachteristicCurrentTemp)
-        .updateValue(fToC(currentVal));
-      
-    } else {
-      
-      //FAHRENHEIT
-      this.accessory.context.config.temperatureUnit = 'FAHRENHEIT';
-      
-      let cToF = (c) => Math.round((c * 9/5) + 32);
-      
-      let currentVal = service.getCharacteristic(charachteristicCurrentTemp).value;
-
-      service.getCharacteristic(charachteristicCurrentTemp)
-        .updateValue(cToF(currentVal));
-      
-    }
-    
-    try {
-      
-      const configJSON = await fs.readJson(this.api.user.storagePath() + '/config.json');
-        
-      for(const i in configJSON.platforms)
-        if(configJSON.platforms[i].platform === 'TadoPlatform')
-          for(const home in configJSON.platforms[i].homes)
-            if(configJSON.platforms[i].homes[home].name === this.accessory.context.config.homeName)
-              configJSON.platforms[i].homes[home].temperatureUnit = value
-                ? 'FAHRENHEIT'
-                : 'CELSIUS';
-      
-      fs.writeJsonSync(this.api.user.storagePath() + '/config.json', configJSON, { spaces: 4 });
-      
-      Logger.info('New temperature unit stored in config', this.accessory.displayName);
-      
-    } catch(err) {
-      
-      Logger.error('Error storing temperature unit in config!', this.accessory.displayName);
-      Logger.error(err);
-      
-    }
-    
-    return;
-    
-  }
 
 }
 
-module.exports = ThermostatAccessory;
+module.exports = HeaterCoolerAccessory;

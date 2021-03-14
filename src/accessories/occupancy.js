@@ -1,25 +1,19 @@
 'use strict';
 
-var Service, Characteristic;
+const Logger = require('../helper/logger.js');
 
-class occupancy_Accessory {
-  constructor (platform, accessory) {
-  
-    Service = platform.api.hap.Service;
-    Characteristic = platform.api.hap.Characteristic;
+class OccupancyAccessory {
 
-    this.platform = platform;
-    this.log = platform.log;
-    this.logger = platform.logger;
-    this.debug = platform.debug;
-    this.api = platform.api;
-    this.config = platform.config;
-    this.accessories = platform.accessories;
+  constructor (api, accessory, accessories, tado, deviceHandler) {
     
-    this.tado = platform.tado;
-    this.tadoHandler = platform.tadoHandler;
+    this.api = api;
+    this.accessory = accessory;
+    this.accessories = accessories;
     
-    this.getService(accessory);
+    this.deviceHandler = deviceHandler;
+    this.tado = tado;
+    
+    this.getService();
 
   }
 
@@ -27,54 +21,26 @@ class occupancy_Accessory {
   // Services
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~//
 
-  getService (accessory) {
-  
-    const self = this;
-
-    accessory.on('identify', function(paired, callback) {
-      self.logger.info(accessory.displayName + ': Identify!!!');
-      callback();
-    });
-
-    let service = accessory.getService(Service.OccupancySensor);
-
-    this.getState(accessory, service);
-
-  }
-  
-  async getState (accessory, service){
-  
-    try {
-  
-      let state;
+  async getService () {
     
-      if(accessory.displayName !== 'Anyone'){
+    let service = this.accessory.getService(this.api.hap.Service.OccupancySensor);
+    let serviceOld = this.accessory.getService(this.api.hap.Service.MotionSensor);
     
-        let device = await this.tadoHandler.getDevice(accessory.context.serial);
-        state = device.atHome ? 1 : 0;
-      
-      } else {
-      
-        let device = await this.tadoHandler.getDevice(accessory.context.serial);
-        state = (device.atHome.includes(true)) ? 1 : 0;
-      
-      }
-      
-      service.getCharacteristic(Characteristic.OccupancyDetected).updateValue(state);
-    
-    } catch(err) {
-    
-      this.logger.error(accessory.displayName + ': An error occured while getting new state');
-      this.debug(err);
-    
-    } finally {
-  
-      if(!accessory.context.remove) setTimeout(this.getState.bind(this,accessory,service),accessory.context.polling);
-      
+    if(serviceOld){
+      Logger.info('Removing Motion service', this.accessory.displayName);
+      this.accessory.removeService(serviceOld);
     }
-  
+    
+    if(!service){
+      Logger.info('Adding Occupancy service', this.accessory.displayName);
+      service = this.accessory.addService(this.api.hap.Service.OccupancySensor, this.accessory.displayName, this.accessory.context.config.subtype);
+    }
+    
+    service.getCharacteristic(this.api.hap.Characteristic.OccupancyDetected)
+      .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, false, this.accessory.displayName));
+    
   }
-
+  
 }
 
-module.exports = occupancy_Accessory;
+module.exports = OccupancyAccessory;
