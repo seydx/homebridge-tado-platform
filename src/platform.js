@@ -319,7 +319,7 @@ TadoPlatform.prototype = {
       case 'extra-plockswitch':
         new SwitchAccessory(this.api, accessory, this.accessories, tado, deviceHandler);  
         break;        
-      case 'zone-faucet': 
+      case 'zone-faucet':
         new FaucetAccessory(this.api, accessory, this.accessories, tado, deviceHandler);
         break;        
       case 'zone-window-contact':

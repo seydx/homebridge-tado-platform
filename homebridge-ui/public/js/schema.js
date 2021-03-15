@@ -323,7 +323,10 @@ const schema = {
               'airQuality': {
                 'title': 'Room Air Quality Sensor',
                 'type': 'boolean',
-                'description': 'If enabled, the thermostat/heater cooler accessory will also show an air quality indicator.'
+                'description': 'If enabled, the thermostat/heater cooler accessory will also show an air quality indicator.',
+                'condition': {
+                  'functionBody': 'try { return model.homes.zones[arrayIndices[0]].type === \'HEATING\' } catch(e){ return false }'
+                }
               },
               'separateTemperature': {
                 'title': 'Separate Temperature Sensors',

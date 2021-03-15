@@ -187,19 +187,17 @@ class HeaterCoolerAccessory {
     if(this.accessory.context.config.type === 'HOT_WATER'){
       props = {
         maxValue: 2,      
-        minValue: 2,        
-        validValues: [2]
+        minValue: 0,        
+        validValues: [0, 2]
       };
-      service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
-        .updateValue(2);
     }
-    
-    service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)
-      .updateValue(1);
     
     service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
       .setProps(props);
     
+    service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)
+      .updateValue(1);
+
     service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)
       .setProps({
         maxValue: 1,

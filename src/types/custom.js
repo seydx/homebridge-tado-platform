@@ -240,7 +240,7 @@ module.exports = {
     /// /////////////////////////////////////////////////////////////////////////
     // AirQuality Service
     /// ///////////////////////////////////////////////////////////////////////// 
-    Service.Valve = function(displayName, subtype) {
+    Service.AirQuality = function(displayName, subtype) {
       Service.call(this, displayName, '0000008D-0000-1000-8000-0026BB765291', subtype);
       
       // Required Characteristics
@@ -263,8 +263,8 @@ module.exports = {
       this.addOptionalCharacteristic(Characteristic.StatusTampered);
     
     };
-    inherits(Service.Valve, Service);
-    Service.Valve.UUID = '0000008D-0000-1000-8000-0026BB765291';
+    inherits(Service.AirQuality, Service);
+    Service.AirQuality.UUID = '0000008D-0000-1000-8000-0026BB765291';
     
   }
 };

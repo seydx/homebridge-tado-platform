@@ -328,7 +328,10 @@
                 "airQuality": {
                   "title": "Room Air Quality Sensor",
                   "type": "boolean",
-                  "description": "If enabled, the thermostat/heater cooler accessory will also show an air quality indicator."
+                  "description": "If enabled, the thermostat/heater cooler accessory will also show an air quality indicator.",
+                  "condition": {
+                    "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HEATING' } catch(e){ return false }"
+                  }
                 },
                 "separateTemperature": {
                   "title": "Separate Temperature Sensors",
@@ -338,7 +341,10 @@
                 "separateHumidity": {
                   "title": "Separate Humidity Sensors",
                   "type": "boolean",
-                  "description": "If enabled, the humidity sensor will be shown as extra accessory."
+                  "description": "If enabled, the humidity sensor will be shown as extra accessory.",
+                  "condition": {
+                    "functionBody": "try { return model.homes[arrayIndices[0]].zones[arrayIndices[1]].type === 'HEATING' } catch(e){ return false }"
+                  }
                 },
                 "mode": {
                   "title": "Termination Mode",

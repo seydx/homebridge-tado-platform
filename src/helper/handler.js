@@ -1019,21 +1019,21 @@ module.exports = (api, accessories, config, tado, telegram) => {
           
         } else {
           
-          //HOT_WATER
-          currentTemp = zoneState.setting.power === 'ON'
+          active = zoneState.setting.power === 'ON'
+            ? 1
+            : 0;
+            
+          currentState = active 
+            ? 2
+            : 0;
+            
+          targetState = 1;
+          
+          currentTemp = zoneState.setting.temperature !== null
             ? config.temperatureUnit === 'CELSIUS'
               ? zoneState.setting.temperature.celsius
               : zoneState.setting.temperature.fahrenheit
             : false;
-            
-          //targetTemp = currentTemp;
-          
-          currentState = 2;
-          targetState = 1;
-          
-          active = zoneState.setting.power === 'ON'
-            ? 1
-            : 0;
           
           //Thermostat/HeaterCooler
           const heaterAccessory = accessories.filter(acc => acc && acc.context.config.subtype === 'zone-heatercooler-boiler');
@@ -1042,6 +1042,8 @@ module.exports = (api, accessories, config, tado, telegram) => {
             
           if(heaterAccessory.length){
             
+            console.log(heaterAccessory);
+            
             heaterAccessory.forEach(acc => {
               
               if(acc.displayName.includes(zone.name)){
@@ -1049,15 +1051,21 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 let service = acc.getService(api.hap.Service.HeaterCooler);   
                 
                 let characteristicCurrentTemp = api.hap.Characteristic.CurrentTemperature;
-                //let characteristicTargetTemp = api.hap.Characteristic.HeatingThresholdTemperature;
+                let characteristicActive = api.hap.Characteristic.Active;
                 let characteristicCurrentState = api.hap.Characteristic.CurrentHeaterCoolerState;
                 let characteristicTargetState = api.hap.Characteristic.TargetHeaterCoolerState;
-                let characteristicActive = api.hap.Characteristic.Active;
+
+                service
+                  .getCharacteristic(characteristicActive)
+                  .updateValue(active);
                 
-                if(!isNaN(active))  
-                  service
-                    .getCharacteristic(characteristicActive)
-                    .updateValue(active);
+                service
+                  .getCharacteristic(characteristicCurrentState)
+                  .updateValue(currentState);
+
+                service
+                  .getCharacteristic(characteristicTargetState)
+                  .updateValue(targetState);
                 
                 if(!isNaN(currentTemp) || acc.context.currentTemp){ 
                   
@@ -1069,27 +1077,6 @@ module.exports = (api, accessories, config, tado, telegram) => {
                     .updateValue(acc.context.currentTemp);
                 
                 }
-                 
-                /*if(!isNaN(targetTemp) || acc.context.targetTemp){
-                  
-                  if(!isNaN(targetTemp))
-                    acc.context.targetTemp = targetTemp; //store target temp in config
-                   
-                  service
-                    .getCharacteristic(characteristicTargetTemp)
-                    .updateValue(acc.context.targetTemp);
-                
-                }*/
-                  
-                if(!isNaN(currentState))    
-                  service
-                    .getCharacteristic(characteristicCurrentState)
-                    .updateValue(currentState);
-                
-                if(!isNaN(targetState))    
-                  service
-                    .getCharacteristic(characteristicTargetState)
-                    .updateValue(targetState);
                 
               }
               
@@ -1125,11 +1112,17 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 
                 let service = acc.getService(api.hap.Service.Valve);
                 
-                let characteristic = api.hap.Characteristic.Active;
+                let characteristicActive = api.hap.Characteristic.Active;
+                let characteristicInUse = api.hap.Characteristic.InUse;
                 
                 service
-                  .getCharacteristic(characteristic)
+                  .getCharacteristic(characteristicActive)
                   .updateValue(active ? 1 : 0);
+                  
+                service
+                  .getCharacteristic(characteristicInUse)
+                  .updateValue(active ? 1 : 0);
+                
                     
               }
               

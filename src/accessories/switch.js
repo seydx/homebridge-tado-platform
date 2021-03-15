@@ -29,6 +29,7 @@ class SwitchAccessory {
     let serviceHeater = this.accessory.getService(this.api.hap.Service.HeaterCooler);
     let serviceFaucet = this.accessory.getService(this.api.hap.Service.Valve);
     let serviceSecurity = this.accessory.getService(this.api.hap.Service.SecuritySystem);
+    let serviceThermostat = this.accessory.getService(this.api.hap.Service.Thermostat);
     
     let serviceHomeSwitch = this.accessory.getServiceById(this.api.hap.Service.Switch, 'HomeSwitch');
     let serviceAwaySwitch = this.accessory.getServiceById(this.api.hap.Service.Switch, 'AwaySwitch');
@@ -41,6 +42,11 @@ class SwitchAccessory {
     if(serviceHeater){
       Logger.info('Removing HeaterCooler service', this.accessory.displayName);
       this.accessory.removeService(serviceHeater);
+    }
+    
+    if(serviceThermostat){
+      Logger.info('Removing Thermostat service', this.accessory.displayName);
+      this.accessory.removeService(serviceThermostat);
     }
     
     if(serviceFaucet){
