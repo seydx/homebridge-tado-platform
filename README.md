@@ -13,8 +13,6 @@
 
 [Click here](https://github.com/SeydX) to review more of my plugins.
 
-**<u>NOTE:</u>** Updating from **<= v5.x** to **v6.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/example-config.json) 
-
 ## Info
 
 **TafoPlatform** is possibly the biggest homebridge plugin for Tado devices. 
