@@ -10,6 +10,12 @@
 
 Hot water devices show 0° when they are first started in HomeKit if they are in "OFF" mode. The reason for this is that in "OFF" mode there is no temperature value in the API. When you turn on the device, the plugin saves the value for the further use case.
 
+
+**IMPORTANT:**
+
+If you previously used your "HOT_WATER" device/zone as a faucet, then disable the zone after the update and restart Homebridge pls. After the restart, you can enable the zone with the faucet again.
+
+
 ## v6.0.0 - 2021-03-14
 
 
