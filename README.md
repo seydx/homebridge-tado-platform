@@ -2,7 +2,7 @@
   <img src="https://github.com/SeydX/homebridge-tado-platform/blob/master/images/tado_logo.png" height="300">
 </p>
 
-# Tado Platform v6
+# homebridge-tado-platform
 
 [![npm](https://img.shields.io/npm/v/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
 [![npm](https://img.shields.io/npm/dt/homebridge-tado-platform.svg?style=flat-square)](https://www.npmjs.com/package/homebridge-tado-platform)
