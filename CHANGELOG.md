@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v6.0.1 - 2021-03-15
+- Fixed a bug with faucet accessory appearing as air quality sensor
+- Fixed a bug for HOT_WATER devices without temperature support
+- Improvements
+
 ## v6.0.0 - 2021-03-14
 
 
