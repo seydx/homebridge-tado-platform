@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/SeydX/homebridge-tado-platform/blob/master/images/tado_logo.png">
+  <img src="https://github.com/SeydX/homebridge-tado-platform/blob/master/images/tado_logo.png" height="300">
 </p>
 
 # Tado Platform v6
@@ -507,3 +507,8 @@ Pull requests are accepted.
 ## Troubleshooting
 
 If you have any issues with the plugin, you can enable the debug mode, which will provide some additional information. This might be useful for debugging issues. Open your config.json and set ``"debug": true``
+
+
+## Disclaimer
+
+All product and company names are trademarks™ or registered® trademarks of their respective holders. Use of them does not imply any affiliation with or endorsement by them.
