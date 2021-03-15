@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/SeydX/homebridge-tado-platform/blob/master/images/tado_logo.png" height="300">
+  <img src="https://github.com/SeydX/homebridge-tado-platform/blob/master/images/tado_logo.png" height="200">
 </p>
 
 # homebridge-tado-platform
