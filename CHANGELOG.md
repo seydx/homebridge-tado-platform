@@ -2,6 +2,10 @@
 
 
 ## v6.0.0 - 2021-03-14
+
+
+**<u>NOTE:</u>** Updating from **<= v5.x** to **v6.x** will crash your homebridge, please **REMOVE** the old version first and check also the new [example-config.json](https://github.com/SeydX/homebridge-tado-platform/blob/master/example-config.json) 
+
 - Config UI X support (config.schema.json)
 - Custom UI
 - Support for non config ui x user
