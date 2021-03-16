@@ -1042,8 +1042,6 @@ module.exports = (api, accessories, config, tado, telegram) => {
             
           if(heaterAccessory.length){
             
-            console.log(heaterAccessory);
-            
             heaterAccessory.forEach(acc => {
               
               if(acc.displayName.includes(zone.name)){
