@@ -128,12 +128,12 @@ module.exports = (api, accessories, config, tado, telegram) => {
               
             }
             
-            if(clear){
+            if((value && accessory.context.config.mode === 'AUTO' && accessory.context.config.subtype.includes('heatercooler')) || clear){
            
               await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);
            
             } else {
-            
+          
               let mode = accessory.context.config.mode === 'TIMER'
                 ? (accessory.context.config.modeTimer || 30) * 60
                 : accessory.context.config.mode;
@@ -963,11 +963,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   let characteristicTargetState = api.hap.Characteristic.TargetHeaterCoolerState;
                   let characteristicActive = api.hap.Characteristic.Active;
                   
-                  currentState = currentState === 2
-                    ? 3
-                    : currentState === 1
-                      ? 2
-                      : 0;
+                  currentState = currentState
+                    ? 2
+                    : 0;
                       
                   targetState = 1;
                   
