@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v6.0.2 - 2021-03-16
+- Fixed zoneOverlay (temperature)
+
 ## v6.0.1 - 2021-03-15
 - Fixed a bug with faucet accessory appearing as air quality sensor
 - Fixed a bug for HOT_WATER devices without temperature support
