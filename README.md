@@ -144,6 +144,12 @@ Each zone in the config.json with ``type: HEATING`` and ``easyMode: true`` is ex
 - Target Mode: HEATING
 - **NO** Elgato EVE history feature (FakeGato)
 
+You can also adjust the minimum temperature step ``"minStep"``, minimum temperature value ``"minValue"`` or maximum temperature value ``"maxValue"`` via config.json. 
+
+- **minValue**: By default, HEATING devices also this plugin, supports a minValue of 5° Celsius. If your device has a different minValue, you can set it up here. (Incorrect minValue may cause problems!)
+- **maxValue**: By default, HEATING devices also this plugin, supports a maxValue of 25° Celsius by default. If your device has a different minValue, you can set it up here. (Incorrect maxValue may cause problems!)
+- **minStep**: Minimum step for temperature adjustment. (Default: 1, must be between 0 - 1)
+
 ```
 "homes": [
   {
@@ -164,6 +170,9 @@ Each zone in the config.json with ``type: HEATING`` and ``easyMode: true`` is ex
         "separateHumidity": true,
         "mode": "MANUAL",
         "modeTimer": 30,
+        "minValue": 5,
+        "maxValue": 25,
+        "minStep": "0.5",
         "easyMode": false,
         "noBattery": false
       }
@@ -215,6 +224,12 @@ Each zone in the config.json with ``type: HOT_WATER`` and ``boilerTempSupport: t
 - Target Temperature
 - Separate Temperature Sensor (if ``separateTemperature: true``)
 
+You can also adjust the minimum temperature step ``"minStep"``, minimum temperature value ``"minValue"`` or maximum temperature value ``"maxValue"`` via config.json. 
+
+- **minValue**: By default, HOT WATER devices also this plugin, supports a minValue of 30° Celsius. If your device has a different minValue, you can set it up here. (Incorrect minValue may cause problems!)
+- **maxValue**: By default, HOT WATER devices also this plugin, supports a maxValue of 65° Celsius by default. If your device has a different minValue, you can set it up here. (Incorrect maxValue may cause problems!)
+- **minStep**: Minimum step for temperature adjustment. (Default: 1, must be between 0 - 1)
+
 ```
 "homes": [
   {
@@ -226,6 +241,9 @@ Each zone in the config.json with ``type: HOT_WATER`` and ``boilerTempSupport: t
         "type": "HOT_WATER",
         "mode": "MANUAL",
         "modeTimer": 30,
+        "minValue": 30,
+        "maxValue": 65,
+        "minStep": "1",
         "separateTemperature": true,
         "boilerTempSupport": false,
         "accTypeBoiler": "SWITCH"
