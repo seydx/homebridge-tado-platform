@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v6.0.3 - 2021-03-16
+- Removed unnecessary log
+
 ## v6.0.2 - 2021-03-16
 - Fixed zoneOverlay (temperature)
 
