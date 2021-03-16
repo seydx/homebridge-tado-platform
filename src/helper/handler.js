@@ -18,6 +18,10 @@ module.exports = (api, accessories, config, tado, telegram) => {
     try {
     
       settingState = true;
+      
+      value = typeof value === 'number'
+        ? parseFloat(value.toFixed(2))
+        : value;
     
       Logger.info(target + ': ' + value, accessory.displayName);  
     
@@ -50,9 +54,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
               }
               
               power = 'OFF';
-              temp = service
+              temp = parseFloat(service
                 .getCharacteristic(targetTempCharacteristic)
-                .value;
+                .value.toFixed(2));
                 
               let mode = accessory.context.config.mode === 'TIMER'
                 ? (accessory.context.config.modeTimer || 30) * 60
@@ -61,6 +65,10 @@ module.exports = (api, accessories, config, tado, telegram) => {
               await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, mode, accessory.context.config.temperatureUnit);
               
             } else {
+            
+              let mode = accessory.context.config.mode === 'TIMER'
+                ? (accessory.context.config.modeTimer || 30) * 60
+                : accessory.context.config.mode;
               
               let timer = accessory.context.delayTimer;
               let tarState = value === 1
@@ -81,23 +89,20 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 //targetState
                 clear = value === 3;
                 power = 'ON';
-                temp = service
+                temp = parseFloat(service
                   .getCharacteristic(targetTempCharacteristic)
-                  .value;
-                
-                if(clear){
-               
-                  await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);
-               
-                } else {
-                
-                  let mode = accessory.context.config.mode === 'TIMER'
-                    ? (accessory.context.config.modeTimer || 30) * 60
-                    : accessory.context.config.mode;
-                
-                  await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, mode, accessory.context.config.temperatureUnit);
-               
+                  .value.toFixed(2));
+                  
+                if(clear || (value && accessory.context.config.mode === 'AUTO' && accessory.context.config.subtype.includes('heatercooler'))){
+                  await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);    
+                  return;
                 }
+                
+                mode = !value && accessory.context.config.mode === 'AUTO' && accessory.context.config.subtype.includes('heatercooler')
+                  ? 'MANUAL'
+                  : mode;
+                
+                await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, mode, accessory.context.config.temperatureUnit);
                 
                 delayTimer[accessory.displayName] = null;
                 
@@ -120,9 +125,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 ? 'ON'
                 : 'OFF';
               
-              temp = service
+              temp = parseFloat(service
                 .getCharacteristic(targetTempCharacteristic)
-                .value;
+                .value.toFixed(2));
                 
               if(clear || (value && accessory.context.config.mode === 'AUTO' && accessory.context.config.subtype.includes('heatercooler'))){
                 await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);    
@@ -137,7 +142,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
               
               //temp
               power = 'ON';
-              temp = value;
+              temp = parseFloat(value.toFixed(2));
               
             } 
           
@@ -959,7 +964,8 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   
                   let characteristicHumidity = api.hap.Characteristic.CurrentRelativeHumidity;  
                   let characteristicCurrentTemp = api.hap.Characteristic.CurrentTemperature;
-                  let characteristicTargetTempHeat = api.hap.Characteristic.HeatingThresholdTemperature;
+                  let characteristicTargetTempHeating = api.hap.Characteristic.HeatingThresholdTemperature;
+                  let characteristicTargetTempCooling = api.hap.Characteristic.CoolingThresholdTemperature;
                   let characteristicCurrentState = api.hap.Characteristic.CurrentHeaterCoolerState;
                   let characteristicTargetState = api.hap.Characteristic.TargetHeaterCoolerState;
                   let characteristicActive = api.hap.Characteristic.Active;
@@ -967,7 +973,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   currentState = active
                     ? targetState === 3
                       ? 1
-                      : 2
+                      : currentState + 1
                     : 0;
                       
                   targetState = 1;
@@ -982,10 +988,17 @@ module.exports = (api, accessories, config, tado, telegram) => {
                       .getCharacteristic(characteristicCurrentTemp)
                       .updateValue(currentTemp);
                    
-                  if(!isNaN(targetTemp))    
+                  if(!isNaN(targetTemp)){    
+                  
                     serviceHeaterCooler
-                      .getCharacteristic(characteristicTargetTempHeat)
+                      .getCharacteristic(characteristicTargetTempHeating)
                       .updateValue(targetTemp);
+                      
+                    serviceHeaterCooler
+                      .getCharacteristic(characteristicTargetTempCooling)
+                      .updateValue(targetTemp);
+               
+                  }
                   
                   if(!isNaN(currentState))    
                     serviceHeaterCooler
@@ -1032,7 +1045,11 @@ module.exports = (api, accessories, config, tado, telegram) => {
             ? config.temperatureUnit === 'CELSIUS'
               ? zoneState.setting.temperature.celsius
               : zoneState.setting.temperature.fahrenheit
-            : false;
+            : undefined;
+            
+          targetTemp = active && currentTemp
+            ? currentTemp
+            : undefined;
           
           //Thermostat/HeaterCooler
           const heaterAccessory = accessories.filter(acc => acc && acc.context.config.subtype === 'zone-heatercooler-boiler');
@@ -1051,6 +1068,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 let characteristicActive = api.hap.Characteristic.Active;
                 let characteristicCurrentState = api.hap.Characteristic.CurrentHeaterCoolerState;
                 let characteristicTargetState = api.hap.Characteristic.TargetHeaterCoolerState;
+                let characteristicTargetTempHeating = api.hap.Characteristic.HeatingThresholdTemperature;
 
                 service
                   .getCharacteristic(characteristicActive)
@@ -1072,6 +1090,14 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   service
                     .getCharacteristic(characteristicCurrentTemp)
                     .updateValue(acc.context.currentTemp);
+                
+                }
+                
+                if(!isNaN(targetTemp)){ 
+                  
+                  service
+                    .getCharacteristic(characteristicTargetTempHeating)
+                    .updateValue(targetTemp);
                 
                 }
                 

@@ -40,8 +40,20 @@ class UiServer extends HomebridgePluginUiServer {
       try {
       
         console.log('Executing /' + payload.dest);
+        
+        let value1, value2, value3;
+        
+        if(payload.data){
+          if(typeof payload.data === 'object'){
+            value1 = payload.data[0];
+            value2 = payload.data[1];
+            value3 = payload.data[2];
+          } else {
+            value1 = payload.data;
+          }
+        }
   
-        const data = await this.tado[payload.dest](payload.data);
+        const data = await this.tado[payload.dest](value1, value2, value3);
         
         return data;
   

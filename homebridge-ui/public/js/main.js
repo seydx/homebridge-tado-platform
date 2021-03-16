@@ -139,7 +139,7 @@ async function createCustomSchema(home){
     pluginConfig[0].debug = config.debug;
     pluginConfig[0].homes = pluginConfig[0].homes.map(home => {
       if(home.name === config.homes.name){
-        home = config.homes;
+        home = config.homes;                                                           
       }
       return home;
     });
@@ -451,6 +451,8 @@ async function fetchDevices(credentials, refresh, resync){
           if(config[0].homes[i].zones.length){
             for(const foundZone of zones){
             
+              const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, foundZone.id]}); 
+            
               if(foundZone.devices)
                 foundZone.devices.forEach(dev => {
                   if(dev.deviceType && (dev.deviceType.includes('VA01') || dev.deviceType.includes('VA02')))
@@ -469,6 +471,15 @@ async function fetchDevices(credentials, refresh, resync){
               if(zoneIndex !== undefined){
                 config[0].homes[i].zones[zoneIndex].id = foundZone.id;
                 config[0].homes[i].zones[zoneIndex].type = foundZone.type;
+                config[0].homes[i].zones[zoneIndex].minValue = homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.min
+                  : capabilities.temperatures.fahrenheit.min;
+                config[0].homes[i].zones[zoneIndex].maxValue = homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.max
+                  : capabilities.temperatures.fahrenheit.max;
+                config[0].homes[i].zones[zoneIndex].minStep = homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.step
+                  : capabilities.temperatures.fahrenheit.step;
               } else {
                 config[0].homes[i].zones.push({
                   active: true,
@@ -480,6 +491,15 @@ async function fetchDevices(credentials, refresh, resync){
                   noBattery: false,
                   mode: 'MANUAL',
                   modeTimer: 30,
+                  minValue: homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.min
+                    : capabilities.temperatures.fahrenheit.min,
+                  maxValue: homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.max
+                    : capabilities.temperatures.fahrenheit.max,
+                  minStep: homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.step
+                    : capabilities.temperatures.fahrenheit.step,
                   easyMode: false,
                   openWindowSensor: false,
                   openWindowSwitch: false,
@@ -492,7 +512,10 @@ async function fetchDevices(credentials, refresh, resync){
               } 
             }
           } else {
-            config[0].homes[i].zones = zones.map(zone => {
+          
+            for(const zone of zones){
+            
+              const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, zone.id]}); 
             
               if(zone.devices)
                 zone.devices.forEach(dev => {
@@ -501,8 +524,8 @@ async function fetchDevices(credentials, refresh, resync){
                     serialNumber: dev.shortSerialNo
                   });
                 });
-            
-              return {
+                
+              config[0].homes[i].zones.push({
                 active: true,
                 id: zone.id,
                 name: zone.name,
@@ -512,6 +535,15 @@ async function fetchDevices(credentials, refresh, resync){
                 noBattery: false,
                 mode: 'MANUAL',
                 modeTimer: 30,
+                minValue: homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.min
+                  : capabilities.temperatures.fahrenheit.min,
+                maxValue: homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.max
+                  : capabilities.temperatures.fahrenheit.max,
+                minStep: homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.step
+                  : capabilities.temperatures.fahrenheit.step,
                 easyMode: false,
                 openWindowSensor: false,
                 openWindowSwitch: false,
@@ -520,8 +552,9 @@ async function fetchDevices(credentials, refresh, resync){
                 separateHumidity: false,
                 accTypeBoiler: 'SWITCH',
                 boilerTempSupport: false
-              };
-            }); 
+              });
+            
+            }
           }
           
           //remove non existing childLockSwitches
@@ -760,6 +793,8 @@ async function fetchDevices(credentials, refresh, resync){
             //Check for new zones or refresh exist one
             if(config[0].homes[i].zones.length){
               for(const foundZone of zones){
+              
+                const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, foundZone.id]}); 
                 
                 if(foundZone.devices)
                   foundZone.devices.forEach(dev => {
@@ -779,6 +814,15 @@ async function fetchDevices(credentials, refresh, resync){
                 if(zoneIndex !== undefined){
                   config[0].homes[i].zones[zoneIndex].id = foundZone.id;
                   config[0].homes[i].zones[zoneIndex].type = foundZone.type;
+                  config[0].homes[i].zones[zoneIndex].minValue = homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.min
+                    : capabilities.temperatures.fahrenheit.min;
+                  config[0].homes[i].zones[zoneIndex].maxValue = homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.max
+                    : capabilities.temperatures.fahrenheit.max;
+                  config[0].homes[i].zones[zoneIndex].minStep = homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.step
+                    : capabilities.temperatures.fahrenheit.step;
                 } else {
                   config[0].homes[i].zones.push({
                     active: true,
@@ -790,6 +834,15 @@ async function fetchDevices(credentials, refresh, resync){
                     noBattery: false,
                     mode: 'MANUAL',
                     modeTimer: 30,
+                    minValue: homeInfo.temperatureUnit === 'CELSIUS'
+                      ? capabilities.temperatures.celsius.min
+                      : capabilities.temperatures.fahrenheit.min,
+                    maxValue: homeInfo.temperatureUnit === 'CELSIUS'
+                      ? capabilities.temperatures.celsius.max
+                      : capabilities.temperatures.fahrenheit.max,
+                    minStep: homeInfo.temperatureUnit === 'CELSIUS'
+                      ? capabilities.temperatures.celsius.step
+                      : capabilities.temperatures.fahrenheit.step,
                     easyMode: false,
                     openWindowSensor: false,
                     openWindowSwitch: false,
@@ -802,8 +855,11 @@ async function fetchDevices(credentials, refresh, resync){
                 } 
               }
             } else {
-              config[0].homes[i].zones = zones.map(zone => {
-                
+            
+              for(const zone of zones){
+              
+                const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, zone.id]}); 
+              
                 if(zone.devices)
                   zone.devices.forEach(dev => {
                     if(dev.deviceType && (dev.deviceType.includes('VA01') || dev.deviceType.includes('VA02')))
@@ -812,8 +868,8 @@ async function fetchDevices(credentials, refresh, resync){
                         serialNumber: dev.shortSerialNo
                       });
                   });
-                
-                return {
+                  
+                config[0].homes[i].zones.push({
                   active: true,
                   id: zone.id,
                   name: zone.name,
@@ -823,6 +879,15 @@ async function fetchDevices(credentials, refresh, resync){
                   noBattery: false,
                   mode: 'MANUAL',
                   modeTimer: 30,
+                  minValue: homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.min
+                    : capabilities.temperatures.fahrenheit.min,
+                  maxValue: homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.max
+                    : capabilities.temperatures.fahrenheit.max,
+                  minStep: homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.step
+                    : capabilities.temperatures.fahrenheit.step,
                   easyMode: false,
                   openWindowSensor: false,
                   openWindowSwitch: false,
@@ -831,8 +896,9 @@ async function fetchDevices(credentials, refresh, resync){
                   separateHumidity: false,
                   accTypeBoiler: 'SWITCH',
                   boilerTempSupport: false
-                };
-              }); 
+                });  
+              
+              }
             }
               
             //remove non existing childLockSwitches
@@ -969,7 +1035,9 @@ async function fetchDevices(credentials, refresh, resync){
           //Zone Informations
           const zones = await homebridge.request('/exec', {dest: 'getZones', data: foundHome.id}); 
           
-          homeConfig.zones = zones.map(zone => {
+          for(const zone of zones){
+          
+            const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [homeInfo.id, zone.id]}); 
           
             if(zone.devices)
               zone.devices.forEach(device => {
@@ -980,8 +1048,8 @@ async function fetchDevices(credentials, refresh, resync){
                     serialNumber: device.shortSerialNo
                   });
               });
-          
-            return {
+              
+            homeConfig.zones.push({
               active: true,
               id: zone.id,
               name: zone.name,
@@ -991,6 +1059,15 @@ async function fetchDevices(credentials, refresh, resync){
               noBattery: false,
               mode: 'MANUAL',
               modeTimer: 30,
+              minValue: homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.min
+                : capabilities.temperatures.fahrenheit.min,
+              maxValue: homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.max
+                : capabilities.temperatures.fahrenheit.max,
+              minStep: homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.step
+                : capabilities.temperatures.fahrenheit.step,
               easyMode: false,
               openWindowSensor: false,
               openWindowSwitch: false,
@@ -999,8 +1076,9 @@ async function fetchDevices(credentials, refresh, resync){
               separateHumidity: false,
               accTypeBoiler: 'SWITCH',
               boilerTempSupport: false
-            };
-          });
+            });  
+          
+          }
           
           config[0].homes.push(homeConfig);
           
@@ -1103,8 +1181,10 @@ async function fetchDevices(credentials, refresh, resync){
           //Zone Informations
           const zones = await homebridge.request('/exec', {dest: 'getZones', data: foundHome.id}); 
           
-          homeConfig.zones = zones.map(zone => {
+          for(const zone of zones){
           
+            const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [homeInfo.id, zone.id]}); 
+            
             if(zone.devices)
               zone.devices.forEach(device => {
                 if(device.deviceType && (device.deviceType.includes('VA01') || device.deviceType.includes('VA02')))
@@ -1114,8 +1194,8 @@ async function fetchDevices(credentials, refresh, resync){
                     serialNumber: device.shortSerialNo
                   });
               });
-          
-            return {
+              
+            homeConfig.zones.push({
               active: true,
               id: zone.id,
               name: zone.name,
@@ -1125,6 +1205,15 @@ async function fetchDevices(credentials, refresh, resync){
               noBattery: false,
               mode: 'MANUAL',
               modeTimer: 30,
+              minValue: homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.min
+                : capabilities.temperatures.fahrenheit.min,
+              maxValue: homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.max
+                : capabilities.temperatures.fahrenheit.max,
+              minStep: homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.step
+                : capabilities.temperatures.fahrenheit.step,
               easyMode: false,
               openWindowSensor: false,
               openWindowSwitch: false,
@@ -1133,8 +1222,9 @@ async function fetchDevices(credentials, refresh, resync){
               separateHumidity: false,
               accTypeBoiler: 'SWITCH',
               boilerTempSupport: false
-            };
-          });
+            });
+            
+          }
           
           
           config[0].homes.push(homeConfig);

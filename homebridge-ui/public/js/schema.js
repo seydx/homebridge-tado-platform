@@ -340,7 +340,22 @@ const schema = {
                 'condition': {
                   'functionBody': 'try { return model.homes.zones[arrayIndices[0]].type === \'HEATING\' } catch(e){ return false }'
                 }
+              },  
+              'minStep': {
+                'title': 'Temperature Step',
+                'type': 'string',
+                'description': 'Minimum step for temperature adjustment. (Default: 1, must be between 0 - 1)'                                
               },
+              'minValue': {
+                'title': 'Minimum Temperature',
+                'type': 'integer',
+                'description': 'Minimum adjustable temperature value (in celsius/fahrenheit). HEATING devices also this plugin, supports a minValue of 5° Celsius / 41° Fahrenheit by default. HOT WATER devices, also this plugin, supports a minValue of of 30° Celsius / 86° Fahrenheit by default. If your device has a different minValue, you can set it up here. (Incorrect minValue may cause problems!)'               
+              },
+              'maxValue': {
+                'title': 'Maximum Temperature',
+                'type': 'integer',
+                'description': 'Maximum adjustable temperature value (in celsius/fahrenheit). HEATING devices also this plugin, supports a maxValue of 25° Celsius / 77° Fahrenheit  by default. HOT WATER devices, also this plugin, supports a maxValue of of 65° Celsius / 149° Fahrenheit by default. If your device has a different maxValue, you can set it up here. (Incorrect maxValue may cause problems!)'                
+              },                                                                     
               'mode': {
                 'title': 'Termination Mode',
                 'type': 'string',
@@ -568,7 +583,19 @@ const schema = {
               'items': [
                 'homes.zones[].id',
                 'homes.zones[].easyMode',
-                'homes.zones[].noBattery',
+                'homes.zones[].noBattery', 
+                {
+                  'title': 'Temperature',
+                  'orderable': false,
+                  'expandable': true,
+                  'expanded': false,
+                  'type': 'section',
+                  'items': [ 
+                    'homes.zones[].minValue',
+                    'homes.zones[].maxValue',                                      
+                    'homes.zones[].minStep'
+                  ]
+                },                
                 {
                   'title': 'Hot Water',
                   'orderable': false,

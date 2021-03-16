@@ -96,7 +96,7 @@ module.exports = {
           //Zone Informations
           const zones = await tado.getZones(foundHome.id); 
           
-          homeConfig.zones = zones.map(zone => {
+          for(const zone of zones){
           
             if(zone.devices)
               zone.devices.forEach(device => {
@@ -107,8 +107,10 @@ module.exports = {
                     serialNumber: device.shortSerialNo
                   });
               });
-          
-            return {
+              
+            const capabilities  = await tado.getZoneCapabilities(foundHome.id, zone.id);
+            
+            homeConfig.zones.push({
               active: true,
               id: zone.id,
               name: zone.name,
@@ -119,6 +121,15 @@ module.exports = {
               mode: 'MANUAL',
               modeTimer: 30,
               easyMode: false,
+              minValue: homeConfig.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.min
+                : capabilities.temperatures.fahrenheit.min,
+              maxValue: homeConfig.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.max
+                : capabilities.temperatures.fahrenheit.max,
+              minStep: homeConfig.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.step
+                : capabilities.temperatures.fahrenheit.step,
               openWindowSensor: false,
               openWindowSwitch: false,
               accTypeOpenWindowSwitch: 'SWITCH',
@@ -127,8 +138,9 @@ module.exports = {
               separateHumidity: false,
               accTypeBoiler: 'SWITCH',
               boilerTempSupport: false
-            };
-          });
+            });
+          
+          }
           
           config.homes.push(homeConfig);
         
@@ -315,6 +327,8 @@ module.exports = {
         if(config.homes[i].zones.length){
           for(const foundZone of zones){
           
+            const capabilities  = await tado.getZoneCapabilities(home.id, foundZone.id);
+
             if(foundZone.devices)
               foundZone.devices.forEach(dev => {
                 if(dev.deviceType && (dev.deviceType.includes('VA01') || dev.deviceType.includes('VA02')))
@@ -333,6 +347,15 @@ module.exports = {
             if(zoneIndex !== undefined){
               config.homes[i].zones[zoneIndex].id = foundZone.id;
               config.homes[i].zones[zoneIndex].type = foundZone.type;
+              config.homes[i].zones[zoneIndex].minValue = homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.min
+                : capabilities.temperatures.fahrenheit.min;
+              config.homes[i].zones[zoneIndex].maxValue = homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.max
+                : capabilities.temperatures.fahrenheit.max;
+              config.homes[i].zones[zoneIndex].minStep = homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.step
+                : capabilities.temperatures.fahrenheit.step;
             } else {
               config.homes[i].zones.push({
                 active: true,
@@ -344,6 +367,15 @@ module.exports = {
                 noBattery: false,
                 mode: 'MANUAL',
                 modeTimer: 30,
+                minValue: homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.min
+                  : capabilities.temperatures.fahrenheit.min,
+                maxValue: homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.max
+                  : capabilities.temperatures.fahrenheit.max,
+                minStep: homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.step
+                  : capabilities.temperatures.fahrenheit.step,
                 easyMode: false,
                 openWindowSensor: false,
                 openWindowSwitch: false,
@@ -357,7 +389,10 @@ module.exports = {
             } 
           }
         } else {
-          config.homes[i].zones = zones.map(zone => {
+          
+          for(const zone of zones){
+          
+            const capabilities  = await tado.getZoneCapabilities(home.id, zone.id);
           
             if(zone.devices)
               zone.devices.forEach(dev => {
@@ -367,8 +402,8 @@ module.exports = {
                     serialNumber: dev.shortSerialNo
                   });
               });
-          
-            return {
+            
+            config.homes[i].zones.push({
               active: true,
               id: zone.id,
               name: zone.name,
@@ -378,6 +413,15 @@ module.exports = {
               noBattery: false,
               mode: 'MANUAL',
               modeTimer: 30,
+              minValue: homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.min
+                : capabilities.temperatures.fahrenheit.min,
+              maxValue: homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.max
+                : capabilities.temperatures.fahrenheit.max,
+              minStep: homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.step
+                : capabilities.temperatures.fahrenheit.step,
               easyMode: false,
               openWindowSensor: false,
               openWindowSwitch: false,
@@ -387,8 +431,10 @@ module.exports = {
               separateHumidity: false,
               accTypeBoiler: 'SWITCH',
               boilerTempSupport: false
-            };
-          }); 
+            });
+          
+          }
+
         }
         
         //remove non existing childLockSwitches
@@ -547,6 +593,9 @@ module.exports = {
                     config.airQuality = zone.airQuality;
                     config.separateTemperature = zone.separateTemperature;
                     config.separateHumidity = zone.separateHumidity;
+                    config.minStep = zone.minStep;
+                    config.minValue = zone.minValue;
+                    config.maxValue = zone.maxValue;
                     config.openWindowSensor = zone.openWindowSensor;
                     config.openWindowSwitch = zone.openWindowSwitch;
                     config.noBattery = zone.noBattery;

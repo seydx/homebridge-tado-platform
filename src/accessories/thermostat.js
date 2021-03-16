@@ -148,6 +148,18 @@ class ThermostatAccessory {
       : this.accessory.context.config.temperatureUnit === 'CELSIUS'
         ? 25
         : 77;
+          
+    minValue = this.accessory.context.config.minValue < maxValue
+      ? this.accessory.context.config.minValue
+      : minValue;
+        
+    maxValue = this.accessory.context.config.maxValue > minValue
+      ? this.accessory.context.config.maxValue
+      : maxValue;
+      
+    let minStep = parseFloat((this.accessory.context.config.minStep && !isNaN(this.accessory.context.config.minStep) && this.accessory.context.config.minStep > 0 && this.accessory.context.config.minStep <= 1
+      ? parseFloat(this.accessory.context.config.minStep) 
+      : 1).toFixed(2));
     
     if (service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState).value === 2)
       service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState)
@@ -177,7 +189,7 @@ class ThermostatAccessory {
       .setProps({
         minValue: minValue,
         maxValue: maxValue,
-        minStep: 1
+        minStep: minStep
       });
       
     if (!this.accessory.context.config.separateHumidity){

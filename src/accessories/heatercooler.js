@@ -149,18 +149,23 @@ class HeaterCoolerAccessory {
     
     if (this.accessory.context.config.type === 'HEATING'){
     
+      if(!service.testCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature))
+        service.addCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature);
+        
       if (!this.accessory.context.config.separateHumidity){
         if(!service.testCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity))
-          service.addCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity);
+          service.addCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity);     
       } else {
         if(service.testCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity))
           service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity));
       }
       
-    }
+    } else {
     
-    if(service.testCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature))
-      service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature));
+      if(service.testCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature))
+        service.removeCharacteristic(service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature));
+    
+    }
     
     let minValue = this.accessory.context.config.type === 'HOT_WATER'
       ? this.accessory.context.config.temperatureUnit === 'CELSIUS'
@@ -177,17 +182,41 @@ class HeaterCoolerAccessory {
       : this.accessory.context.config.temperatureUnit === 'CELSIUS'
         ? 25
         : 77;
+          
+    minValue = this.accessory.context.config.minValue < maxValue
+      ? this.accessory.context.config.minValue
+      : minValue;
+        
+    maxValue = this.accessory.context.config.maxValue > minValue
+      ? this.accessory.context.config.maxValue
+      : maxValue;
     
-    if(service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState).value > 2)
+    console.log('Before MINSTEP: ' + this.accessory.context.config.minStep, this.accessory.displayName);
+      
+    let minStep = parseFloat((this.accessory.context.config.minStep && !isNaN(this.accessory.context.config.minStep) && this.accessory.context.config.minStep > 0 && this.accessory.context.config.minStep <= 1
+      ? parseFloat(this.accessory.context.config.minStep) 
+      : 1).toFixed(2));
+      
+    console.log('After MINSTEP: ' + minStep, this.accessory.displayName);
+     
+    let maxState = this.accessory.context.config.type === 'HOT_WATER'
+      ? 2
+      : 3;
+     
+    let validState = this.accessory.context.config.type === 'HOT_WATER'
+      ? [0, 1, 2]
+      : [0, 1, 2, 3];
+     
+    if(service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState).value > maxState)
       service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
-        .updateValue(2);  
-    
+        .updateValue(maxState);  
+     
     service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
       .setProps({
-        maxValue: 2,      
+        maxValue: maxState,
         minValue: 0,        
-        validValues: [0, 1, 2]
-      });   
+        validValues: validState
+      });
     
     service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)
       .updateValue(1);
@@ -217,8 +246,27 @@ class HeaterCoolerAccessory {
       .setProps({
         minValue: minValue,
         maxValue: maxValue,
-        minStep: 1
+        minStep: minStep
       });
+      
+    if(this.accessory.context.config.type === 'HEATING'){
+    
+      if (service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value < minValue)
+        service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
+          .updateValue(minValue);
+          
+      if (service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature).value > maxValue)
+        service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
+          .updateValue(maxValue);
+        
+      service.getCharacteristic(this.api.hap.Characteristic.CoolingThresholdTemperature)
+        .setProps({
+          minValue: minValue,
+          maxValue: maxValue,
+          minStep: minStep
+        });
+    
+    }
         
     if (!service.testCharacteristic(this.api.hap.Characteristic.ValvePosition))
       service.addCharacteristic(this.api.hap.Characteristic.ValvePosition);
