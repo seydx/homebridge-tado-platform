@@ -148,17 +148,6 @@ class ThermostatAccessory {
       : this.accessory.context.config.temperatureUnit === 'CELSIUS'
         ? 25
         : 77;
-        
-    if (service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState).value > 2)
-      service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState)
-        .updateValue(2);
-
-    service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState)
-      .setProps({
-        maxValue: 2,      
-        minValue: 0,        
-        validValues: [0, 1, 2]
-      });
     
     if (service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState).value === 2)
       service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState)

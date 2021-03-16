@@ -180,14 +180,14 @@ class HeaterCoolerAccessory {
     
     if(service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState).value > 2)
       service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
-        .updateValue(2);
+        .updateValue(2);  
     
     service.getCharacteristic(this.api.hap.Characteristic.CurrentHeaterCoolerState)
       .setProps({
         maxValue: 2,      
         minValue: 0,        
         validValues: [0, 1, 2]
-      });
+      });   
     
     service.getCharacteristic(this.api.hap.Characteristic.TargetHeaterCoolerState)
       .updateValue(1);
@@ -242,7 +242,7 @@ class HeaterCoolerAccessory {
         }, 500);
 
       })
-      .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName));
+      .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName)); 
       
     service.getCharacteristic(this.api.hap.Characteristic.CurrentTemperature)
       .on('change', this.deviceHandler.changedStates.bind(this, this.accessory, this.historyService, this.accessory.displayName));

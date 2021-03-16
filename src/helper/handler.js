@@ -106,6 +106,10 @@ module.exports = (api, accessories, config, tado, telegram) => {
             }
             
           } else {
+          
+            let mode = accessory.context.config.mode === 'TIMER'
+              ? (accessory.context.config.modeTimer || 30) * 60
+              : accessory.context.config.mode;
             
             if([0,1,3].includes(value)){
               
@@ -119,6 +123,15 @@ module.exports = (api, accessories, config, tado, telegram) => {
               temp = service
                 .getCharacteristic(targetTempCharacteristic)
                 .value;
+                
+              if(clear || (value && accessory.context.config.mode === 'AUTO' && accessory.context.config.subtype.includes('heatercooler'))){
+                await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);    
+                return;
+              }
+              
+              mode = !value && accessory.context.config.mode === 'AUTO' && accessory.context.config.subtype.includes('heatercooler')
+                ? 'MANUAL'
+                : mode;
               
             } else {
               
@@ -126,21 +139,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
               power = 'ON';
               temp = value;
               
-            }
-            
-            if((value && accessory.context.config.mode === 'AUTO' && accessory.context.config.subtype.includes('heatercooler')) || clear){
-           
-              await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);
-           
-            } else {
+            } 
           
-              let mode = accessory.context.config.mode === 'TIMER'
-                ? (accessory.context.config.modeTimer || 30) * 60
-                : accessory.context.config.mode;
-            
-              await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, mode, accessory.context.config.temperatureUnit);
-            
-            }
+            await tado.setZoneOverlay(config.homeId, accessory.context.config.zoneId, power, temp, mode, accessory.context.config.temperatureUnit);         
             
           }
 
@@ -963,8 +964,10 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   let characteristicTargetState = api.hap.Characteristic.TargetHeaterCoolerState;
                   let characteristicActive = api.hap.Characteristic.Active;
                   
-                  currentState = currentState
-                    ? 2
+                  currentState = active
+                    ? targetState === 3
+                      ? 1
+                      : 2
                     : 0;
                       
                   targetState = 1;
@@ -1007,15 +1010,21 @@ module.exports = (api, accessories, config, tado, telegram) => {
             
           }
           
-        } else {
+        } else { 
           
-          active = zoneState.setting.power === 'ON'
-            ? 1
-            : 0;
-            
-          currentState = active 
-            ? 2
-            : 0;
+          if(zoneState.setting.power === 'ON'){
+          
+            active = 1;
+            currentState = zoneState.overlayType === null
+              ? 1
+              : 2;
+          
+          } else {
+          
+            active = 0;
+            currentState = 0;
+          
+          }
             
           targetState = 1;
           
