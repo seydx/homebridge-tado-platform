@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v6.0.5 - 2021-03-16
+- Hot Water auto mode bugfixes
+
 ## v6.0.4 - 2021-03-16
 - Removed "CoolingThresholdTemperature" from HeaterCooler Accessory
 - Changed target state to auto when switching on HeaterCooler if mode = "AUTO"
