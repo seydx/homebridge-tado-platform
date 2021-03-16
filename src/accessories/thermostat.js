@@ -148,6 +148,10 @@ class ThermostatAccessory {
       : this.accessory.context.config.temperatureUnit === 'CELSIUS'
         ? 25
         : 77;
+        
+    if (service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState).value > 2)
+      service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState)
+        .updateValue(2);
 
     service.getCharacteristic(this.api.hap.Characteristic.CurrentHeatingCoolingState)
       .setProps({
@@ -155,6 +159,10 @@ class ThermostatAccessory {
         minValue: 0,        
         validValues: [0, 1, 2]
       });
+    
+    if (service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState).value === 2)
+      service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState)
+        .updateValue(1);
     
     service.getCharacteristic(this.api.hap.Characteristic.TargetHeatingCoolingState)
       .setProps({
@@ -168,13 +176,6 @@ class ThermostatAccessory {
         maxValue: 255
       });
       
-    service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
-      .setProps({
-        minValue: minValue,
-        maxValue: maxValue,
-        minStep: 1
-      });
-      
     if (service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value < minValue)
       service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
         .updateValue(minValue);
@@ -182,6 +183,13 @@ class ThermostatAccessory {
     if (service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature).value > maxValue)
       service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
         .updateValue(maxValue);
+      
+    service.getCharacteristic(this.api.hap.Characteristic.TargetTemperature)
+      .setProps({
+        minValue: minValue,
+        maxValue: maxValue,
+        minStep: 1
+      });
       
     if (!this.accessory.context.config.separateHumidity){
       if(!service.testCharacteristic(this.api.hap.Characteristic.CurrentRelativeHumidity))

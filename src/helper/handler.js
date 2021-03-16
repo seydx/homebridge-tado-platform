@@ -379,7 +379,6 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 
                   let characteristicActive = api.hap.Characteristic.Active;
                   let characteristicTargetTempHeat = api.hap.Characteristic.HeatingThresholdTemperature;
-                  let characteristicTargetTempCool = api.hap.Characteristic.CoolingThresholdTemperature;
                   
                   let maxTemp = serviceHeaterCooler.getCharacteristic(characteristicTargetTempHeat).props.maxValue;  //same for cool
                   
@@ -389,10 +388,6 @@ module.exports = (api, accessories, config, tado, telegram) => {
                     
                   serviceHeaterCooler
                     .getCharacteristic(characteristicTargetTempHeat)
-                    .updateValue(maxTemp);
-                    
-                  serviceHeaterCooler
-                    .getCharacteristic(characteristicTargetTempCool)
                     .updateValue(maxTemp);
                                   
                 }
@@ -964,7 +959,6 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   let characteristicHumidity = api.hap.Characteristic.CurrentRelativeHumidity;  
                   let characteristicCurrentTemp = api.hap.Characteristic.CurrentTemperature;
                   let characteristicTargetTempHeat = api.hap.Characteristic.HeatingThresholdTemperature;
-                  let characteristicTargetTempCool = api.hap.Characteristic.CoolingThresholdTemperature;
                   let characteristicCurrentState = api.hap.Characteristic.CurrentHeaterCoolerState;
                   let characteristicTargetState = api.hap.Characteristic.TargetHeaterCoolerState;
                   let characteristicActive = api.hap.Characteristic.Active;
@@ -989,9 +983,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
                    
                   if(!isNaN(targetTemp))    
                     serviceHeaterCooler
-                      .getCharacteristic(currentState === 2 
-                        ? characteristicTargetTempHeat
-                        : characteristicTargetTempCool)
+                      .getCharacteristic(characteristicTargetTempHeat)
                       .updateValue(targetTemp);
                   
                   if(!isNaN(currentState))    
