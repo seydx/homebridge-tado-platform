@@ -214,7 +214,7 @@ class Tado {
     if (power.toLowerCase() == 'on') {
       config.setting.power = 'ON';
 
-      if (!isNaN(temperature)) {
+      if (temperature && !isNaN(temperature)) {
         
         if(tempUnit.toLowerCase() === 'fahrenheit')
           temperature = (temperature - 32) * 5/9;
