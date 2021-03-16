@@ -84,6 +84,9 @@
                             "separateHumidity": true,
                             "mode": "MANUAL",
                             "modeTimer": 30,
+                            "minValue": 5,
+                            "maxValue": 25,
+                            "minStep": 1,
                             "easyMode": false,
                             "noBattery": false
                         },
@@ -113,6 +116,9 @@
                             "type": "HOT_WATER",
                             "separateTemperature": false,
                             "mode": "AUTO",
+                            "minValue": 30,
+                            "maxValue": 65,
+                            "minStep": 1,
                             "boilerTempSupport": true
                         },
                         {
@@ -129,6 +135,9 @@
                             "separateHumidity": true,
                             "mode": "MANUAL",
                             "modeTimer": 60,
+                            "minValue": 5,
+                            "maxValue": 25,
+                            "minStep": 0.5,
                             "easyMode": true,
                             "noBattery": false
                         },
