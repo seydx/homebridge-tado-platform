@@ -33,9 +33,6 @@ class Telegram {
       message = message.includes('%') && additional 
         ? message.replace('%', additional) 
         : message;
-        
-      console.log('ADDITIONAL: ' + additional);  
-        
       
       const form = new FormData();
       
