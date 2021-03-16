@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v6.0.4 - 2021-03-16
+- Removed "CoolingThresholdTemperature" from HeaterCooler Accessory
+- Changed target state to auto when switching on HeaterCooler if mode = "AUTO"
+
 ## v6.0.3 - 2021-03-16
 - Removed unnecessary log
 
