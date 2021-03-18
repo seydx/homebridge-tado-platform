@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v6.0.7 - 2021-03-18
+- Bugfixes
+
 ## v6.0.6 - 2021-03-16
 - Added minValue, maxValue, minStep options to config
 - Fixed target temperature for HOT_WATER if power = "ON"
