@@ -1486,7 +1486,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
           
           airQuality.comfort.forEach(room => {
             
-            if(room.roomId === acc.context.config.zoneId){
+            if(room.roomId === acc.context.config.zoneId && room.coordinate){
               
               let state = room.coordinate.radial >= 0.8
                 ? 5
@@ -1769,6 +1769,8 @@ module.exports = (api, accessories, config, tado, telegram) => {
     
     let error;
     
+    console.log(err)
+    
     if(err.options)
       Logger.debug('API request ' + err.options.method + ' ' + err.options.url.pathname + ' <error> ' + err.message, config.homeName);
       
@@ -1800,10 +1802,10 @@ module.exports = (api, accessories, config, tado, telegram) => {
         message: 'Cannot reach Tado. No response received.'
       };
   
-    } else if(err.output) {
+    } else if(err.output && err.output.payload && Object.keys(err.output.payload).length) {
   
       //simple-oauth2 boom error
-      error = err.output.payload || err.output;
+      error = err.output.payload
   
     } else {
   
