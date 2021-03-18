@@ -1706,19 +1706,23 @@ module.exports = (api, accessories, config, tado, telegram) => {
           let time = period.substring(0, period.length - 1);
         
           const runningTime = await tado.getRunningTime(config.homeId, time, fromDate, toDate);
-             
-          let summaryInHours = runningTime.summary.totalRunningTimeInSeconds / 3600;
-        
-          let serviceSwitch = centralSwitchAccessory[0].getServiceById(api.hap.Service.Switch, 'Central');         
-          let characteristic = period === 'years'
-            ? api.hap.Characteristic.OverallHeatYear
-            : period === 'months'
-              ? api.hap.Characteristic.OverallHeatMonth
-              : api.hap.Characteristic.OverallHeatDay;
           
-          serviceSwitch
-            .getCharacteristic(characteristic)
-            .updateValue(summaryInHours);
+          if(runningTime && runningTime.summary{
+            
+            let summaryInHours = runningTime.summary.totalRunningTimeInSeconds / 3600;
+          
+            let serviceSwitch = centralSwitchAccessory[0].getServiceById(api.hap.Service.Switch, 'Central');         
+            let characteristic = period === 'years'
+              ? api.hap.Characteristic.OverallHeatYear
+              : period === 'months'
+                ? api.hap.Characteristic.OverallHeatMonth
+                : api.hap.Characteristic.OverallHeatDay;
+            
+            serviceSwitch
+              .getCharacteristic(characteristic)
+              .updateValue(summaryInHours);
+          
+          }
             
           await timeout(500);
             
