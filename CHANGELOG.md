@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v6.0.8 - 2021-03-19
+- Bugfixes
+
 ## v6.0.7 - 2021-03-18
 - Bugfixes
 
