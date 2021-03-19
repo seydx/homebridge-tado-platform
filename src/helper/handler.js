@@ -1707,7 +1707,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
         
           const runningTime = await tado.getRunningTime(config.homeId, time, fromDate, toDate);
           
-          if(runningTime && runningTime.summary{
+          if(runningTime && runningTime.summary){
             
             let summaryInHours = runningTime.summary.totalRunningTimeInSeconds / 3600;
           
