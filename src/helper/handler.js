@@ -1471,7 +1471,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
           
             serviceLightsensor
               .getCharacteristic(characteristicLux)
-              .updateValue(brightness * 1000);
+              .updateValue(brightness
+               ? brightness * 1000
+               : 0.0001);
           
           }
           
