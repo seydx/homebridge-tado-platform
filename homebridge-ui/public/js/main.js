@@ -453,8 +453,38 @@ async function fetchDevices(credentials, refresh, resync){
           if(config[0].homes[i].zones.length){
             for(const foundZone of zones){
             
-              const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, foundZone.id]}); 
+              const capabilities = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, foundZone.id]}) || {};
             
+              let minTempValue = capabilities.temperatures 
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.min
+                  : capabilities.temperatures.fahrenheit.min
+                : foundZone.type === 'HOT_WATER'
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? 30
+                    : 86
+                  : homeInfo.temperatureUnit === 'CELSIUS'
+                    ? 5
+                    : 41;
+                    
+              let maxTempValue = capabilities.temperatures 
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.max
+                  : capabilities.temperatures.fahrenheit.max
+                : foundZone.type === 'HOT_WATER'
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? 65
+                    : 149
+                  : homeInfo.temperatureUnit === 'CELSIUS'
+                    ? 27
+                    : 77;
+                    
+              let minTempStep = capabilities.temperatures 
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.step
+                  : capabilities.temperatures.fahrenheit.step
+                : 1;
+                    
               if(foundZone.devices)
                 foundZone.devices.forEach(dev => {
                   if(dev.deviceType && (dev.deviceType.includes('VA01') || dev.deviceType.includes('VA02')))
@@ -473,15 +503,9 @@ async function fetchDevices(credentials, refresh, resync){
               if(zoneIndex !== undefined){
                 config[0].homes[i].zones[zoneIndex].id = foundZone.id;
                 config[0].homes[i].zones[zoneIndex].type = foundZone.type;
-                config[0].homes[i].zones[zoneIndex].minValue = homeInfo.temperatureUnit === 'CELSIUS'
-                  ? capabilities.temperatures.celsius.min
-                  : capabilities.temperatures.fahrenheit.min;
-                config[0].homes[i].zones[zoneIndex].maxValue = homeInfo.temperatureUnit === 'CELSIUS'
-                  ? capabilities.temperatures.celsius.max
-                  : capabilities.temperatures.fahrenheit.max;
-                config[0].homes[i].zones[zoneIndex].minStep = homeInfo.temperatureUnit === 'CELSIUS'
-                  ? capabilities.temperatures.celsius.step
-                  : capabilities.temperatures.fahrenheit.step;
+                config[0].homes[i].zones[zoneIndex].minValue = minTempValue;
+                config[0].homes[i].zones[zoneIndex].maxValue = maxTempValue;
+                config[0].homes[i].zones[zoneIndex].minStep = minTempStep;
               } else {
                 config[0].homes[i].zones.push({
                   active: true,
@@ -493,15 +517,9 @@ async function fetchDevices(credentials, refresh, resync){
                   noBattery: false,
                   mode: 'MANUAL',
                   modeTimer: 30,
-                  minValue: homeInfo.temperatureUnit === 'CELSIUS'
-                    ? capabilities.temperatures.celsius.min
-                    : capabilities.temperatures.fahrenheit.min,
-                  maxValue: homeInfo.temperatureUnit === 'CELSIUS'
-                    ? capabilities.temperatures.celsius.max
-                    : capabilities.temperatures.fahrenheit.max,
-                  minStep: homeInfo.temperatureUnit === 'CELSIUS'
-                    ? capabilities.temperatures.celsius.step
-                    : capabilities.temperatures.fahrenheit.step,
+                  minValue: minTempValue,
+                  maxValue: maxTempValue,
+                  minStep: minTempStep,
                   easyMode: false,
                   openWindowSensor: false,
                   openWindowSwitch: false,
@@ -517,8 +535,38 @@ async function fetchDevices(credentials, refresh, resync){
           
             for(const zone of zones){
             
-              const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, zone.id]}); 
+              const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, zone.id]}) || {};
             
+              let minTempValue = capabilities.temperatures 
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.min
+                  : capabilities.temperatures.fahrenheit.min
+                : zone.type === 'HOT_WATER'
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? 30
+                    : 86
+                  : homeInfo.temperatureUnit === 'CELSIUS'
+                    ? 5
+                    : 41;
+                    
+              let maxTempValue = capabilities.temperatures 
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.max
+                  : capabilities.temperatures.fahrenheit.max
+                : zone.type === 'HOT_WATER'
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? 65
+                    : 149
+                  : homeInfo.temperatureUnit === 'CELSIUS'
+                    ? 27
+                    : 77;
+              
+              let minTempStep = capabilities.temperatures 
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? capabilities.temperatures.celsius.step
+                  : capabilities.temperatures.fahrenheit.step
+                : 1;
+                    
               if(zone.devices)
                 zone.devices.forEach(dev => {
                   allFoundDevices.push({
@@ -537,15 +585,9 @@ async function fetchDevices(credentials, refresh, resync){
                 noBattery: false,
                 mode: 'MANUAL',
                 modeTimer: 30,
-                minValue: homeInfo.temperatureUnit === 'CELSIUS'
-                  ? capabilities.temperatures.celsius.min
-                  : capabilities.temperatures.fahrenheit.min,
-                maxValue: homeInfo.temperatureUnit === 'CELSIUS'
-                  ? capabilities.temperatures.celsius.max
-                  : capabilities.temperatures.fahrenheit.max,
-                minStep: homeInfo.temperatureUnit === 'CELSIUS'
-                  ? capabilities.temperatures.celsius.step
-                  : capabilities.temperatures.fahrenheit.step,
+                minValue: minTempValue,
+                maxValue: maxTempValue,
+                minStep: minTempStep,
                 easyMode: false,
                 openWindowSensor: false,
                 openWindowSwitch: false,
@@ -796,8 +838,38 @@ async function fetchDevices(credentials, refresh, resync){
             if(config[0].homes[i].zones.length){
               for(const foundZone of zones){
               
-                const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, foundZone.id]}); 
+                const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, foundZone.id]}) || {};
                 
+                let minTempValue = capabilities.temperatures 
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.min
+                    : capabilities.temperatures.fahrenheit.min
+                  : foundZone.type === 'HOT_WATER'
+                    ? homeInfo.temperatureUnit === 'CELSIUS'
+                      ? 30
+                      : 86
+                    : homeInfo.temperatureUnit === 'CELSIUS'
+                      ? 5
+                      : 41;
+                    
+                let maxTempValue = capabilities.temperatures 
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.max
+                    : capabilities.temperatures.fahrenheit.max
+                  : foundZone.type === 'HOT_WATER'
+                    ? homeInfo.temperatureUnit === 'CELSIUS'
+                      ? 65
+                      : 149
+                    : homeInfo.temperatureUnit === 'CELSIUS'
+                      ? 27
+                      : 77;
+                  
+                let minTempStep = capabilities.temperatures 
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.step
+                    : capabilities.temperatures.fahrenheit.step
+                  : 1;
+                    
                 if(foundZone.devices)
                   foundZone.devices.forEach(dev => {
                     if(dev.deviceType && (dev.deviceType.includes('VA01') || dev.deviceType.includes('VA02')))
@@ -816,15 +888,9 @@ async function fetchDevices(credentials, refresh, resync){
                 if(zoneIndex !== undefined){
                   config[0].homes[i].zones[zoneIndex].id = foundZone.id;
                   config[0].homes[i].zones[zoneIndex].type = foundZone.type;
-                  config[0].homes[i].zones[zoneIndex].minValue = homeInfo.temperatureUnit === 'CELSIUS'
-                    ? capabilities.temperatures.celsius.min
-                    : capabilities.temperatures.fahrenheit.min;
-                  config[0].homes[i].zones[zoneIndex].maxValue = homeInfo.temperatureUnit === 'CELSIUS'
-                    ? capabilities.temperatures.celsius.max
-                    : capabilities.temperatures.fahrenheit.max;
-                  config[0].homes[i].zones[zoneIndex].minStep = homeInfo.temperatureUnit === 'CELSIUS'
-                    ? capabilities.temperatures.celsius.step
-                    : capabilities.temperatures.fahrenheit.step;
+                  config[0].homes[i].zones[zoneIndex].minValue = minTempValue;
+                  config[0].homes[i].zones[zoneIndex].maxValue = maxTempValue;
+                  config[0].homes[i].zones[zoneIndex].minStep = minTempStep;
                 } else {
                   config[0].homes[i].zones.push({
                     active: true,
@@ -836,15 +902,9 @@ async function fetchDevices(credentials, refresh, resync){
                     noBattery: false,
                     mode: 'MANUAL',
                     modeTimer: 30,
-                    minValue: homeInfo.temperatureUnit === 'CELSIUS'
-                      ? capabilities.temperatures.celsius.min
-                      : capabilities.temperatures.fahrenheit.min,
-                    maxValue: homeInfo.temperatureUnit === 'CELSIUS'
-                      ? capabilities.temperatures.celsius.max
-                      : capabilities.temperatures.fahrenheit.max,
-                    minStep: homeInfo.temperatureUnit === 'CELSIUS'
-                      ? capabilities.temperatures.celsius.step
-                      : capabilities.temperatures.fahrenheit.step,
+                    minValue: minTempValue,
+                    maxValue: maxTempValue,
+                    minStep: minTempStep,
                     easyMode: false,
                     openWindowSensor: false,
                     openWindowSwitch: false,
@@ -860,8 +920,38 @@ async function fetchDevices(credentials, refresh, resync){
             
               for(const zone of zones){
               
-                const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, zone.id]}); 
+                const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [home.id, zone.id]}) || {};
               
+                let minTempValue = capabilities.temperatures 
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.min
+                    : capabilities.temperatures.fahrenheit.min
+                  : zone.type === 'HOT_WATER'
+                    ? homeInfo.temperatureUnit === 'CELSIUS'
+                      ? 30
+                      : 86
+                    : homeInfo.temperatureUnit === 'CELSIUS'
+                      ? 5
+                      : 41;
+                      
+                let maxTempValue = capabilities.temperatures 
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.max
+                    : capabilities.temperatures.fahrenheit.max
+                  : zone.type === 'HOT_WATER'
+                    ? homeInfo.temperatureUnit === 'CELSIUS'
+                      ? 65
+                      : 149
+                    : homeInfo.temperatureUnit === 'CELSIUS'
+                      ? 27
+                      : 77;
+                
+                let minTempStep = capabilities.temperatures 
+                  ? homeInfo.temperatureUnit === 'CELSIUS'
+                    ? capabilities.temperatures.celsius.step
+                    : capabilities.temperatures.fahrenheit.step
+                  : 1;
+                      
                 if(zone.devices)
                   zone.devices.forEach(dev => {
                     if(dev.deviceType && (dev.deviceType.includes('VA01') || dev.deviceType.includes('VA02')))
@@ -881,15 +971,9 @@ async function fetchDevices(credentials, refresh, resync){
                   noBattery: false,
                   mode: 'MANUAL',
                   modeTimer: 30,
-                  minValue: homeInfo.temperatureUnit === 'CELSIUS'
-                    ? capabilities.temperatures.celsius.min
-                    : capabilities.temperatures.fahrenheit.min,
-                  maxValue: homeInfo.temperatureUnit === 'CELSIUS'
-                    ? capabilities.temperatures.celsius.max
-                    : capabilities.temperatures.fahrenheit.max,
-                  minStep: homeInfo.temperatureUnit === 'CELSIUS'
-                    ? capabilities.temperatures.celsius.step
-                    : capabilities.temperatures.fahrenheit.step,
+                  minValue: minTempValue,
+                  maxValue: maxTempValue,
+                  minStep: minTempStep,
                   easyMode: false,
                   openWindowSensor: false,
                   openWindowSwitch: false,
@@ -1040,8 +1124,38 @@ async function fetchDevices(credentials, refresh, resync){
           
           for(const zone of zones){
           
-            const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [homeInfo.id, zone.id]}); 
+            const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [homeInfo.id, zone.id]}) || {};
           
+            let minTempValue = capabilities.temperatures 
+              ? homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.min
+                : capabilities.temperatures.fahrenheit.min
+              : zone.type === 'HOT_WATER'
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? 30
+                  : 86
+                : homeInfo.temperatureUnit === 'CELSIUS'
+                  ? 5
+                  : 41;
+                  
+            let maxTempValue = capabilities.temperatures 
+              ? homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.max
+                : capabilities.temperatures.fahrenheit.max
+              : zone.type === 'HOT_WATER'
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? 65
+                  : 149
+                : homeInfo.temperatureUnit === 'CELSIUS'
+                  ? 27
+                  : 77;
+                  
+            let minTempStep = capabilities.temperatures 
+              ? homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.step
+                : capabilities.temperatures.fahrenheit.step
+              : 1;
+            
             if(zone.devices)
               zone.devices.forEach(device => {
                 if(device.deviceType && (device.deviceType.includes('VA01') || device.deviceType.includes('VA02')))
@@ -1062,15 +1176,9 @@ async function fetchDevices(credentials, refresh, resync){
               noBattery: false,
               mode: 'MANUAL',
               modeTimer: 30,
-              minValue: homeInfo.temperatureUnit === 'CELSIUS'
-                ? capabilities.temperatures.celsius.min
-                : capabilities.temperatures.fahrenheit.min,
-              maxValue: homeInfo.temperatureUnit === 'CELSIUS'
-                ? capabilities.temperatures.celsius.max
-                : capabilities.temperatures.fahrenheit.max,
-              minStep: homeInfo.temperatureUnit === 'CELSIUS'
-                ? capabilities.temperatures.celsius.step
-                : capabilities.temperatures.fahrenheit.step,
+              minValue: minTempValue,
+              maxValue: maxTempValue,
+              minStep: minTempStep,
               easyMode: false,
               openWindowSensor: false,
               openWindowSwitch: false,
@@ -1187,8 +1295,38 @@ async function fetchDevices(credentials, refresh, resync){
           
           for(const zone of zones){
           
-            const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [homeInfo.id, zone.id]}); 
+            const capabilities  = await homebridge.request('/exec', {dest: 'getZoneCapabilities', data: [homeInfo.id, zone.id]}) || {};
             
+            let minTempValue = capabilities.temperatures 
+              ? homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.min
+                : capabilities.temperatures.fahrenheit.min
+              : zone.type === 'HOT_WATER'
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? 30
+                  : 86
+                : homeInfo.temperatureUnit === 'CELSIUS'
+                  ? 5
+                  : 41;
+                  
+            let maxTempValue = capabilities.temperatures 
+              ? homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.max
+                : capabilities.temperatures.fahrenheit.max
+              : zone.type === 'HOT_WATER'
+                ? homeInfo.temperatureUnit === 'CELSIUS'
+                  ? 65
+                  : 149
+                : homeInfo.temperatureUnit === 'CELSIUS'
+                  ? 27
+                  : 77;
+            
+            let minTempStep = capabilities.temperatures 
+              ? homeInfo.temperatureUnit === 'CELSIUS'
+                ? capabilities.temperatures.celsius.step
+                : capabilities.temperatures.fahrenheit.step
+              : 1;
+                
             if(zone.devices)
               zone.devices.forEach(device => {
                 if(device.deviceType && (device.deviceType.includes('VA01') || device.deviceType.includes('VA02')))
@@ -1209,15 +1347,9 @@ async function fetchDevices(credentials, refresh, resync){
               noBattery: false,
               mode: 'MANUAL',
               modeTimer: 30,
-              minValue: homeInfo.temperatureUnit === 'CELSIUS'
-                ? capabilities.temperatures.celsius.min
-                : capabilities.temperatures.fahrenheit.min,
-              maxValue: homeInfo.temperatureUnit === 'CELSIUS'
-                ? capabilities.temperatures.celsius.max
-                : capabilities.temperatures.fahrenheit.max,
-              minStep: homeInfo.temperatureUnit === 'CELSIUS'
-                ? capabilities.temperatures.celsius.step
-                : capabilities.temperatures.fahrenheit.step,
+              minValue: minTempValue,
+              maxValue: maxTempValue,
+              minStep: minTempStep,
               easyMode: false,
               openWindowSensor: false,
               openWindowSwitch: false,
