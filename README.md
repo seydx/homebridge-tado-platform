@@ -62,6 +62,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
       - [Boost Switch](#boost-switch)
       - [Shedule Switch](#shedule-switch)
       - [Turnoff Switch](#turnoff-switch)
+      - [Dummy Switch](#dummy-switch)
     - [Presence Lock](#presence-lock)
     - [Child Lock](#child-lock)
   - [Telegram](#telegram)
@@ -287,7 +288,7 @@ Each user or anyone sensor in the config.json is exposed to HomeKit as a occupan
 
 ## Weather
 
-Weather settings allow you to display a sensor for temperature, a light bulb for sun intensity, or a sensor for air quality in HomeKit.
+Weather settings allow you to display a sensor for temperature, a light bulb (```"accTypeSolarIntensity": "LIGHTBULB"```)  or light sensor (```"accTypeSolarIntensity": "SENSOR"```) for sun intensity, or a sensor for air quality in HomeKit.
 
 ```
 "homes": [
@@ -298,6 +299,7 @@ Weather settings allow you to display a sensor for temperature, a light bulb for
     "weather": {
       "temperatureSensor": true,
       "solarIntensity": true,
+      "accTypeSolarIntensity": "LIGHTBULB",
       "airQuality": true
     }
     ...
@@ -333,7 +335,7 @@ In order to use the Air Quality Sensor, you need to enable airQuality ``"airQual
 ## Extras
 
 ### Central Switch
-Shows a switch accessory with additional custom characteristics in HomeKit which mimics the "Boost" and "Turnoff" switch from Tado. It also shows the Heater Running information as a custom characteristic for the month (in hours) and it shows also how many thermostats are in auto, manual or off mode.
+Shows a switch accessory with additional switches in HomeKit which mimics the "Boost" and "Turnoff" switch from Tado. It also shows the Heater Running information as a custom characteristic for the month (in hours) and it shows also how many thermostats are in auto, manual or off mode. Its also possible to show a dummy switch withiun the central switch for eg. automation purposes.
 
 ```
 "homes": [
@@ -408,6 +410,28 @@ _Note: Central Switch needs to be truned on._
     "extras": {
       "centralSwitch": true,
       "turnoffSwitch": true
+    }
+    ...
+  }
+  ...
+]
+```
+
+
+#### Dummy Switch
+Shows a dummy switch accessory in HomeKit (added to central switch) without any functions. Can be used for eg automation purposes.
+_Note: Central Switch needs to be truned on._
+
+```
+"homes": [
+  {
+    "zones": [ ... ],
+    "extras": { ... },
+    "presence": { ... },
+    "weather": { ... },
+    "extras": {
+      "centralSwitch": true,
+      "dummySwitch": true
     }
     ...
   }
