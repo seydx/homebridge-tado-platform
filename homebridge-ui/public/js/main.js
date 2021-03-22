@@ -127,6 +127,8 @@ function goBack(index) {
 
 async function createCustomSchema(home){
 
+  //schema.layout.homes.forEach()
+
   customSchemaActive = homebridge.createForm(schema, {
     name: pluginConfig[0].name,
     debug: pluginConfig[0].debug,
@@ -137,11 +139,11 @@ async function createCustomSchema(home){
     
     pluginConfig[0].name = config.name;
     pluginConfig[0].debug = config.debug;
-    pluginConfig[0].homes = pluginConfig[0].homes.map(home => {
-      if(home.name === config.homes.name){
-        home = config.homes;                                                           
+    pluginConfig[0].homes = pluginConfig[0].homes.map(myHome => {
+      if(myHome.name === config.homes.name){
+        myHome = config.homes;                                                           
       }
-      return home;
+      return myHome;
     });
     
     try {
@@ -995,6 +997,7 @@ async function fetchDevices(credentials, refresh, resync){
             weather: {
               temperatureSensor: false,
               solarIntensity: false,
+              accTypeSolarIntensity: 'LIGHTBULB',
               airQuality: false
             },
             extras: {
@@ -1129,6 +1132,7 @@ async function fetchDevices(credentials, refresh, resync){
             weather: {
               temperatureSensor: false,
               solarIntensity: false,
+              accTypeSolarIntensity: 'LIGHTBULB',
               airQuality: false
             },
             extras: {

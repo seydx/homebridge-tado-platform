@@ -55,6 +55,7 @@ module.exports = {
             weather: {
               temperatureSensor: false,
               solarIntensity: false,
+              accTypeSolarIntensity: 'LIGHTBULB',
               airQuality: false
             },
             extras: {
@@ -548,7 +549,7 @@ module.exports = {
               
                 let valid_boilerTypes = ['SWITCH', 'FAUCET'];
                 let valid_zoneTypes = ['HEATING', 'HOT_WATER'];
-                let valid_modes = ['MANUAL', 'AUTO', 'TIMER'];
+                let valid_modes = ['MANUAL', 'AUTO', 'TIMER', 'CUSTOM'];
               
                 if(!zone.name) {
                   Logger.warn('There is no name configured for this zone. This zone will be skipped.', home.name);
@@ -861,8 +862,9 @@ module.exports = {
                 let config = { ...accessoryConfig };
                    
                 config.name = name;
-                config.subtype = 'weather-lightbulb';
-                 
+                config.subtype = home.weather.accTypeSolarIntensity === 'SENSOR'
+                  ? 'weather-lightsensor'
+                  : 'weather-lightbulb';
                 config.model = 'Solar Intensity';
                 config.serialNumber = hashCode(name);
                  
@@ -945,6 +947,16 @@ module.exports = {
                   validSwitches.push({
                     name: 'Off',
                     sub: 'CentralOff'
+                  });
+                 
+                }
+                
+                //Configure Turnoff Switch
+                if(home.extras.dummySwitch){
+                 
+                  validSwitches.push({
+                    name: 'Dummy',
+                    sub: 'CentralDummy'
                   });
                  
                 }

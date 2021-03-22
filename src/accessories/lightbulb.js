@@ -2,7 +2,7 @@
 
 const Logger = require('../helper/logger.js');
 
-class SolarlightAccessory {
+class SolarLightbulbAccessory {
 
   constructor (api, accessory, accessories, tado) {
     
@@ -23,6 +23,12 @@ class SolarlightAccessory {
   getService () {
   
     let service = this.accessory.getService(this.api.hap.Service.Lightbulb);
+    let serviceOld = this.accessory.getService(this.api.hap.Service.LightSensor);
+        
+    if(serviceOld){
+      Logger.info('Removing LightSensor service', this.accessory.displayName);
+      this.accessory.removeService(serviceOld);
+    }
         
     if(!service){
       Logger.info('Adding Lightbulb service', this.accessory.displayName);
@@ -52,4 +58,4 @@ class SolarlightAccessory {
 
 }
 
-module.exports = SolarlightAccessory;
+module.exports = SolarLightbulbAccessory;

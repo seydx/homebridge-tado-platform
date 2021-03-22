@@ -129,12 +129,12 @@ module.exports = (api, accessories, config, tado, telegram) => {
                 .getCharacteristic(targetTempCharacteristic)
                 .value.toFixed(2));
                 
-              if(clear || (value && accessory.context.config.mode === 'AUTO' && accessory.context.config.subtype.includes('heatercooler'))){
+              if(clear || (value && accessory.context.config.mode === 'CUSTOM' && accessory.context.config.subtype.includes('heatercooler'))){
                 await tado.clearZoneOverlay(config.homeId, accessory.context.config.zoneId);    
                 return;
               }
               
-              mode = !value && accessory.context.config.mode === 'AUTO' && accessory.context.config.subtype.includes('heatercooler')
+              mode = !value && accessory.context.config.mode === 'CUSTOM' && accessory.context.config.subtype.includes('heatercooler')
                 ? 'MANUAL'
                 : mode;
               
@@ -258,11 +258,11 @@ module.exports = (api, accessories, config, tado, telegram) => {
           
         case 'zone-window-switch': {
         
-          let id = target.split('-');
-          id = id[id.length-1];
-        
-          await tado.setWindowDetection(config.homeId, id, value, 3600);
-          await tado.setOpenWindowMode(config.homeId, id, value);
+          let zoneId = target.split('-');
+          zoneId = zoneId[zoneId.length-1];
+          
+          await tado.setWindowDetection(config.homeId, zoneId, value, 3600);
+          await tado.setOpenWindowMode(config.homeId, zoneId, value);
 
           break;  
           
@@ -277,6 +277,9 @@ module.exports = (api, accessories, config, tado, telegram) => {
         }
           
         case 'extra-cntrlswitch': {
+        
+          if(target === 'Dummy')
+            return;
           
           const heatAccessories = accessories.filter(acc => acc && acc.context.config.type === 'HEATING');
         
@@ -840,7 +843,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
       
         const zoneState = await tado.getZoneState(config.homeId, zone.id);
         
-        let currentState, targetState, currentTemp, targetTemp, humidity, active, battery;
+        let currentState, targetState, currentTemp, targetTemp, humidity, active, battery, tempEqual;
 
         if(zoneState.setting.type === 'HEATING'){
           
@@ -863,25 +866,29 @@ module.exports = (api, accessories, config, tado, telegram) => {
               targetTemp = config.temperatureUnit === 'CELSIUS'
                 ? zoneState.setting.temperature.celsius
                 : zoneState.setting.temperature.fahrenheit;
-                
+               
+              tempEqual = Math.round(currentTemp) === Math.round(targetTemp);
+              
               currentState = currentTemp <= targetTemp
                 ? 1
                 : 2;
-                
+              
               targetState = 1;  
-                
+              
               active = 1;
               
-            }
+            } else {
             
-            if(zoneState.setting.power === 'OFF'){
               currentState = 0;
               targetState = 0;
               active = 0;
+            
             }
             
-            if(zoneState.overlayType === null)
+            if(zoneState.overlayType === null){
+              currentState = 0;
               targetState = 3;
+            }  
             
           }
           
@@ -971,7 +978,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   let characteristicActive = api.hap.Characteristic.Active;
                   
                   currentState = active
-                    ? targetState === 3
+                    ? targetState === 3 || tempEqual
                       ? 1
                       : currentState + 1
                     : 0;
@@ -1229,45 +1236,39 @@ module.exports = (api, accessories, config, tado, telegram) => {
         const windowContactAccessory = accessories.filter(acc => acc && acc.context.config.subtype === 'zone-window-contact');
         const windowSwitchAccessory = accessories.filter(acc => acc && acc.displayName === acc.context.config.homeName + ' Open Window');
           
-        windowContactAccessory.forEach(acc => {
+        if(windowContactAccessory.length){  
             
-          if(acc.displayName.includes(zone.name)){
-            
-            let serviceBattery = acc.getService(api.hap.Service.BatteryService); 
-            let characteristicBattery = api.hap.Characteristic.BatteryLevel;
-            
-            if(serviceBattery && !isNaN(battery)){
+          windowContactAccessory.forEach(acc => {
               
-              serviceBattery
-                .getCharacteristic(characteristicBattery)
-                .updateValue(battery);
-           
+            if(acc.displayName.includes(zone.name)){
+              
+              let serviceBattery = acc.getService(api.hap.Service.BatteryService); 
+              let characteristicBattery = api.hap.Characteristic.BatteryLevel;
+              
+              if(serviceBattery && !isNaN(battery)){
+                
+                serviceBattery
+                  .getCharacteristic(characteristicBattery)
+                  .updateValue(battery);
+             
+              }
+              
+              let service = acc.getService(api.hap.Service.ContactSensor);
+              let characteristic = api.hap.Characteristic.ContactSensorState;
+                
+              let state = zoneState.openWindow || zoneState.openWindowDetected
+                ? 1
+                : 0;
+                
+              service
+                .getCharacteristic(characteristic)
+                .updateValue(state);
+              
             }
-          
-            let serviceSwitch = acc.getService(api.hap.Service.Switch);    
-            let serviceContact = acc.getService(api.hap.Service.ContactSensor);   
             
-            let service = serviceSwitch || serviceContact;
-            
-            let characteristic = serviceSwitch
-              ? api.hap.Characteristic.On
-              : api.hap.Characteristic.ContactSensorState;
-              
-            let state = serviceSwitch
-              ? zone.openWindowEnabled
-                ? true
-                : false
-              : zoneState.openWindow === null
-                ? 0
-                : 1;
-              
-            service
-              .getCharacteristic(characteristic)
-              .updateValue(state);
-            
-          }
-          
-        });
+          });
+        
+        }
         
         if(windowSwitchAccessory.length){
           
@@ -1275,14 +1276,14 @@ module.exports = (api, accessories, config, tado, telegram) => {
               
             if(service.subtype && service.subtype.includes(zone.name)){
             
-              let serviceSwitch = windowSwitchAccessory[0].getServiceById(api.hap.Service.Switch, service.subtype);  
+              let service = windowSwitchAccessory[0].getServiceById(api.hap.Service.Switch, service.subtype);  
               let characteristic = api.hap.Characteristic.On;
                 
               let state = zone.openWindowEnabled
                 ? true
                 : false;
                 
-              serviceSwitch
+              service
                 .getCharacteristic(characteristic)
                 .updateValue(state);
               
@@ -1448,17 +1449,31 @@ module.exports = (api, accessories, config, tado, telegram) => {
           solarIntensityAccessory[0].context.lightBulbState = state;
           solarIntensityAccessory[0].context.lightBulbBrightness = brightness;
           
-          let service = solarIntensityAccessory[0].getService(api.hap.Service.Lightbulb);          
-          let characteristicOn = api.hap.Characteristic.On;
-          let characteristicBrightness = api.hap.Characteristic.Brightness;
+          let serviceLightbulb = solarIntensityAccessory[0].getService(api.hap.Service.Lightbulb);          
+          let serviceLightsensor = solarIntensityAccessory[0].getService(api.hap.Service.LightSensor);     
           
-          service
-            .getCharacteristic(characteristicOn)
-            .updateValue(state);
-           
-          service
-            .getCharacteristic(characteristicBrightness)
-            .updateValue(brightness);
+          if(serviceLightbulb){
+          
+            let characteristicOn = api.hap.Characteristic.On;
+            let characteristicBrightness = api.hap.Characteristic.Brightness;
+            
+            serviceLightbulb
+              .getCharacteristic(characteristicOn)
+              .updateValue(state);
+             
+            serviceLightbulb
+              .getCharacteristic(characteristicBrightness)
+              .updateValue(brightness);
+          
+          } else {
+          
+            let characteristicLux = api.hap.Characteristic.CurrentAmbientLightLevel;
+          
+            serviceLightsensor
+              .getCharacteristic(characteristicLux)
+              .updateValue(brightness * 1000);
+          
+          }
           
         }     
         
@@ -1773,7 +1788,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
     
     let error;
     
-    console.log(err)
+    console.log(err);
     
     if(err.options)
       Logger.debug('API request ' + err.options.method + ' ' + err.options.url.pathname + ' <error> ' + err.message, config.homeName);
@@ -1809,7 +1824,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
     } else if(err.output && err.output.payload && Object.keys(err.output.payload).length) {
   
       //simple-oauth2 boom error
-      error = err.output.payload
+      error = err.output.payload;
   
     } else {
   

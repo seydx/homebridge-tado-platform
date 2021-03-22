@@ -14,7 +14,8 @@ const HumidityAccessory = require('./accessories/humidity.js');
 const MotionAccessory = require('./accessories/motion.js');
 const OccupancyAccessory = require('./accessories/occupancy.js');
 const SecurityAccessory = require('./accessories/security.js');
-const SolarlightAccessory = require('./accessories/lightbulb.js');
+const SolarLightbulbAccessory = require('./accessories/lightbulb.js');
+const SolarLightsensorAccessory = require('./accessories/lightsensor.js');
 const SwitchAccessory = require('./accessories/switch.js');
 const TemperatureAccessory = require('./accessories/temperature.js');
 const ThermostatAccessory = require('./accessories/thermostat.js');
@@ -341,7 +342,10 @@ TadoPlatform.prototype = {
         new TemperatureAccessory(this.api, accessory, this.accessories, tado, deviceHandler, FakeGatoHistoryService);
         break;
       case 'weather-lightbulb':
-        new SolarlightAccessory(this.api, accessory, this.accessories, tado);
+        new SolarLightbulbAccessory(this.api, accessory, this.accessories, tado);
+        break;
+      case 'weather-lightsensor':
+        new SolarLightsensorAccessory(this.api, accessory, this.accessories, tado);
         break;
       case 'weather-airquality':
         new AirqualityAccessory(this.api, accessory, this.accessories, tado);

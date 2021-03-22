@@ -172,6 +172,28 @@ const schema = {
               'type': 'boolean',
               'description': 'If enabled, a lightbulb accessory for the solar intensity will be exposed to HomeKit.'
             },
+            'accTypeSolarIntensity': {
+              'title': 'Solar Intensity Accessory Type',
+              'type': 'string',
+              'condition': {
+                'functionBody': 'try { return model.homes.weather.solarIntensity } catch(e){ return false }'
+              },
+              'oneOf': [
+                {
+                  'title': 'Lightbulb',
+                  'enum': [
+                    'LIGHTBULB'
+                  ]
+                },
+                {
+                  'title': 'Sensor',
+                  'enum': [
+                    'SENSOR'
+                  ]
+                }
+              ],
+              'description': 'The accessory type of the device.'
+            },
             'airQuality': {
               'title': 'Air Quality',
               'type': 'boolean',
@@ -243,6 +265,14 @@ const schema = {
                 'functionBody': 'try { return model.homes.extras.centralSwitch } catch(e){ return false }'
               },
               'description': 'If enabled, a turn off heat switch will be added to the central switch.'
+            },
+            'dummySwitch': {
+              'title': 'Dummy Switch',
+              'type': 'boolean',
+              'condition': {
+                'functionBody': 'try { return model.homes.extras.centralSwitch } catch(e){ return false }'
+              },
+              'description': 'If enabled, a dummy switch (for eg automation purposes) will be added to the central switch.'
             },
             'childLockSwitches': {
               'title': 'Child Lock Switches',
@@ -355,7 +385,7 @@ const schema = {
                 'title': 'Maximum Temperature',
                 'type': 'integer',
                 'description': 'Maximum adjustable temperature value (in celsius/fahrenheit). HEATING devices also this plugin, supports a maxValue of 25° Celsius / 77° Fahrenheit  by default. HOT WATER devices, also this plugin, supports a maxValue of of 65° Celsius / 149° Fahrenheit by default. If your device has a different maxValue, you can set it up here. (Incorrect maxValue may cause problems!)'                
-              },                                                                     
+              },   
               'mode': {
                 'title': 'Termination Mode',
                 'type': 'string',
@@ -378,10 +408,16 @@ const schema = {
                     'enum': [
                       'TIMER'
                     ]
+                  },
+                  {
+                    'title': 'Custom',
+                    'enum': [
+                      'CUSTOM'
+                    ]
                   }
                 ],
-                'description': 'Mode for the commands to be sent with. can be \'MANUAL\' for manual control until ended by the user, \'AUTO\' for manual control until next schedule change in tado° app OR \'TIMER\' for manual control until timer ends.'
-              },
+                'description': 'Mode for the commands to be sent with. can be \'MANUAL\' for manual control until ended by the user, \'AUTO\' for manual control until next schedule change in tado° app, \'TIMER\' for manual control until timer ends or \'CUSTOM\' for a mixed use of MANUAL (off) and AUTO (on). (CUSTOM is only for HEATING types with easyMode enabled and HOT_WATER types with temperature support).'
+              },  
               'modeTimer': {
                 'title': 'Timer',
                 'description': 'Timer for the manual mode in minutes.',
@@ -702,6 +738,7 @@ const schema = {
       'items': [
         'homes.weather.temperatureSensor',
         'homes.weather.solarIntensity',
+        'homes.weather.accTypeSolarIntensity',
         'homes.weather.airQuality',
         {
           'title': 'Location',
@@ -735,7 +772,8 @@ const schema = {
             'homes.extras.runningInformation',
             'homes.extras.boostSwitch',
             'homes.extras.sheduleSwitch',
-            'homes.extras.turnoffSwitch'
+            'homes.extras.turnoffSwitch',
+            'homes.extras.dummySwitch'
           ]
         },
         {
