@@ -139,13 +139,8 @@ class SwitchAccessory {
           serviceSubSwitch = this.accessory.addService(this.api.hap.Service.Switch, sub.name, sub.sub);
         }
         
-        if(sub.name !== 'Central'){
-      
-          serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.On)
-            .updateValue(false);
-       
-        } else {
-          
+        if(sub.name === 'Central') {
+        
           //Modes
           if(!serviceSubSwitch.testCharacteristic(this.api.hap.Characteristic.AutoThermostats))
             serviceSubSwitch.addCharacteristic(this.api.hap.Characteristic.AutoThermostats);
@@ -181,10 +176,30 @@ class SwitchAccessory {
             
           }
           
+          serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+            .onSet(this.deviceHandler.setStates.bind(this, this.accessory, this.accessories, sub.name));
+        
+        } else if(sub.name === 'Dummy') {
+        
+          this.accessory.context.dummyState = this.accessory.context.dummyState || false;
+        
+          serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+            .onGet(() => {
+              return this.accessory.context.dummyState;
+            })
+            .onSet(state => {
+              Logger.info('Dummy: ' + state, this.accessory.displayName);
+              this.accessory.context.dummyState = state;
+            })
+            .updateValue(this.accessory.context.dummyState);
+        
+        } else {
+          
+          serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.On)
+            .onSet(this.deviceHandler.setStates.bind(this, this.accessory, this.accessories, sub.name))
+            .updateValue(false); 
+          
         }
-            
-        serviceSubSwitch.getCharacteristic(this.api.hap.Characteristic.On)
-          .onSet(this.deviceHandler.setStates.bind(this, this.accessory, this.accessories, sub.name)); 
       
       });
       
