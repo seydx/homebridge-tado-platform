@@ -1018,7 +1018,7 @@ module.exports = (api, accessories, config, tado, telegram) => {
                       .updateValue(targetState);
                       
                   if(!isNaN(humidity) && serviceHeaterCooler.testCharacteristic(characteristicHumidity))  
-                    serviceThermostat
+                    serviceHeaterCooler
                       .getCharacteristic(characteristicHumidity)
                       .updateValue(humidity);
                   
