@@ -1,6 +1,9 @@
 # Changelog
 
 
+## v6.0.10 - 2021-03-22
+- Changed dummySwitch to stateful
+
 ## v6.0.9 - 2021-03-22
 - Added "Dummy Switch" option to Central Switch
 - Added new accessory type option (LightSensor) to Solar Intensity Accessory
