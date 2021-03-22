@@ -1,6 +1,14 @@
 # Changelog
 
 
+## v6.0.9 - 2021-03-22
+- Added "Dummy Switch" option to Central Switch
+- Added new accessory type option (LightSensor) to Solar Intensity Accessory
+- Added new mode (CUSTOM) to HOT_WATER devices
+- Fixed current state of HeaterCooler if temperature is reached
+- Fixed AUTO mode for HOT_WATER devices
+- Bugfixes
+
 ## v6.0.8 - 2021-03-19
 - Bugfixes
 
