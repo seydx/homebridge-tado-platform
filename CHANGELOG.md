@@ -1,6 +1,11 @@
 # Changelog
 
 
+## v6.0.11 - 2021-03-22
+- Fixed a bug with an empty temperature value which threw an error during setting up with config-ui-x
+- Fixed minValue for LightSensor
+- Fixed a bug with "easyMode" enabled heater
+
 ## v6.0.10 - 2021-03-22
 - Changed dummySwitch to stateful
 
