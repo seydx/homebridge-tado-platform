@@ -8,6 +8,7 @@
 - Fixed current state of HeaterCooler if temperature is reached
 - Fixed AUTO mode for HOT_WATER devices
 - Bugfixes
+- Bump deps
 
 ## v6.0.8 - 2021-03-19
 - Bugfixes
