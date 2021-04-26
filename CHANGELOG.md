@@ -1,6 +1,10 @@
 # Changelog
 
 
+## v6.0.12 - 2021-04-26
+- Fixed a bug with windowSwitchAccessory
+- Less error messages
+
 ## v6.0.11 - 2021-03-22
 - Fixed a bug with an empty temperature value which threw an error during setting up with config-ui-x
 - Fixed minValue for LightSensor

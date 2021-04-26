@@ -1272,11 +1272,11 @@ module.exports = (api, accessories, config, tado, telegram) => {
         
         if(windowSwitchAccessory.length){
           
-          windowSwitchAccessory[0].services.forEach(service => {
+          windowSwitchAccessory[0].services.forEach(switchService => {
               
-            if(service.subtype && service.subtype.includes(zone.name)){
+            if(switchService.subtype && switchService.subtype.includes(zone.name)){
             
-              let service = windowSwitchAccessory[0].getServiceById(api.hap.Service.Switch, service.subtype);  
+              let service = windowSwitchAccessory[0].getServiceById(api.hap.Service.Switch, switchService.subtype);  
               let characteristic = api.hap.Characteristic.On;
                 
               let state = zone.openWindowEnabled
@@ -1789,8 +1789,6 @@ module.exports = (api, accessories, config, tado, telegram) => {
   function errorHandler(err) {
     
     let error;
-    
-    console.log(err);
     
     if(err.options)
       Logger.debug('API request ' + err.options.method + ' ' + err.options.url.pathname + ' <error> ' + err.message, config.homeName);
