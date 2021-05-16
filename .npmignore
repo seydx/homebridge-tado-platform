@@ -59,6 +59,6 @@ yarn.lock
 .vscode
 demo
 images
-eslintrc.js
 example-config.json
-prettierrc.json
+.prettierrc.json
+.eslintrc.js
