@@ -56,18 +56,3 @@ typings/
 
 # dotenv environment variables file
 .env
-
-# next.js build output
-.next
-.github/
-images/
-demo/
-docs/
-example/
-CHANGELOG.md 
-CONTRIBUTING.md
-FAQ.md  
-README.md
-LICENSE
-.eslintrc.json
-example-config.json

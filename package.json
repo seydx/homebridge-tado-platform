@@ -3,7 +3,6 @@
   "version": "6.0.12",
   "description": "homebridge-tado-platform",
   "main": "index.js",
-  "devDependencies": {},
   "funding": [
     {
       "type": "paypal",
@@ -19,7 +18,7 @@
     }
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint --fix ."
   },
   "repository": {
     "type": "git",
@@ -49,9 +48,19 @@
     "@homebridge/plugin-ui-utils": "^0.0.19",
     "fakegato-history": "^0.6.1",
     "form-data": "^4.0.0",
-    "fs-extra": "^9.1.0",
+    "fs-extra": "^10.0.0",
     "got": "^11.8.2",
     "moment": "^2.29.1",
     "simple-oauth2": "^4.2.0"
+  },
+  "devDependencies": {
+    "@babel/core": "7.14.2",
+    "@babel/eslint-parser": "7.14.2",
+    "@babel/eslint-plugin": "7.13.16",
+    "eslint": "^7.26.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.2",
+    "eslint-plugin-prettier": "^3.4.0",
+    "prettier": "^2.3.0"
   }
 }
