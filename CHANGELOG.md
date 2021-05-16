@@ -1,6 +1,6 @@
 # Changelog
 
-## v6.1.0 - 2021-05-16
+## v6.0.13 - 2021-05-16
 - Fix [#79](https://github.com/SeydX/homebridge-tado-platform/issues/79), [#80](https://github.com/SeydX/homebridge-tado-platform/issues/80)
 - Minor bugfixes and improvements
 
