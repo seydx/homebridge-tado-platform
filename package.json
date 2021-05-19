@@ -54,8 +54,8 @@
     "simple-oauth2": "^4.2.0"
   },
   "devDependencies": {
-    "@babel/core": "7.14.2",
-    "@babel/eslint-parser": "7.14.2",
+    "@babel/core": "7.14.3",
+    "@babel/eslint-parser": "7.14.3",
     "@babel/eslint-plugin": "7.13.16",
     "eslint": "^7.26.0",
     "eslint-config-prettier": "^8.3.0",

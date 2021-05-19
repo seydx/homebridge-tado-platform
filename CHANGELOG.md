@@ -1,5 +1,9 @@
 # Changelog
 
+## v6.0.14 - 2021-05-19
+- Fixed an issue where the thermostat displayed wrong room temperature due to wrong celsius/fahrenheit calculation
+- Bump dependencies
+
 ## v6.0.13 - 2021-05-16
 - Fix [#79](https://github.com/SeydX/homebridge-tado-platform/issues/79), [#80](https://github.com/SeydX/homebridge-tado-platform/issues/80)
 - Minor bugfixes and improvements
