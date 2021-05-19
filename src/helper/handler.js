@@ -804,18 +804,15 @@ module.exports = (api, accessories, config, tado, telegram) => {
                   let characteristicUnit = api.hap.Characteristic.TemperatureDisplayUnits;
 
                   if (!isNaN(currentTemp)) {
-                    let tempUnit = serviceThermostat.getCharacteristic(characteristicUnit).value;
+                    acc.context.config.temperatureUnit = acc.context.config.temperatureUnit || config.temperatureUnit;
+
+                    let isFahrenheit = serviceThermostat.getCharacteristic(characteristicUnit).value === 1;
+                    let unitChanged = config.temperatureUnit !== acc.context.config.temperatureUnit;
 
                     let cToF = (c) => Math.round((c * 9) / 5 + 32);
                     let fToC = (f) => Math.round(((f - 32) * 5) / 9);
 
-                    let newValue = tempUnit
-                      ? currentTemp <= 25
-                        ? cToF(currentTemp)
-                        : currentTemp
-                      : currentTemp > 25
-                      ? fToC(currentTemp)
-                      : currentTemp;
+                    let newValue = unitChanged ? (isFahrenheit ? cToF(currentTemp) : fToC(currentTemp)) : currentTemp;
 
                     serviceThermostat.getCharacteristic(characteristicCurrentTemp).updateValue(newValue);
                   }
