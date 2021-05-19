@@ -58,7 +58,6 @@ yarn.lock
 .github
 .vscode
 demo
-images
 example-config.json
 .prettierrc.json
 .eslintrc.js
