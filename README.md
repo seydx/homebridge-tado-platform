@@ -17,7 +17,7 @@
 
 ## Info
 
-**TafoPlatform** is possibly the biggest homebridge plugin for Tado devices. 
+**TadoPlatform** is possibly the biggest homebridge plugin for Tado devices. 
 
 
 **Multiple home support**
@@ -358,7 +358,7 @@ Shows a switch accessory with additional switches in HomeKit which mimics the "B
 
 #### Boost Switch
 Shows a switch accessory in HomeKit (added to central switch) which mimics the "Boost" switch from Tado and switches all heaters to max temperature. 
-_Note: Central Switch needs to be truned on._
+_Note: Central Switch needs to be turned on._
 
 ```
 "homes": [
@@ -377,9 +377,9 @@ _Note: Central Switch needs to be truned on._
 ]
 ```
 
-#### Shedule Switch
-Shows a switch accessory in HomeKit (added to central switch) which mimics the "Shedule" switch from Tado and switches all heaters to their default shedule
-_Note: Central Switch needs to be truned on._
+#### Schedule Switch
+Shows a switch accessory in HomeKit (added to central switch) which mimics the "Schedule" switch from Tado and switches all heaters to their default schedule
+_Note: Central Switch needs to be turned on._
 
 ```
 "homes": [
@@ -390,7 +390,7 @@ _Note: Central Switch needs to be truned on._
     "weather": { ... },
     "extras": {
       "centralSwitch": true,
-      "sheduleSwitch": true
+      "scheduleSwitch": true
     }
     ...
   }
@@ -400,7 +400,7 @@ _Note: Central Switch needs to be truned on._
 
 #### Turnoff Switch
 Shows a switch accessory in HomeKit (added to central switch) which mimics the "Turn Off" switch from Tado and switches all heaters off
-_Note: Central Switch needs to be truned on._
+_Note: Central Switch needs to be turned on._
 
 ```
 "homes": [
@@ -422,7 +422,7 @@ _Note: Central Switch needs to be truned on._
 
 #### Dummy Switch
 Shows a dummy switch accessory in HomeKit (added to central switch) without any functions. Can be used for eg automation purposes.
-_Note: Central Switch needs to be truned on._
+_Note: Central Switch needs to be turned on._
 
 ```
 "homes": [
@@ -442,7 +442,7 @@ _Note: Central Switch needs to be truned on._
 ```
 
 ### Presence Lock
-Shows a switch with to sub switchs within the main accessory (``"accTypePresenceLock": "SWITCH"``) or security (``"accTypePresenceLock": "ALARM"``) accessory in HomeKit with following features: HOME | AWAY | DISABLED
+Shows a switch with two sub switches within the main accessory (``"accTypePresenceLock": "SWITCH"``) or security (``"accTypePresenceLock": "ALARM"``) accessory in HomeKit with following features: HOME | AWAY | DISABLED
 
 ```
 "homes": [
