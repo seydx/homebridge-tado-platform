@@ -260,7 +260,7 @@ TadoPlatform.prototype = {
       case 'extra-childswitch':
       case 'extra-cntrlswitch':
       case 'extra-boost':
-      case 'extra-shedule':
+      case 'extra-schedule':
       case 'extra-turnoff':
       case 'extra-plockswitch':
         new SwitchAccessory(this.api, accessory, this.accessories, tado, deviceHandler);

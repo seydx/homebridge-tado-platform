@@ -50,7 +50,7 @@
                         "presenceLock": true,
                         "accTypePresenceLock": "SWITCH",
                         "boostSwitch": true,
-                        "sheduleSwitch": true,
+                        "scheduleSwitch": true,
                         "turnoffSwitch": true,
                         "dummySwitch": true,
                         "childLockSwitches": [

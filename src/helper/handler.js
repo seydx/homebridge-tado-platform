@@ -284,14 +284,14 @@ module.exports = (api, accessories, config, tado, telegram) => {
             .filter((room) => room);
 
           if (value) {
-            if (target === 'Central' || target === 'Shedule') {
+            if (target === 'Central' || target === 'Schedule') {
               const roomIds = accessory.context.config.rooms
                 .map((room) => {
                   return room.id;
                 })
                 .filter((id) => id);
 
-              await tado.resumeShedule(config.homeId, roomIds);
+              await tado.resumeSchedule(config.homeId, roomIds);
 
               //Turn all back to AUTO/ON
               heatAccessories.forEach((acc) => {

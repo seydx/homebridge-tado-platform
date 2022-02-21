@@ -375,9 +375,9 @@ class Tado {
     return this.apiCall(`/api/v2/homes/${home_id}/overlay`, 'POST', postData);
   }
 
-  async resumeShedule(home_id, roomIds = []) {
+  async resumeSchedule(home_id, roomIds = []) {
     if (!roomIds.length) {
-      throw new Error('Can not resume shedule for zones, no room ids given!');
+      throw new Error('Can not resume schedule for zones, no room ids given!');
     }
 
     const params = {

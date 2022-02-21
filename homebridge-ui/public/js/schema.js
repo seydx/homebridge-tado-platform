@@ -250,13 +250,13 @@ const schema = {
               },
               'description': 'If enabled, a boost heat switch will be added to the central switch.'
             },
-            'sheduleSwitch': {
-              'title': 'Shedule Switch',
+            'scheduleSwitch': {
+              'title': 'Schedule Switch',
               'type': 'boolean',
               'condition': {
                 'functionBody': 'try { return model.homes.extras.centralSwitch } catch(e){ return false }'
               },
-              'description': 'If enabled, a shedule heat switch will be added to the central switch.'
+              'description': 'If enabled, a schedule heat switch will be added to the central switch.'
             },
             'turnoffSwitch': {
               'title': 'Turn Off Switch',
@@ -771,7 +771,7 @@ const schema = {
             'homes.extras.centralSwitch',
             'homes.extras.runningInformation',
             'homes.extras.boostSwitch',
-            'homes.extras.sheduleSwitch',
+            'homes.extras.scheduleSwitch',
             'homes.extras.turnoffSwitch',
             'homes.extras.dummySwitch'
           ]
