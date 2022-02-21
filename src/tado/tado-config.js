@@ -66,7 +66,7 @@ module.exports = {
               centralSwitch: false,
               runningInformation: false,
               boostSwitch: false,
-              sheduleSwitch: false,
+              scheduleSwitch: false,
               turnoffSwitch: false,
               presenceLock: false,
               accTypePresenceLock: 'ALARM',
@@ -873,11 +873,11 @@ module.exports = {
                   });
                 }
 
-                //Configure Shedule Switch
-                if (home.extras.sheduleSwitch) {
+                //Configure Schedule Switch
+                if (home.extras.scheduleSwitch) {
                   validSwitches.push({
-                    name: 'Shedule',
-                    sub: 'CentralShedule',
+                    name: 'Schedule',
+                    sub: 'CentralSchedule',
                   });
                 }
 

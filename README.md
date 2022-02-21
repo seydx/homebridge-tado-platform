@@ -62,7 +62,7 @@ After [Homebridge](https://github.com/nfarina/homebridge) has been installed:
   - [Extras](#extras)
     - [Central Switch](#central-switch)
       - [Boost Switch](#boost-switch)
-      - [Shedule Switch](#shedule-switch)
+      - [Schedule Switch](#schedule-switch)
       - [Turnoff Switch](#turnoff-switch)
       - [Dummy Switch](#dummy-switch)
     - [Presence Lock](#presence-lock)
@@ -377,8 +377,8 @@ _Note: Central Switch needs to be truned on._
 ]
 ```
 
-#### Shedule Switch
-Shows a switch accessory in HomeKit (added to central switch) which mimics the "Shedule" switch from Tado and switches all heaters to their default shedule
+#### Schedule Switch
+Shows a switch accessory in HomeKit (added to central switch) which mimics the "Schedule" switch from Tado and switches all heaters to their default schedule
 _Note: Central Switch needs to be truned on._
 
 ```
@@ -390,7 +390,7 @@ _Note: Central Switch needs to be truned on._
     "weather": { ... },
     "extras": {
       "centralSwitch": true,
-      "sheduleSwitch": true
+      "scheduleSwitch": true
     }
     ...
   }

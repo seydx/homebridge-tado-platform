@@ -99,7 +99,7 @@ If you previously used your "HOT_WATER" device/zone as a faucet, then disable th
   - Overall heat in h for day/month/year
   - Thermostat/Boiler states (manual, auto, off)
   - Boost trigger switch
-  - Resume shedule trigger switch
+  - Resume schedule trigger switch
   - Turn off trigger switch
 - OpenWindow
   - Grouped Switch: Enables open window and trigger open window detection
