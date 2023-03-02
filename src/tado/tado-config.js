@@ -49,7 +49,7 @@ module.exports = {
             name: foundHome.name,
             username: username,
             password: password,
-            polling: 30,
+            polling: 300,
             zones: [],
             presence: {
               anyone: false,
@@ -540,7 +540,7 @@ module.exports = {
               home.extras && home.extras.childLockSwitches
                 ? home.extras.childLockSwitches.filter((childLockSwitch) => childLockSwitch && childLockSwitch.active)
                 : [],
-            polling: Number.isInteger(home.polling) ? (home.polling < 30 ? 30 : home.polling) : 30,
+            polling: Number.isInteger(home.polling) ? (home.polling < 300 ? 300 : home.polling) : 300,
           };
 
           if (home.zones && home.zones.length) {

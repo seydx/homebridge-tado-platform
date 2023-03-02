@@ -44,8 +44,8 @@ const schema = {
           'title': 'Polling',
           'description': 'The polling interval in seconds.',
           'type': 'integer',
-          'default': 30,
-          'minimum': 30
+          'default': 300,
+          'minimum': 300
         },
         'temperatureUnit': {
           'title': 'Temperature Unit',
